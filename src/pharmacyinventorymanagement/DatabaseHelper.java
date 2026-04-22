@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.ResultSet;
 
 import javax.swing.table.DefaultTableModel;
 import java.sql.ResultSetMetaData;
@@ -75,11 +76,10 @@ public class DatabaseHelper {
             try {
                 stmt.execute("CREATE TABLE SALES (" +
                         "S_ID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, " +
-                        "M_ID INT, " +
-                        "M_NAME VARCHAR(50), " +
-                        "QUANTITY INT, " +
-                        "PRICE DOUBLE, " +
-                        "SALE_DATE DATE)");
+                        "S_MED_NAME VARCHAR(100), " +
+                        "S_DATE DATE, " +
+                        "S_QTY INT, " +
+                        "S_TOTAL DOUBLE)");
             } catch (SQLException e) { /* Table already exists */ }
 
             // Other tables (AGENTS, COMPANY) are assumed to exist or will be handled in their frames

@@ -96,14 +96,12 @@ public class SellingFrame extends javax.swing.JFrame {
     public void recordSale(int medId, String medName, int qty, double total) {
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO User1.SALES (S_ID, S_MED_NAME, S_DATE, S_QTY, S_TOTAL) VALUES (?, ?, ?, ?, ?)")) {
+                 "INSERT INTO User1.SALES (S_MED_NAME, S_DATE, S_QTY, S_TOTAL) VALUES (?, ?, ?, ?)")) {
             
-            int id = (int) (System.currentTimeMillis() % 1000000);
-            pstmt.setInt(1, id);
-            pstmt.setString(2, medName);
-            pstmt.setDate(3, new java.sql.Date(System.currentTimeMillis()));
-            pstmt.setInt(4, qty);
-            pstmt.setDouble(5, total);
+            pstmt.setString(1, medName);
+            pstmt.setDate(2, new java.sql.Date(System.currentTimeMillis()));
+            pstmt.setInt(3, qty);
+            pstmt.setDouble(4, total);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
