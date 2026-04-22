@@ -239,12 +239,12 @@ public class LoginFrame extends javax.swing.JFrame {
         String selectQ = "select * from User1.AGENTS where A_NAME='"+txtUserName.getText()+"' and A_PASSWORD = '"+pwd+"'";
         
         try{
-            Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+            Con = DatabaseHelper.getConnection();
             St = Con.createStatement();
             Rs = St.executeQuery(selectQ);
 
             if(Rs.next()){
-                new MedicineFrame().setVisible(true);
+                new DashboardFrame().setVisible(true);
                 
                 JOptionPane.showMessageDialog(this, "Logged in Successfully");
                 this.dispose();

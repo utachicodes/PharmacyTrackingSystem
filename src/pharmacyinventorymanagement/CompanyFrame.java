@@ -16,7 +16,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import net.proteanit.sql.DbUtils;
 import java.sql.ResultSet;
 import javax.swing.table.DefaultTableModel;
 
@@ -430,10 +429,10 @@ public class CompanyFrame extends javax.swing.JFrame {
     public void SelectCompany()
     {
         try{
-            Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+            Con = DatabaseHelper.getConnection();
             St = Con.createStatement();
             Rs = St.executeQuery("Select * from User1.COMPANY");
-            company_table.setModel(DbUtils.resultSetToTableModel(Rs));
+            company_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
         {
@@ -448,7 +447,7 @@ public class CompanyFrame extends javax.swing.JFrame {
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
 
         try{
-            Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+            Con = DatabaseHelper.getConnection();
             PreparedStatement add = Con.prepareStatement("insert into COMPANY values(?,?,?,?,?)");
             add.setInt(1, Integer.valueOf(c_id.getText()));
             add.setString(2, c_name.getText());
@@ -485,7 +484,7 @@ public class CompanyFrame extends javax.swing.JFrame {
             else{
                 try{
                     
-                    Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+                    Con = DatabaseHelper.getConnection();
                     String Id = c_id.getText();
                     String retriveId = "Select * from User1.COMPANY where C_ID="+Id; 
                     Statement select = Con.createStatement();
@@ -532,7 +531,7 @@ public class CompanyFrame extends javax.swing.JFrame {
                 if(!row.next()){
                     JOptionPane.showMessageDialog(this, "Company "+Id+" does not exist! Please enter valid ID to update");
                 }else{
-                    Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+                    Con = DatabaseHelper.getConnection();
                     String UpdateQuery = "Update User1.COMPANY set C_NAME = '"+c_name.getText()+"'"+",C_ADDRESS = '"+c_address.getText()+"'"+",C_EXP = "+c_exp.getText()+""+",C_PHONE = '"+c_phone.getText()+"'"+" where C_ID = "+c_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
