@@ -1,0 +1,26 @@
+# Java class files
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.oracle.com/technetwork/java/javase/troubleshoot-11-2603205.html#g6124
+hs_err_pid*
+
+# NetBeans specific
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# IntelliJ specific
+.idea/
+*.iml
+out/
