@@ -7,8 +7,8 @@ package pharmacyinventorymanagement;
 /**
  *
  * @author Abdoullah Ndao
- * @author B Pravena
- * @author Bhuvantej R
+ *
+ *
  */
 import java.sql.*;
 import java.sql.Statement;
