@@ -35,7 +35,6 @@ public class MedicineFrame extends javax.swing.JFrame {
     ResultSet Rs =null, Rs1=null;
     java.util.Date FDate, EDate;
     java.sql.Date MyFabdate, MyExpDate;
-    private javax.swing.JTextField m_owner;
     private javax.swing.JLabel TitleOwner;
     
     @SuppressWarnings("unchecked")
