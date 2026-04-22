@@ -170,11 +170,9 @@
                   <Font name="Bahnschrift" size="14" style="0"/>
                 </Property>
                 <Property name="model" type="javax.swing.ListModel" editor="org.netbeans.modules.form.editors2.ListModelEditor">
-                  <StringArray count="4">
+                  <StringArray count="2">
                     <StringItem index="0" value="Project by:"/>
-                    <StringItem index="1" value="Bharath Kumar S P   - CS087"/>
-                    <StringItem index="2" value="B Pravena                 - CS076"/>
-                    <StringItem index="3" value="Bhuvantej R              - CS092"/>
+                    <StringItem index="1" value="Abdoullah Ndao"/>
                   </StringArray>
                 </Property>
               </Properties>

@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 
 /**
  *
- * @author Bharath Kumar S P
+ * @author Abdoullah Ndao
  */
 public class SplashFrame extends javax.swing.JFrame {
 
@@ -84,7 +84,7 @@ public class SplashFrame extends javax.swing.JFrame {
 
         jList1.setFont(new java.awt.Font("Bahnschrift", 0, 14)); // NOI18N
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Project by:", "Bharath Kumar S P   - CS087", "B Pravena                 - CS076", "Bhuvantej R              - CS092" };
+            String[] strings = { "Project by:", "Abdoullah Ndao" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });

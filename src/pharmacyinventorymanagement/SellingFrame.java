@@ -16,7 +16,7 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * @author Bharath Kumar S P
+ * @author Abdoullah Ndao
  */
 public class SellingFrame extends javax.swing.JFrame {
 
