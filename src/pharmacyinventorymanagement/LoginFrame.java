@@ -15,7 +15,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import net.proteanit.sql.DbUtils;
 import java.sql.ResultSet;
 import javax.swing.table.DefaultTableModel;
 public class LoginFrame extends javax.swing.JFrame {
