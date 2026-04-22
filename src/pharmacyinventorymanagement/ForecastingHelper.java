@@ -78,7 +78,7 @@ public class ForecastingHelper {
             LocalDate thirtyDaysFromNow = LocalDate.now().plusDays(30);
             while (rs.next()) {
                 String name = rs.getString("M_NAME");
-                Date expDate = rs.getDate("M_EXPDATE");
+                java.sql.Date expDate = rs.getDate("M_EXPDATE");
                 if (expDate != null) {
                     LocalDate expiry = expDate.toLocalDate();
                     if (expiry.isBefore(thirtyDaysFromNow)) {
