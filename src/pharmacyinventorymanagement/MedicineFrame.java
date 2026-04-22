@@ -16,7 +16,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import net.proteanit.sql.DbUtils;
 import java.sql.ResultSet;
 import javax.swing.table.DefaultTableModel;
 
@@ -30,11 +29,14 @@ public class MedicineFrame extends javax.swing.JFrame {
         SelectMed();
     }
     
+    
     Connection Con = null;
     Statement St = null, St1=null;
     ResultSet Rs =null, Rs1=null;
     java.util.Date FDate, EDate;
     java.sql.Date MyFabdate, MyExpDate;
+    private javax.swing.JTextField m_owner;
+    private javax.swing.JLabel TitleOwner;
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -145,6 +147,12 @@ public class MedicineFrame extends javax.swing.JFrame {
             }
         });
 
+        m_owner = new javax.swing.JTextField();
+        Title12 = new javax.swing.JLabel();
+        Title12.setFont(new java.awt.Font("High Tower Text", 1, 17));
+        Title12.setForeground(new java.awt.Color(51, 153, 0));
+        Title12.setText("OWNER");
+
         m_company.setBackground(new java.awt.Color(51, 204, 0));
         m_company.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         m_company.setForeground(new java.awt.Color(255, 255, 255));
@@ -218,11 +226,13 @@ public class MedicineFrame extends javax.swing.JFrame {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(Title6)
-                            .addComponent(Title7))
+                            .addComponent(Title7)
+                            .addComponent(Title12))
                         .addGap(18, 18, 18)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(m_price, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(m_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(m_owner, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addGap(10, 10, 10)
                                 .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -274,7 +284,11 @@ public class MedicineFrame extends javax.swing.JFrame {
                         .addGap(29, 29, 29)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(Title7)
-                            .addComponent(m_price, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(m_price, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(25, 25, 25)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(Title12)
+                            .addComponent(m_owner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(m_company, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(65, 65, 65)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -465,10 +479,10 @@ public class MedicineFrame extends javax.swing.JFrame {
     public void SelectMed()
     {
         try{
-            Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+            Con = DatabaseHelper.getConnection();
             St = Con.createStatement();
             Rs = St.executeQuery("Select * from User1.MEDICINE");
-            medicine_table.setModel(DbUtils.resultSetToTableModel(Rs));
+            medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
         {
@@ -484,7 +498,7 @@ public class MedicineFrame extends javax.swing.JFrame {
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
         
         try{
-            Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+            Con = DatabaseHelper.getConnection();
             
             String Id = m_id.getText();
                 
@@ -500,7 +514,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                 MyFabdate = new java.sql.Date(FDate.getTime());
                 EDate = m_expdate.getDate();
                 MyExpDate = new java.sql.Date(EDate.getTime());
-                PreparedStatement add = Con.prepareStatement("insert into MEDICINE values(?,?,?,?,?,?,?)");
+                PreparedStatement add = Con.prepareStatement("insert into MEDICINE values(?,?,?,?,?,?,?,?)");
                 add.setInt(1, Integer.valueOf( m_id.getText() ));
                 add.setString(2, m_name.getText());
                 add.setInt(3, Integer.valueOf(m_quantity.getText()));
@@ -508,6 +522,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                 add.setDate(5, MyExpDate);
                 add.setDate(6, MyFabdate);
                 add.setString(7, m_company.getSelectedItem().toString());
+                add.setString(8, m_owner.getText().isEmpty() ? "Main" : m_owner.getText());
 
                 int rowAdd = add.executeUpdate();
 
@@ -517,18 +532,9 @@ public class MedicineFrame extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Medicine Added Successfully!");
             }
         
-        }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
-                JOptionPane.showMessageDialog(this, "Error: Expiry date must not be lesser than manufacture date!");
-        }
-        catch(SQLException e)
-        {
-            JOptionPane.showMessageDialog(this, "Error: A SQL exception occured");
-
-            e.printStackTrace();
         }catch(Exception e){
-                JOptionPane.showMessageDialog(this, "Error: please fill all details correctly!");
-
-            }
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
     }//GEN-LAST:event_btnAddMouseClicked
 
     private void btnDeleteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDeleteMouseClicked
@@ -539,7 +545,7 @@ public class MedicineFrame extends javax.swing.JFrame {
         else{
             try{
                 
-                Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+                Con = DatabaseHelper.getConnection();
                 String Id = m_id.getText();
                 
                 String retriveId = "Select M_ID from User1.MEDICINE where M_ID="+Id; 
@@ -579,7 +585,7 @@ public class MedicineFrame extends javax.swing.JFrame {
      
             try{
                 
-                Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+                Con = DatabaseHelper.getConnection();
 
                 int Id = Integer.valueOf(m_id.getText());
                 String retriveId = "Select M_ID from User1.MEDICINE where M_ID="+Id; 
@@ -593,7 +599,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                     MyFabdate = new java.sql.Date(FDate.getTime());
                     EDate = m_expdate.getDate();
                     MyExpDate = new java.sql.Date(EDate.getTime());
-                    String UpdateQuery = "Update User1.MEDICINE set M_NAME = '"+m_name.getText()+"'"+",M_PRICE = "+Double.valueOf(m_price.getText())+",M_QUANTITY = "+m_quantity.getText()+",M_MFTDATE = '"+MyFabdate+"',M_EXPDATE = '"+MyExpDate+"',M_COMPANY = '"+m_company.getSelectedItem().toString()+"'"+"where M_ID = "+m_id.getText();
+                    String UpdateQuery = "Update User1.MEDICINE set M_NAME = '"+m_name.getText()+"'"+",M_PRICE = "+Double.valueOf(m_price.getText())+",M_QUANTITY = "+m_quantity.getText()+",M_MFTDATE = '"+MyFabdate+"',M_EXPDATE = '"+MyExpDate+"',M_COMPANY = '"+m_company.getSelectedItem().toString()+"',M_OWNER = '"+(m_owner.getText().isEmpty() ? "Main" : m_owner.getText())+"' where M_ID = "+m_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
 
@@ -624,8 +630,8 @@ public class MedicineFrame extends javax.swing.JFrame {
         m_expdate.setDate((java.sql.Date) model.getValueAt(Myindex, 4));
         m_mftdate.setDate((java.sql.Date) model.getValueAt(Myindex, 5));
 
-        
-        
+        m_company.setSelectedItem(model.getValueAt(Myindex, 6).toString());
+        m_owner.setText(model.getValueAt(Myindex, 7) == null ? "" : model.getValueAt(Myindex, 7).toString());
     }//GEN-LAST:event_medicine_tableMouseClicked
 
     private void btnClearMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnClearMouseClicked
@@ -740,6 +746,8 @@ public class MedicineFrame extends javax.swing.JFrame {
     private javax.swing.JTextField m_quantity;
     private javax.swing.JTable medicine_table;
     private javax.swing.JLabel sellBtn;
+    private javax.swing.JTextField m_owner;
+    private javax.swing.JLabel Title12;
     // End of variables declaration//GEN-END:variables
 }
 

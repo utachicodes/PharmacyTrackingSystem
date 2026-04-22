@@ -17,7 +17,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import net.proteanit.sql.DbUtils;
 import java.sql.ResultSet;
 import javax.swing.table.DefaultTableModel;
 
@@ -467,10 +466,10 @@ public class AgentsFrame extends javax.swing.JFrame {
     public void SelectMed()
     {
         try{
-        Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+        Con = DatabaseHelper.getConnection();
         St = Con.createStatement();
         Rs = St.executeQuery("Select * from User1.AGENTS");
-        AgentTable.setModel(DbUtils.resultSetToTableModel(Rs));
+        AgentTable.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
         {
@@ -515,7 +514,7 @@ public class AgentsFrame extends javax.swing.JFrame {
 
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
         try{
-            Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+            Con = DatabaseHelper.getConnection();
             PreparedStatement add = Con.prepareStatement("insert into AGENTS values(?,?,?,?,?,?,?)");
             add.setInt(1, Integer.valueOf(a_id.getText()));
             add.setString(2, a_name.getText());
@@ -558,7 +557,7 @@ public class AgentsFrame extends javax.swing.JFrame {
        }
        else{
            try{
-               Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+               Con = DatabaseHelper.getConnection();
                String Id = a_id.getText();
                String Query = "Delete from User1.AGENTS where A_ID="+Id;
                Statement Add = Con.createStatement();
@@ -599,7 +598,7 @@ public class AgentsFrame extends javax.swing.JFrame {
         {
             try{
                
-                Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+                Con = DatabaseHelper.getConnection();
                
                 int Id = Integer.valueOf(a_id.getText());
                 String retriveId = "Select A_ID from User1.AGENTS where A_ID="+Id; 

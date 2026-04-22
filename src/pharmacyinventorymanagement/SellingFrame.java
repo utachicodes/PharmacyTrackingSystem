@@ -13,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import net.proteanit.sql.DbUtils;
 
 /**
  *
@@ -47,10 +46,10 @@ public class SellingFrame extends javax.swing.JFrame {
     public void SelectMed()
     {
         try{
-            Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+            Con = DatabaseHelper.getConnection();
             St = Con.createStatement();
             Rs = St.executeQuery("Select * from User1.MEDICINE");
-            medicine_table.setModel(DbUtils.resultSetToTableModel(Rs));
+            medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
         {
@@ -65,18 +64,18 @@ public class SellingFrame extends javax.swing.JFrame {
                 try{
                     int newQty = mQty - orderQty;
                     mQty = newQty;
-                    Con = DriverManager.getConnection("jdbc:derby://localhost:1527/PharmaDb", "User1","User1");
+                    Con = DatabaseHelper.getConnection();
 
                     String UpdateQuery = "Update User1.MEDICINE set M_QUANTITY = "+newQty+" where M_ID = "+medId;
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
 
+                    recordSale(medId, b_medName.getText(), orderQty, price * orderQty);
+                    
                     SelectMed();
                     Con.close();
                     return true;
 
-                }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
-                    JOptionPane.showMessageDialog(this, "Error: Expiry date must not be lesser than manufacture date!");
                 }catch(SQLException e)
                 {
                     JOptionPane.showMessageDialog(this, "Error: A SQL exception occured");
@@ -94,6 +93,23 @@ public class SellingFrame extends javax.swing.JFrame {
 
     }
     
+    public void recordSale(int medId, String medName, int qty, double total) {
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "INSERT INTO User1.SALES (S_ID, S_MED_NAME, S_DATE, S_QTY, S_TOTAL) VALUES (?, ?, ?, ?, ?)")) {
+            
+            int id = (int) (System.currentTimeMillis() % 1000000);
+            pstmt.setInt(1, id);
+            pstmt.setString(2, medName);
+            pstmt.setDate(3, new java.sql.Date(System.currentTimeMillis()));
+            pstmt.setInt(4, qty);
+            pstmt.setDouble(5, total);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 

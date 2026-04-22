@@ -19,6 +19,21 @@ public class SplashFrame extends javax.swing.JFrame {
         initComponents();
     }
 
+    public void startApp() {
+        this.setVisible(true);
+        try {
+            for (int i = 0; i <= 100; i++) {
+                Thread.sleep(25);
+                progressBar.setValue(i);
+                percentage.setText(Integer.toString(i) + "%");
+            }
+            new LoginFrame().setVisible(true);
+            this.dispose();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

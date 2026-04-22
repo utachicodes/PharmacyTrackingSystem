@@ -4,11 +4,7 @@ Java lab project
 
 Done by -:
 
-**Bharath Kumar S P**
-
-**Bhuvantej R**
-
-**B Pravena**
+**Abdoullah Ndao**
 
 
 Pharmacy management system stores and manages Medicine, company and agent details. 
