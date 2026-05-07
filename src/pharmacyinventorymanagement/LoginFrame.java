@@ -243,9 +243,10 @@ public class LoginFrame extends javax.swing.JFrame {
             Rs = St.executeQuery(selectQ);
 
             if(Rs.next()){
-                new DashboardFrame().setVisible(true);
+                String role = Rs.getString("A_ROLE");
+                new DashboardFrame(role).setVisible(true);
                 
-                JOptionPane.showMessageDialog(this, "Logged in Successfully");
+                JOptionPane.showMessageDialog(this, "Logged in as " + role);
                 this.dispose();
             }else{
                 JOptionPane.showMessageDialog(this, "Invalid Username/Password");                

@@ -91,4 +91,22 @@ public class ForecastingHelper {
         }
         return alerts;
     }
+
+    /**
+     * Calculates the total value of the inventory.
+     */
+    public static double getInventoryValue() {
+        double totalValue = 0;
+        try (Connection conn = DatabaseHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT M_QUANTITY, M_UNIT_COST FROM User1.MEDICINE")) {
+            
+            while (rs.next()) {
+                totalValue += rs.getInt("M_QUANTITY") * rs.getDouble("M_UNIT_COST");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return totalValue;
+    }
 }

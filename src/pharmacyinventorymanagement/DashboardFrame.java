@@ -6,9 +6,27 @@ import java.util.List;
 
 public class DashboardFrame extends javax.swing.JFrame {
 
+    private String userRole;
+
     public DashboardFrame() {
+        this("Admin"); // Default for dev/testing
+    }
+
+    public DashboardFrame(String role) {
+        this.userRole = role;
         initComponents();
         loadAlerts();
+        applyRolePermissions();
+    }
+
+    private void applyRolePermissions() {
+        if ("Technician".equalsIgnoreCase(userRole)) {
+            btnAgents.setEnabled(false);
+            btnCompany.setEnabled(false);
+            btnPO.setEnabled(false);
+        } else if ("Pharmacist".equalsIgnoreCase(userRole)) {
+            btnAgents.setEnabled(false);
+        }
     }
 
     private void loadAlerts() {
@@ -27,6 +45,12 @@ public class DashboardFrame extends javax.swing.JFrame {
             }
         }
         alertList.setModel(model);
+        
+        // Add summary info to the list
+        double totalValue = ForecastingHelper.getInventoryValue();
+        model.add(0, "------------------------------------------");
+        model.add(0, "TOTAL INVENTORY VALUE: $" + String.format("%.2f", totalValue));
+        model.add(0, "------------------------------------------");
     }
 
     private void initComponents() {
@@ -36,6 +60,7 @@ public class DashboardFrame extends javax.swing.JFrame {
         btnAgents = new javax.swing.JButton();
         btnCompany = new javax.swing.JButton();
         btnSelling = new javax.swing.JButton();
+        btnPO = new javax.swing.JButton();
         btnLogout = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -64,7 +89,7 @@ public class DashboardFrame extends javax.swing.JFrame {
             this.dispose();
         });
 
-        btnCompany.setText("Manage Companies");
+        btnCompany.setText("Supplier Management");
         btnCompany.addActionListener(e -> {
             new CompanyFrame().setVisible(true);
             this.dispose();
@@ -73,6 +98,12 @@ public class DashboardFrame extends javax.swing.JFrame {
         btnSelling.setText("Billing/Selling");
         btnSelling.addActionListener(e -> {
             new SellingFrame().setVisible(true);
+            this.dispose();
+        });
+
+        btnPO.setText("Purchase Orders/Receiving");
+        btnPO.addActionListener(e -> {
+            new PurchaseOrderFrame().setVisible(true);
             this.dispose();
         });
 
@@ -94,6 +125,7 @@ public class DashboardFrame extends javax.swing.JFrame {
                     .addComponent(btnAgents, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnCompany, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnSelling, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnPO, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnLogout, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(20, Short.MAX_VALUE))
         );
@@ -110,7 +142,9 @@ public class DashboardFrame extends javax.swing.JFrame {
                 .addComponent(btnCompany, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(btnSelling, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 100, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(btnPO, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
                 .addComponent(btnLogout, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(30, 30, 30))
         );
@@ -169,6 +203,7 @@ public class DashboardFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnMedicine;
     private javax.swing.JButton btnSelling;
+    private javax.swing.JButton btnPO;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;

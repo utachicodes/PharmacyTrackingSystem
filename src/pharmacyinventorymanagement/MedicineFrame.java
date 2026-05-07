@@ -27,6 +27,39 @@ public class MedicineFrame extends javax.swing.JFrame {
     public MedicineFrame() {
         initComponents();
         SelectMed();
+        applyTableHighlighters();
+    }
+    
+    private void applyTableHighlighters() {
+        medicine_table.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                
+                try {
+                    int qty = Integer.parseInt(table.getValueAt(row, 2).toString()); // Quantity
+                    int threshold = 10; // Default or fetch from model
+                    try { threshold = Integer.parseInt(table.getValueAt(row, 12).toString()); } catch(Exception e) {}
+
+                    java.sql.Date expDate = (java.sql.Date) table.getValueAt(row, 4);
+                    long daysToExpiry = (expDate.getTime() - System.currentTimeMillis()) / (1000 * 60 * 60 * 24);
+
+                    if (qty <= threshold) {
+                        c.setBackground(new Color(255, 204, 204)); // Light Red
+                    } else if (daysToExpiry < 30) {
+                        c.setBackground(new Color(255, 255, 204)); // Light Orange/Yellow
+                    } else {
+                        c.setBackground(Color.WHITE);
+                    }
+                    
+                    if (isSelected) {
+                        c.setBackground(table.getSelectionBackground());
+                    }
+                } catch (Exception e) {}
+                
+                return c;
+            }
+        });
     }
     
     
@@ -35,7 +68,15 @@ public class MedicineFrame extends javax.swing.JFrame {
     ResultSet Rs =null, Rs1=null;
     java.util.Date FDate, EDate;
     java.sql.Date MyFabdate, MyExpDate;
-    private javax.swing.JLabel TitleOwner;
+    
+    // New fields
+    private javax.swing.JComboBox<String> m_category;
+    private javax.swing.JTextField m_strength;
+    private javax.swing.JTextField m_dosage;
+    private javax.swing.JTextField m_unitcost;
+    private javax.swing.JTextField m_threshold;
+    private javax.swing.JTextField m_batch;
+    private javax.swing.JLabel TitleCat, TitleStr, TitleDos, TitleUC, TitleThr, TitleBat;
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -449,7 +490,29 @@ public class MedicineFrame extends javax.swing.JFrame {
 
         pack();
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+        customInit();
+    }// </editor-fold>
+
+    private void customInit() {
+        m_category = new javax.swing.JComboBox<>(new String[] { "Tablet", "Syrup", "Injection", "Capsule", "Ointment", "Other" });
+        m_strength = new javax.swing.JTextField(10);
+        m_dosage = new javax.swing.JTextField(10);
+        m_unitcost = new javax.swing.JTextField(5);
+        m_threshold = new javax.swing.JTextField("10", 5);
+        m_batch = new javax.swing.JTextField(10);
+        
+        JPanel extraPanel = new JPanel(new FlowLayout());
+        extraPanel.setBackground(new Color(255, 255, 204));
+        extraPanel.add(new JLabel("Cat:")); extraPanel.add(m_category);
+        extraPanel.add(new JLabel("Str:")); extraPanel.add(m_strength);
+        extraPanel.add(new JLabel("Dos:")); extraPanel.add(m_dosage);
+        extraPanel.add(new JLabel("Cost:")); extraPanel.add(m_unitcost);
+        extraPanel.add(new JLabel("Min:")); extraPanel.add(m_threshold);
+        extraPanel.add(new JLabel("Batch:")); extraPanel.add(m_batch);
+        
+        getContentPane().add(extraPanel, BorderLayout.SOUTH);
+        pack();
+    }
 
     private void m_idActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_idActionPerformed
         // TODO add your handling code here:
@@ -513,7 +576,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                 MyFabdate = new java.sql.Date(FDate.getTime());
                 EDate = m_expdate.getDate();
                 MyExpDate = new java.sql.Date(EDate.getTime());
-                PreparedStatement add = Con.prepareStatement("insert into MEDICINE values(?,?,?,?,?,?,?,?)");
+                PreparedStatement add = Con.prepareStatement("insert into MEDICINE values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
                 add.setInt(1, Integer.valueOf( m_id.getText() ));
                 add.setString(2, m_name.getText());
                 add.setInt(3, Integer.valueOf(m_quantity.getText()));
@@ -522,6 +585,12 @@ public class MedicineFrame extends javax.swing.JFrame {
                 add.setDate(6, MyFabdate);
                 add.setString(7, m_company.getSelectedItem().toString());
                 add.setString(8, m_owner.getText().isEmpty() ? "Main" : m_owner.getText());
+                add.setString(9, m_category.getSelectedItem().toString());
+                add.setString(10, m_strength.getText());
+                add.setString(11, m_dosage.getText());
+                add.setDouble(12, m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()));
+                add.setInt(13, m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()));
+                add.setString(14, m_batch.getText());
 
                 int rowAdd = add.executeUpdate();
 
@@ -598,7 +667,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                     MyFabdate = new java.sql.Date(FDate.getTime());
                     EDate = m_expdate.getDate();
                     MyExpDate = new java.sql.Date(EDate.getTime());
-                    String UpdateQuery = "Update User1.MEDICINE set M_NAME = '"+m_name.getText()+"'"+",M_PRICE = "+Double.valueOf(m_price.getText())+",M_QUANTITY = "+m_quantity.getText()+",M_MFTDATE = '"+MyFabdate+"',M_EXPDATE = '"+MyExpDate+"',M_COMPANY = '"+m_company.getSelectedItem().toString()+"',M_OWNER = '"+(m_owner.getText().isEmpty() ? "Main" : m_owner.getText())+"' where M_ID = "+m_id.getText();
+                    String UpdateQuery = "Update User1.MEDICINE set M_NAME = '"+m_name.getText()+"'"+",M_PRICE = "+Double.valueOf(m_price.getText())+",M_QUANTITY = "+m_quantity.getText()+",M_MFTDATE = '"+MyFabdate+"',M_EXPDATE = '"+MyExpDate+"',M_COMPANY = '"+m_company.getSelectedItem().toString()+"',M_OWNER = '"+(m_owner.getText().isEmpty() ? "Main" : m_owner.getText())+"',M_CATEGORY = '"+m_category.getSelectedItem().toString()+"',M_STRENGTH = '"+m_strength.getText()+"',M_DOSAGE = '"+m_dosage.getText()+"',M_UNIT_COST = "+(m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()))+",M_THRESHOLD = "+(m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()))+",M_BATCH = '"+m_batch.getText()+"' where M_ID = "+m_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
 
@@ -631,6 +700,12 @@ public class MedicineFrame extends javax.swing.JFrame {
 
         m_company.setSelectedItem(model.getValueAt(Myindex, 6).toString());
         m_owner.setText(model.getValueAt(Myindex, 7) == null ? "" : model.getValueAt(Myindex, 7).toString());
+        m_category.setSelectedItem(model.getValueAt(Myindex, 8) == null ? "Tablet" : model.getValueAt(Myindex, 8).toString());
+        m_strength.setText(model.getValueAt(Myindex, 9) == null ? "" : model.getValueAt(Myindex, 9).toString());
+        m_dosage.setText(model.getValueAt(Myindex, 10) == null ? "" : model.getValueAt(Myindex, 10).toString());
+        m_unitcost.setText(model.getValueAt(Myindex, 11) == null ? "" : model.getValueAt(Myindex, 11).toString());
+        m_threshold.setText(model.getValueAt(Myindex, 12) == null ? "10" : model.getValueAt(Myindex, 12).toString());
+        m_batch.setText(model.getValueAt(Myindex, 13) == null ? "" : model.getValueAt(Myindex, 13).toString());
     }//GEN-LAST:event_medicine_tableMouseClicked
 
     private void btnClearMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnClearMouseClicked

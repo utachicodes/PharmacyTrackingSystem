@@ -459,7 +459,20 @@ public class AgentsFrame extends javax.swing.JFrame {
 
         pack();
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+        customInit();
+    }// </editor-fold>
+    
+    private void customInit() {
+        a_role = new javax.swing.JComboBox<>(new String[] { "Admin", "Pharmacist", "Technician" });
+        TitleRole = new javax.swing.JLabel("ROLE:");
+        
+        JPanel extraPanel = new JPanel(new FlowLayout());
+        extraPanel.setBackground(new Color(255, 255, 204));
+        extraPanel.add(TitleRole); extraPanel.add(a_role);
+        
+        getContentPane().add(extraPanel, BorderLayout.SOUTH);
+        pack();
+    }
 
     public void SelectMed()
     {
@@ -521,6 +534,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             add.setString(5, a_phone.getText());
             add.setString(6, a_gender.getSelectedItem().toString());
             add.setString(7, a_email.getText());
+            add.setString(8, a_role.getSelectedItem().toString());
             
             int row = add.executeUpdate();
             SelectMed();
@@ -583,6 +597,7 @@ public class AgentsFrame extends javax.swing.JFrame {
         a_age.setText(model.getValueAt(Myindex, 2).toString());
         a_phone.setText(model.getValueAt(Myindex, 4).toString());
         a_email.setText(model.getValueAt(Myindex, 6).toString());
+        a_role.setSelectedItem(model.getValueAt(Myindex, 7) == null ? "Technician" : model.getValueAt(Myindex, 7).toString());
 
     }//GEN-LAST:event_AgentTableMouseClicked
 
@@ -608,7 +623,7 @@ public class AgentsFrame extends javax.swing.JFrame {
                 }else{
                 
                 
-                    String UpdateQuery = "Update User1.AGENTS set A_NAME = '"+a_name.getText()+"'"+",A_AGE = "+a_age.getText()+",A_PHONE = '"+a_phone.getText()+"',A_PASSWORD = '"+a_password.getText()+"',A_GENDER = '"+a_gender.getSelectedItem().toString()+"'"+" where A_ID = "+a_id.getText();
+                    String UpdateQuery = "Update User1.AGENTS set A_NAME = '"+a_name.getText()+"'"+",A_AGE = "+a_age.getText()+",A_PHONE = '"+a_phone.getText()+"',A_PASSWORD = '"+a_password.getText()+"',A_GENDER = '"+a_gender.getSelectedItem().toString()+"',A_ROLE = '"+a_role.getSelectedItem().toString()+"'"+" where A_ID = "+a_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
                     JOptionPane.showMessageDialog(this, "Agent Updated Successfully");
@@ -740,6 +755,7 @@ public class AgentsFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel medBtn;
-    private javax.swing.JLabel sellerBtn;
+    private javax.swing.JComboBox<String> a_role;
+    private javax.swing.JLabel TitleRole;
     // End of variables declaration//GEN-END:variables
 }

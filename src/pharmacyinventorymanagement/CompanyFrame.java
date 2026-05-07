@@ -27,9 +27,12 @@ public class CompanyFrame extends javax.swing.JFrame {
         SelectCompany();
     }
     
-    Connection Con = null;
-    Statement St = null, St1=null;
     ResultSet Rs =null, Rs1=null;
+    
+    // New fields
+    private javax.swing.JTextField c_email;
+    private javax.swing.JTextField c_leadtime;
+    private javax.swing.JComboBox<String> c_preferred;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -271,7 +274,7 @@ public class CompanyFrame extends javax.swing.JFrame {
 
         Title3.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
         Title3.setForeground(new java.awt.Color(255, 255, 255));
-        Title3.setText("MANAGE COMPANY");
+        Title3.setText("SUPPLIER MANAGEMENT");
 
         jPanel3.setBackground(new java.awt.Color(255, 255, 153));
 
@@ -394,7 +397,23 @@ public class CompanyFrame extends javax.swing.JFrame {
 
         pack();
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+        customInit();
+    }// </editor-fold>
+
+    private void customInit() {
+        c_email = new javax.swing.JTextField(15);
+        c_leadtime = new javax.swing.JTextField("7", 5);
+        c_preferred = new javax.swing.JComboBox<>(new String[] { "No", "Yes" });
+        
+        JPanel extraPanel = new JPanel(new FlowLayout());
+        extraPanel.setBackground(new Color(255, 255, 204));
+        extraPanel.add(new JLabel("Email:")); extraPanel.add(c_email);
+        extraPanel.add(new JLabel("Lead Time:")); extraPanel.add(c_leadtime);
+        extraPanel.add(new JLabel("Preferred:")); extraPanel.add(c_preferred);
+        
+        getContentPane().add(extraPanel, BorderLayout.SOUTH);
+        pack();
+    }
 
     private void c_idActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_c_idActionPerformed
         // TODO add your handling code here:
@@ -446,12 +465,15 @@ public class CompanyFrame extends javax.swing.JFrame {
 
         try{
             Con = DatabaseHelper.getConnection();
-            PreparedStatement add = Con.prepareStatement("insert into COMPANY values(?,?,?,?,?)");
+            PreparedStatement add = Con.prepareStatement("insert into COMPANY values(?,?,?,?,?,?,?,?)");
             add.setInt(1, Integer.valueOf(c_id.getText()));
             add.setString(2, c_name.getText());
             add.setString(3, c_address.getText());
             add.setInt(4, Integer.valueOf(c_exp.getText()));
             add.setString(5, c_phone.getText());
+            add.setString(6, c_email.getText());
+            add.setInt(7, Integer.valueOf(c_leadtime.getText()));
+            add.setString(8, c_preferred.getSelectedItem().toString());
             
             int row = add.executeUpdate();
             
@@ -530,7 +552,7 @@ public class CompanyFrame extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(this, "Company "+Id+" does not exist! Please enter valid ID to update");
                 }else{
                     Con = DatabaseHelper.getConnection();
-                    String UpdateQuery = "Update User1.COMPANY set C_NAME = '"+c_name.getText()+"'"+",C_ADDRESS = '"+c_address.getText()+"'"+",C_EXP = "+c_exp.getText()+""+",C_PHONE = '"+c_phone.getText()+"'"+" where C_ID = "+c_id.getText();
+                    String UpdateQuery = "Update User1.COMPANY set C_NAME = '"+c_name.getText()+"'"+",C_ADDRESS = '"+c_address.getText()+"'"+",C_EXP = "+c_exp.getText()+""+",C_PHONE = '"+c_phone.getText()+"',C_EMAIL = '"+c_email.getText()+"',C_LEADTIME = "+c_leadtime.getText()+",C_PREFERRED = '"+c_preferred.getSelectedItem().toString()+"'"+" where C_ID = "+c_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
                     
@@ -560,6 +582,9 @@ public class CompanyFrame extends javax.swing.JFrame {
         c_exp.setText(model.getValueAt(Myindex, 3).toString());
         c_phone.setText(model.getValueAt(Myindex, 4).toString());
         c_address.setText(model.getValueAt(Myindex, 2).toString());
+        c_email.setText(model.getValueAt(Myindex, 5) == null ? "" : model.getValueAt(Myindex, 5).toString());
+        c_leadtime.setText(model.getValueAt(Myindex, 6) == null ? "7" : model.getValueAt(Myindex, 6).toString());
+        c_preferred.setSelectedItem(model.getValueAt(Myindex, 7) == null ? "No" : model.getValueAt(Myindex, 7).toString());
     }//GEN-LAST:event_company_tableMouseClicked
 
     private void btnClearMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnClearMouseClicked
