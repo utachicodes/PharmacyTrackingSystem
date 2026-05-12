@@ -142,6 +142,16 @@ public class DatabaseHelper {
                     } catch (SQLException ex) { /* Column already exists */ }
                 }
             }
+
+            // Insert default admin if AGENTS table is empty
+            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM AGENTS")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    stmt.execute("INSERT INTO AGENTS (A_ID, A_NAME, A_AGE, A_PASSWORD, A_PHONE, A_GENDER, A_EMAIL, A_ROLE) " +
+                            "VALUES (1, 'Admin', 30, 'admin123', '0000000000', 'Other', 'admin@pharma.com', 'Admin')");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

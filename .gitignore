@@ -24,3 +24,13 @@ nbdist/
 .idea/
 *.iml
 out/
+
+# Claude
+.claude/
+
+# Reports
+PharmacyTrackingSystem_Report.html
+
+# Presentation build artifacts
+presentation/.next/
+presentation/node_modules/
