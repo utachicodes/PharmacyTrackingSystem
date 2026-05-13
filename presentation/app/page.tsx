@@ -101,16 +101,13 @@ function CodeWindow({ filename, code }: { filename: string; code: string }) {
 
 const CODE_CONN = `public static Connection getConnection()
     throws SQLException {
+  // Connect to local MySQL instance
+  String url = "jdbc:mysql://localhost:3306/PharmaDb";
   try {
-    // Try network Derby on port 1527
-    return DriverManager.getConnection(
-      "jdbc:derby://localhost:1527/PharmaDb",
-      USER, PASS);
-  } catch (SQLException e) {
-    // Fall back to embedded — no server needed
-    return DriverManager.getConnection(
-      "jdbc:derby:PharmaDb;create=true",
-      USER, PASS);
+    Class.forName("com.mysql.cj.jdbc.Driver");
+    return DriverManager.getConnection(url, USER, PASS);
+  } catch (ClassNotFoundException e) {
+    throw new SQLException("MySQL Driver not found", e);
   }
 }`
 
@@ -199,7 +196,7 @@ function Slide01() {
         </Anim>
         <Anim>
           <div className="flex gap-2 flex-wrap">
-            {['Java 17', 'Java Swing', 'Apache Derby', 'JDBC', 'Apache Ant'].map((t) => (
+            {['Java 17', 'Java Swing (FlatLaf)', 'MySQL', 'JDBC', 'Maven'].map((t) => (
               <span key={t} className="border border-gray-200 bg-white text-gray-500 text-[11px] px-3 py-1 rounded-full font-mono">
                 {t}
               </span>
@@ -301,7 +298,7 @@ function Slide03() {
       </motion.div>
       <Anim>
         <div className="flex gap-2 flex-wrap">
-          {['Java 17', 'Java Swing', 'Apache Derby', 'JDBC', 'JCalendar', 'Apache Ant'].map((t) => (
+          {['Java 17', 'Java Swing (FlatLaf)', 'MySQL', 'JDBC', 'JCalendar', 'Maven'].map((t) => (
             <span key={t} className="border border-gray-200 bg-white text-gray-400 text-[10px] font-mono px-2.5 py-1 rounded-full">
               {t}
             </span>
@@ -312,9 +309,102 @@ function Slide03() {
   )
 }
 
-// ── SLIDE 04 — ARCHITECTURE ──────────────────────────────────────────────────
+// ── SLIDE 04 — TECH RATIONALE ───────────────────────────────────────────────
 
 function Slide04() {
+  const choices = [
+    {
+      tech: 'MySQL',
+      icon: <Database size={22} className="text-[#00758f]" />,
+      color: 'border-[#00758f]/30 bg-[#e8f6f8]',
+      badge: 'bg-[#00758f] text-white',
+      reasons: [
+        {
+          title: 'ACID transactions',
+          desc: 'Stock receiving must update two tables atomically. MySQL InnoDB guarantees that if either write fails, both roll back — something a flat file or embedded database cannot reliably provide.',
+        },
+        {
+          title: 'Industry-standard relational model',
+          desc: 'Pharmacy data is inherently relational: medicines link to sales, suppliers link to purchase orders. MySQL's foreign-key model maps directly to this domain without workarounds.',
+        },
+        {
+          title: 'JDBC ecosystem',
+          desc: 'MySQL Connector/J is a mature, officially maintained driver. Every SQL query in the codebase is portable to any JDBC-compatible database with zero business-logic changes.',
+        },
+        {
+          title: 'Free and production-ready',
+          desc: 'MySQL Community Edition is free for use in academic projects and small clinics. It runs on any operating system, scales to millions of rows, and has decades of documentation.',
+        },
+      ],
+    },
+    {
+      tech: 'Java Swing',
+      icon: <Cpu size={22} className="text-[#5382a1]" />,
+      color: 'border-[#5382a1]/30 bg-[#eef2f7]',
+      badge: 'bg-[#5382a1] text-white',
+      reasons: [
+        {
+          title: 'Bundled with the JDK — zero extra dependencies',
+          desc: 'Swing ships inside the Java runtime. There is no framework to install, no build plugin to configure, and no runtime licensing fee. The JAR runs on any machine with Java 17.',
+        },
+        {
+          title: 'Rich native widget set',
+          desc: 'JTable, JDatePicker, and JComboBox provide the exact controls a pharmacy clerk needs — tabular data, calendar pickers, and constrained dropdowns — all backed by the Swing MVC model.',
+        },
+        {
+          title: 'FlatLaf modernises the look without changing the API',
+          desc: 'FlatLaf is a single-JAR look-and-feel that replaces the dated Metal theme with a clean, flat UI. Dropping it in required four lines of code and no changes to any existing component.',
+        },
+        {
+          title: 'Offline desktop requirement',
+          desc: 'The target environment is a small pharmacy without guaranteed internet access. A desktop Swing app runs entirely locally — no server, no browser, no network dependency.',
+        },
+      ],
+    },
+  ]
+
+  return (
+    <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
+      <Label n="04" text="Technology Choices" />
+      <Anim>
+        <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-6 leading-[1.05]">
+          Why MySQL and Java Swing?
+        </h2>
+      </Anim>
+      <motion.div className="grid grid-cols-2 gap-5" variants={stagger(0.1)}>
+        {choices.map((c) => (
+          <Anim key={c.tech} variants={fadeUp}>
+            <div className={`border rounded-2xl p-5 h-full ${c.color}`}>
+              <div className="flex items-center gap-3 mb-4">
+                {c.icon}
+                <span className={`text-[11px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full ${c.badge}`}>
+                  {c.tech}
+                </span>
+              </div>
+              <motion.div className="space-y-3" variants={stagger(0.07)}>
+                {c.reasons.map((r) => (
+                  <Anim key={r.title} variants={slideLeft}>
+                    <div className="flex gap-3">
+                      <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                      <div>
+                        <span className="font-semibold text-[#0a0a0a] text-[12px]">{r.title} — </span>
+                        <span className="text-gray-600 text-[12px] leading-relaxed">{r.desc}</span>
+                      </div>
+                    </div>
+                  </Anim>
+                ))}
+              </motion.div>
+            </div>
+          </Anim>
+        ))}
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ── SLIDE 05 — ARCHITECTURE ──────────────────────────────────────────────────
+
+function Slide05() {
   const layers = [
     {
       label: 'Presentation',
@@ -341,7 +431,7 @@ function Slide04() {
   return (
     <motion.div className="h-full flex gap-12 items-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
       <div className="flex-1">
-        <Label n="04" text="Architecture" />
+        <Label n="05" text="Architecture" />
         <Anim>
           <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-3 leading-[1.05]">
             Three layers.<br />One direction of flow.
@@ -384,7 +474,7 @@ function Slide04() {
 
 // ── SLIDE 05 — OOP DESIGN ────────────────────────────────────────────────────
 
-function Slide05() {
+function Slide06() {
   const pillars = [
     {
       name: 'Inheritance',
@@ -421,7 +511,7 @@ function Slide05() {
     <motion.div className="h-full flex items-center gap-10 px-14 max-w-6xl mx-auto w-full" variants={stagger(0.08)} initial="hidden" animate="show">
       {/* hierarchy */}
       <div className="w-60 shrink-0">
-        <Label n="05" text="OOP Design" />
+        <Label n="06" text="OOP Design" />
         <div className="font-mono">
           <div className="border-2 border-gray-200 rounded-lg px-3 py-1.5 inline-block text-gray-400 text-[10px] bg-gray-50 mb-2">
             javax.swing.JFrame
@@ -478,9 +568,9 @@ function Slide05() {
 
 // ── SLIDE 06 — HELPER CLASSES ────────────────────────────────────────────────
 
-function Slide06() {
+function Slide07() {
   const db = [
-    { name: 'getConnection()',         desc: 'Tries network Derby on port 1527, falls back to embedded mode.' },
+    { name: 'getConnection()',         desc: 'Connects to a local MySQL instance with error handling for driver loading.' },
     { name: 'initializeDatabase()',    desc: 'Creates 5 tables and seeds a default admin on first launch.' },
     { name: 'resultSetToTableModel()', desc: 'Converts any ResultSet to a DefaultTableModel in one call.' },
   ]
@@ -492,7 +582,7 @@ function Slide06() {
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-5xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
-      <Label n="06" text="Helper Classes" />
+      <Label n="07" text="Helper Classes" />
       <Anim>
         <h2 className="text-[2.9rem] font-black text-[#0a0a0a] mb-6 leading-[1.05]">
           All logic lives here.
@@ -554,7 +644,7 @@ function Slide06() {
 
 // ── SLIDE 07 — FRAME CLASSES ─────────────────────────────────────────────────
 
-function Slide07() {
+function Slide08() {
   const rows = [
     { icon: <Activity size={13} className="text-gray-400" />,     name: 'LoginFrame',          role: 'Credential auth, reads A_ROLE from AGENTS, passes role to Dashboard',       tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
     { icon: <Layers size={13} className="text-gray-400" />,       name: 'DashboardFrame',      role: 'Navigation hub, enforces RBAC, loads alerts and inventory value on entry',  tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
@@ -563,11 +653,11 @@ function Slide07() {
     { icon: <ClipboardList size={13} className="text-gray-400" />,name: 'PurchaseOrderFrame',  role: 'PO lifecycle management, atomic receiving with JDBC transaction',           tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
     { icon: <Users size={13} className="text-gray-400" />,        name: 'AgentsFrame',         role: 'Staff account CRUD including role assignment via constrained dropdown',     tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
     { icon: <Building2 size={13} className="text-gray-400" />,    name: 'CompanyFrame',        role: 'Supplier directory with lead-time tracking and preferred supplier flag',    tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
-    { icon: <Server size={13} className="text-gray-400" />,       name: 'SplashFrame',         role: 'Loading screen with progress bar while the database initialises on startup', tag: 'Inheritance',  tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Server size={13} className="text-gray-400" />,       name: 'SplashFrame',         role: 'Loading screen with progress bar while the MySQL database initialises on startup', tag: 'Inheritance',  tc: 'bg-sky-100 text-sky-800' },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-5xl mx-auto w-full" variants={stagger(0.07)} initial="hidden" animate="show">
-      <Label n="07" text="Frame Classes" />
+      <Label n="08" text="Frame Classes" />
       <Anim>
         <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
           Eight frames. One job each.
@@ -593,10 +683,10 @@ function Slide07() {
 
 // ── SLIDE 08 — CODE IN ACTION ────────────────────────────────────────────────
 
-function Slide08() {
+function Slide09() {
   return (
     <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
-      <Label n="08" text="Code in Action" />
+      <Label n="09" text="Code in Action" />
       <Anim>
         <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
           Key implementations.
@@ -605,7 +695,7 @@ function Slide08() {
       <motion.div className="grid grid-cols-2 gap-4" variants={stagger(0.12)}>
         <Anim variants={fadeUp}>
           <p className="text-[10.5px] font-mono text-gray-400 mb-2">
-            DatabaseHelper.java &nbsp;<span className="text-[#15803d]">hybrid connection</span>
+            DatabaseHelper.java &nbsp;<span className="text-[#15803d]">MySQL connection</span>
           </p>
           <CodeWindow filename="getConnection()" code={CODE_CONN} />
         </Anim>
@@ -622,10 +712,10 @@ function Slide08() {
 
 // ── SLIDE 09 — CODE PAGE 2 ───────────────────────────────────────────────────
 
-function Slide09() {
+function Slide10() {
   return (
     <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
-      <Label n="09" text="Code in Action" />
+      <Label n="10" text="Code in Action" />
       <Anim>
         <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
           Forecasting and transactions.
@@ -651,7 +741,7 @@ function Slide09() {
 
 // ── SLIDE 10 — DATABASE SCHEMA ───────────────────────────────────────────────
 
-function Slide10() {
+function Slide11() {
   const tables = [
     {
       name: 'MEDICINE',
@@ -691,10 +781,10 @@ function Slide10() {
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
-      <Label n="10" text="Database Schema" />
+      <Label n="11" text="Database Schema" />
       <Anim>
         <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-6 leading-[1.05]">
-          Five tables. Apache Derby.
+          Five tables. MySQL Backend.
         </h2>
       </Anim>
       <motion.div className="grid grid-cols-5 gap-2.5" variants={stagger(0.08)}>
@@ -725,15 +815,15 @@ function Slide10() {
 
 // ── SLIDE 11 — CHALLENGES ────────────────────────────────────────────────────
 
-function Slide11() {
+function Slide12() {
   const items = [
     {
       n: '01',
       icon: <Database size={16} className="text-sky-600" />,
-      title: 'Derby in two modes',
-      tag: 'Reliability',
+      title: 'MySQL Configuration',
+      tag: 'Performance',
       tc: 'bg-sky-100 text-sky-700',
-      sol: 'getConnection() tries the network server first, then falls back to embedded Derby silently. The same binary works as a standalone desktop tool or on a shared counter.',
+      sol: 'The system uses a robust MySQL backend for persistent storage. Database initialization scripts run automatically on first launch, ensuring the schema is ready without manual SQL execution.',
     },
     {
       n: '02',
@@ -754,7 +844,7 @@ function Slide11() {
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-4xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
-      <Label n="11" text="Challenges" />
+      <Label n="12" text="Challenges" />
       <Anim>
         <h2 className="text-[3rem] font-black text-[#0a0a0a] mb-8 leading-[1.05]">
           Problems that needed<br />real solutions.
@@ -787,7 +877,7 @@ function Slide11() {
 
 // ── SLIDE 12 — ROADMAP ───────────────────────────────────────────────────────
 
-function Slide12() {
+function Slide13() {
   const items = [
     { sev: 'Critical', sc: 'bg-red-100 text-red-700', icon: <Lock size={13} className="text-red-500" />,            title: 'Fix SQL injection in LoginFrame',         desc: 'The login query uses string concatenation. Replace it with a PreparedStatement.' },
     { sev: 'Critical', sc: 'bg-red-100 text-red-700', icon: <ShieldCheck size={13} className="text-red-500" />,     title: 'Hash stored passwords',                  desc: 'A_PASSWORD is plain text VARCHAR(50). BCrypt with a per-user salt is the correct fix.' },
@@ -797,7 +887,7 @@ function Slide12() {
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-4xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
-      <Label n="12" text="Roadmap" />
+      <Label n="13" text="Roadmap" />
       <Anim>
         <h2 className="text-[3rem] font-black text-[#0a0a0a] mb-7 leading-[1.05]">
           What comes next.
@@ -825,7 +915,7 @@ function Slide12() {
 
 // ── SLIDE 13 — DEMO ──────────────────────────────────────────────────────────
 
-function Slide13() {
+function Slide14() {
   const steps = [
     { label: 'Login as Admin',           detail: 'Name: Admin   Password: admin123' },
     { label: 'Dashboard',                detail: 'Live alerts: expiry warnings and low-stock notices' },
@@ -837,7 +927,7 @@ function Slide13() {
   return (
     <motion.div className="h-full flex flex-col items-center justify-center px-16 max-w-3xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
       <div className="w-full">
-        <Label n="13" text="Live Demo" />
+        <Label n="14" text="Live Demo" />
         <Anim>
           <h2 className="text-[3rem] font-black text-[#0a0a0a] mb-8 leading-[1.05]">Live Demo</h2>
         </Anim>
@@ -868,7 +958,7 @@ function Slide13() {
 
 // ── SLIDE 14 — Q&A ───────────────────────────────────────────────────────────
 
-function Slide14() {
+function Slide15() {
   return (
     <motion.div className="flex h-full" variants={stagger(0.12)} initial="hidden" animate="show">
       <div className="flex-1 flex flex-col justify-center px-16 bg-[#f9f8f5]">
@@ -904,12 +994,12 @@ function Slide14() {
 // ── PRESENTATION SHELL ───────────────────────────────────────────────────────
 
 const SLIDES = [
-  Slide01, Slide02, Slide03, Slide04, Slide05, Slide06, Slide07,
-  Slide08, Slide09, Slide10, Slide11, Slide12, Slide13, Slide14,
+  Slide01, Slide02, Slide03, Slide04, Slide05, Slide06, Slide07, Slide08,
+  Slide09, Slide10, Slide11, Slide12, Slide13, Slide14, Slide15,
 ]
 
 const LABELS = [
-  'Title', 'Problem', 'Overview', 'Architecture', 'OOP Design',
+  'Title', 'Problem', 'Overview', 'Tech Choices', 'Architecture', 'OOP Design',
   'Helper Classes', 'Frame Classes', 'Code (1)', 'Code (2)',
   'Database', 'Challenges', 'Roadmap', 'Demo', 'Q & A',
 ]
