@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import weasyprint\")",
+      "Bash(\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless --disable-gpu --print-to-pdf=\"/Users/dullah/Desktop/PharmacyTrackingSystem/PharmacyTrackingSystem_Report.pdf\" --print-to-pdf-no-header \"file:///Users/dullah/Desktop/PharmacyTrackingSystem/PharmacyTrackingSystem_Report.html\")",
+      "Bash(pdftotext /Users/dullah/Desktop/PharmacyTrackingSystem/PharmacyTrackingSystem_Report.pdf -)",
+      "Bash(ls \"/Applications/Google Chrome.app/Contents/MacOS/\" 2>/dev/null && echo \"Chrome found\" || echo \"Chrome not found\")",
+      "Read(//Applications/Google Chrome.app/Contents/MacOS/**)",
+      "Bash(python3)",
+      "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --no-pdf-header-footer --print-to-pdf=/Users/dullah/Desktop/PharmacyTrackingSystem/PharmacyTrackingSystem_Report.pdf file:///Users/dullah/Desktop/PharmacyTrackingSystem/PharmacyTrackingSystem_Report.html)",
+      "Bash(git -C /Users/dullah/Desktop/PharmacyTrackingSystem status)",
+      "Bash(git -C /Users/dullah/Desktop/PharmacyTrackingSystem diff --stat)",
+      "Bash(git -C /Users/dullah/Desktop/PharmacyTrackingSystem log --oneline -5)",
+      "Bash(git -C /Users/dullah/Desktop/PharmacyTrackingSystem add presentation/app/page.tsx PharmacyTrackingSystem_Report.pdf PharmacyTrackingSystem_Report.html)",
+      "Bash(git -C /Users/dullah/Desktop/PharmacyTrackingSystem commit -m ' *)",
+      "Bash(git -C /Users/dullah/Desktop/PharmacyTrackingSystem push)"
+    ]
+  }
+}

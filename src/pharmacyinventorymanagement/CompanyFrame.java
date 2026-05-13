@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package pharmacyinventorymanagement;
 
 /**
@@ -13,9 +9,10 @@ import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import javax.swing.JOptionPane;
 import java.sql.ResultSet;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import javax.swing.*;
 
 public class CompanyFrame extends javax.swing.JFrame {
 
@@ -27,6 +24,8 @@ public class CompanyFrame extends javax.swing.JFrame {
         SelectCompany();
     }
     
+    Connection Con = null;
+    Statement St = null;
     ResultSet Rs =null, Rs1=null;
     
     // New fields
@@ -72,7 +71,7 @@ public class CompanyFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
 
-        jPanel1.setBackground(new java.awt.Color(51, 153, 0));
+        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
 
         Title.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
         Title.setForeground(new java.awt.Color(255, 255, 255));
@@ -83,31 +82,31 @@ public class CompanyFrame extends javax.swing.JFrame {
             }
         });
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 204));
+        jPanel2.setBackground(new java.awt.Color(248, 250, 252));
 
         Title4.setBackground(new java.awt.Color(255, 255, 255));
         Title4.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title4.setForeground(new java.awt.Color(51, 153, 0));
+        Title4.setForeground(new java.awt.Color(16, 185, 129));
         Title4.setText("ID");
 
         Title5.setBackground(new java.awt.Color(255, 255, 255));
         Title5.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title5.setForeground(new java.awt.Color(51, 153, 0));
+        Title5.setForeground(new java.awt.Color(16, 185, 129));
         Title5.setText("NAME");
 
         Title6.setBackground(new java.awt.Color(255, 255, 255));
         Title6.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title6.setForeground(new java.awt.Color(51, 153, 0));
+        Title6.setForeground(new java.awt.Color(16, 185, 129));
         Title6.setText("ADDRESS");
 
         Title7.setBackground(new java.awt.Color(255, 255, 255));
         Title7.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title7.setForeground(new java.awt.Color(51, 153, 0));
+        Title7.setForeground(new java.awt.Color(16, 185, 129));
         Title7.setText("PHONE");
 
         Title8.setBackground(new java.awt.Color(255, 255, 255));
         Title8.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title8.setForeground(new java.awt.Color(51, 153, 0));
+        Title8.setForeground(new java.awt.Color(16, 185, 129));
         Title8.setText("EXPERIENCE");
 
         c_id.addActionListener(new java.awt.event.ActionListener() {
@@ -134,7 +133,7 @@ public class CompanyFrame extends javax.swing.JFrame {
             }
         });
 
-        btnAdd.setBackground(new java.awt.Color(0, 204, 0));
+        btnAdd.setBackground(new java.awt.Color(16, 185, 129));
         btnAdd.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnAdd.setForeground(new java.awt.Color(255, 255, 255));
         btnAdd.setText("ADD");
@@ -144,7 +143,7 @@ public class CompanyFrame extends javax.swing.JFrame {
             }
         });
 
-        btnDelete.setBackground(new java.awt.Color(0, 204, 0));
+        btnDelete.setBackground(new java.awt.Color(16, 185, 129));
         btnDelete.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnDelete.setForeground(new java.awt.Color(255, 255, 255));
         btnDelete.setText("DELETE");
@@ -159,7 +158,7 @@ public class CompanyFrame extends javax.swing.JFrame {
             }
         });
 
-        btnUpdate.setBackground(new java.awt.Color(0, 204, 0));
+        btnUpdate.setBackground(new java.awt.Color(16, 185, 129));
         btnUpdate.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnUpdate.setForeground(new java.awt.Color(255, 255, 255));
         btnUpdate.setText("UPDATE");
@@ -174,7 +173,7 @@ public class CompanyFrame extends javax.swing.JFrame {
             }
         });
 
-        btnClear.setBackground(new java.awt.Color(0, 204, 0));
+        btnClear.setBackground(new java.awt.Color(16, 185, 129));
         btnClear.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnClear.setForeground(new java.awt.Color(255, 255, 255));
         btnClear.setText("CLEAR");
@@ -448,7 +447,7 @@ public class CompanyFrame extends javax.swing.JFrame {
         try{
             Con = DatabaseHelper.getConnection();
             St = Con.createStatement();
-            Rs = St.executeQuery("Select * from User1.COMPANY");
+            Rs = St.executeQuery("Select * from COMPANY");
             company_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
@@ -480,7 +479,7 @@ public class CompanyFrame extends javax.swing.JFrame {
             Con.close(); 
             SelectCompany();
             JOptionPane.showMessageDialog(this, "Company Successfully Added");
-        }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
+        }catch(java.sql.SQLIntegrityConstraintViolationException e){
                 JOptionPane.showMessageDialog(this, "Error: company name already exists!");
         }
         catch(SQLException e)
@@ -506,7 +505,7 @@ public class CompanyFrame extends javax.swing.JFrame {
                     
                     Con = DatabaseHelper.getConnection();
                     String Id = c_id.getText();
-                    String retriveId = "Select * from User1.COMPANY where C_ID="+Id; 
+                    String retriveId = "Select * from COMPANY where C_ID="+Id; 
                     Statement select = Con.createStatement();
                     ResultSet row = select.executeQuery(retriveId);
 
@@ -514,7 +513,7 @@ public class CompanyFrame extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "Company "+Id+" does not exist! Please enter valid C_ID");
                     }else{
                     
-                        String Query = "Delete from User1.COMPANY where C_ID="+Id;
+                        String Query = "Delete from COMPANY where C_ID="+Id;
                         Statement Add = Con.createStatement();
                         Add.executeUpdate(Query);
                         SelectCompany();
@@ -543,7 +542,7 @@ public class CompanyFrame extends javax.swing.JFrame {
         {
             try{
                 String Id = c_id.getText();
-                String retriveId = "Select * from User1.COMPANY where C_ID="+Id; 
+                String retriveId = "Select * from COMPANY where C_ID="+Id; 
                 Statement select = Con.createStatement();
                 
                 ResultSet row = select.executeQuery(retriveId);
@@ -552,14 +551,14 @@ public class CompanyFrame extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(this, "Company "+Id+" does not exist! Please enter valid ID to update");
                 }else{
                     Con = DatabaseHelper.getConnection();
-                    String UpdateQuery = "Update User1.COMPANY set C_NAME = '"+c_name.getText()+"'"+",C_ADDRESS = '"+c_address.getText()+"'"+",C_EXP = "+c_exp.getText()+""+",C_PHONE = '"+c_phone.getText()+"',C_EMAIL = '"+c_email.getText()+"',C_LEADTIME = "+c_leadtime.getText()+",C_PREFERRED = '"+c_preferred.getSelectedItem().toString()+"'"+" where C_ID = "+c_id.getText();
+                    String UpdateQuery = "Update COMPANY set C_NAME = '"+c_name.getText()+"'"+",C_ADDRESS = '"+c_address.getText()+"'"+",C_EXP = "+c_exp.getText()+""+",C_PHONE = '"+c_phone.getText()+"',C_EMAIL = '"+c_email.getText()+"',C_LEADTIME = "+c_leadtime.getText()+",C_PREFERRED = '"+c_preferred.getSelectedItem().toString()+"'"+" where C_ID = "+c_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
                     
                     SelectCompany();
                     JOptionPane.showMessageDialog(this, "Company "+Id+" Updated Successfully");
                 }
-            }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
+            }catch(java.sql.SQLIntegrityConstraintViolationException e){
                 JOptionPane.showMessageDialog(this, "Error: Company name must be unique!");
             }catch(SQLException e)
             {
@@ -614,32 +613,6 @@ public class CompanyFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(CompanyFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(CompanyFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(CompanyFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(CompanyFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {

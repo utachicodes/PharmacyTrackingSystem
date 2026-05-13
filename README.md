@@ -1,84 +1,104 @@
 # Pharmacy Tracking System
 
 ![Java](https://img.shields.io/badge/Java-17-007396?style=flat-square&logo=java&logoColor=white)
-![Apache Derby](https://img.shields.io/badge/Database-Apache%20Derby-d9534f?style=flat-square)
-![Swing](https://img.shields.io/badge/UI-Java%20Swing-4caf50?style=flat-square)
+![MySQL](https://img.shields.io/badge/Database-MySQL%208.0-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![FlatLaf](https://img.shields.io/badge/UI-FlatLaf%20Light-10B981?style=flat-square)
+![Build](https://img.shields.io/badge/Build-Maven-C71A36?style=flat-square&logo=apache-maven&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
-![Build](https://img.shields.io/badge/Build-Apache%20Ant-a6192e?style=flat-square&logo=apache&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)
 
-A desktop pharmacy inventory management system built with Java 17, Java Swing, and Apache Derby. Designed for small pharmacies that need real-time stock tracking, demand forecasting, and role-based access without requiring a server or internet connection.
+A desktop pharmacy inventory management system built with **Java 17**, **MySQL**, and **FlatLaf**. Designed for pharmacies that require real-time stock tracking, intelligent demand forecasting, and professional role-based access control.
 
 ---
 
 ## Features
 
 **Inventory Management**
-Full CRUD on medicine records across 14 fields including batch number, therapeutic category, dosage form, unit cost, and configurable reorder threshold. Rows are automatically colour-coded: red for low stock, yellow for medicines expiring within 30 days.
+Full CRUD on medicine records across 14 fields including batch tracking, therapeutic category, and per-medicine reorder thresholds. High-contrast row highlighting flags low stock (Red) and near-expiry items (Yellow).
 
 **Demand Forecasting**
-A Simple Moving Average algorithm analyses the past 30 days of sales per medicine and projects seven-day demand. Low-stock alerts fire when current quantity falls below the forecast or below the minimum threshold of 10 units.
+Integrated 30-day Simple Moving Average (SMA) algorithm that predicts next-week demand per medicine, allowing for proactive restocking before stockouts occur.
 
-**Billing and Sales**
-Point-of-sale screen enforces stock constraints and blocks overselling. Every transaction is logged to the SALES table, which feeds the forecasting engine. Inventory value is recalculated on each dashboard load.
+**Sales & Smart Billing**
+Professional billing engine that enforces stock constraints and records every transaction to the `SALES` table, automatically updating inventory and feeding the forecasting dashboard.
 
-**Purchase Orders**
-Create purchase orders with medicine, supplier, and quantity. Receiving a PO uses an explicit JDBC transaction: both the status update and the stock increment commit together, or both roll back. Partial database state cannot persist.
+**Procurement Workflow**
+Full purchase order (PO) management with transactional stock receiving. Uses atomic database transactions to ensure inventory counts and PO statuses are always perfectly synchronized.
 
-**Role-Based Access Control**
-Three roles enforced at the UI level:
-- Admin: full access to all modules
-- Pharmacist: access to medicines, billing, suppliers, and purchase orders
-- Technician: access to medicines and billing only
-
-**Supplier Management**
-Supplier directory with lead-time tracking and a preferred-supplier flag. The medicine entry form populates its company dropdown live from this table.
+**Role-Based Access Control (RBAC)**
+Three distinct permission levels:
+- **Admin:** Full system oversight including user management.
+- **Pharmacist:** Inventory, Sales, Suppliers, and Procurement.
+- **Technician:** Inventory and Sales only.
 
 ---
 
 ## Technical Stack
 
 | Component | Technology |
-|-----------|-----------|
+|-----------|------------|
 | Language | Java 17 LTS |
-| UI Framework | Java Swing (Nimbus look and feel) |
-| Database | Apache Derby 10.16 (embedded + network modes) |
-| Date Picker | JCalendar (Toedter) |
-| Build | Apache Ant |
-| Version Control | Git |
+| UI Framework | Java Swing + FlatLaf Light |
+| Database | MySQL 8.x |
+| Build System | Maven |
+| Date Picker | JCalendar |
+| Persistence | JDBC (MySQL Connector/J, Apache Commons DBUtils) |
 
-The application bootstraps its own database schema on first launch. `DatabaseHelper.getConnection()` tries the Derby network server on port 1527 first, then falls back to embedded mode automatically. No manual database setup is required.
+---
+
+## Database
+
+The application connects to a local MySQL instance and uses a database called **`PharmaDb`**. The database and all required tables are **created automatically** on first launch — no manual SQL setup is needed.
+
+### Schema (5 Tables)
+
+| Table | Purpose |
+|-------|---------|
+| `MEDICINE` | Core inventory — name, quantity, price, expiry, batch, category, reorder threshold |
+| `AGENTS` | Staff accounts — credentials, roles (Admin / Pharmacist / Technician) |
+| `SALES` | Append-only transaction log for all billing activity |
+| `COMPANY` | Supplier directory with lead-time and preferred-supplier tracking |
+| `PURCHASE_ORDERS` | Procurement lifecycle — order creation, status, and receiving |
+
+### Connection
+
+The default connection points to `localhost:3306` with user `root` and an empty password. To change this, edit the constants at the top of `DatabaseHelper.java`:
+
+```java
+private static final String DB_URL = "jdbc:mysql://localhost:3306/PharmaDb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true";
+private static final String USER = "root";
+private static final String PASS = ""; // Update with your MySQL password
+```
 
 ---
 
 ## Getting Started
 
-**Prerequisites**
-- Java JDK 17 or higher
-- NetBeans (recommended) or IntelliJ IDEA
+### Prerequisites
+- **Java JDK 17** or higher
+- **MySQL Server** running locally on port `3306`
+- **Maven** (or an IDE with Maven support like IntelliJ IDEA)
 
-**Run with NetBeans**
-1. Clone the repository
-2. Open NetBeans and select File > Open Project
-3. Select the `PharmacyTrackingSystem` folder
-4. Right-click the project and select Run
+### Run the Application
 
-**Run from the command line**
+**Via Maven (Command Line):**
 ```bash
-# Compile
-javac -d bin -cp "lib/*" src/pharmacyinventorymanagement/*.java
+# Compile and build
+mvn clean compile
 
-# Run
-java -cp "bin:lib/*" pharmacyinventorymanagement.PharmacyInventoryManagement
+# Run the application
+mvn exec:java -Dexec.mainClass="pharmacyinventorymanagement.PharmacyInventoryManagement"
 ```
 
-**Default credentials**
-On first launch, a default admin account is created automatically:
+**Via IntelliJ IDEA:**
+1. Open the project folder (IntelliJ will detect the `pom.xml`).
+2. Wait for dependencies to download.
+3. Run `PharmacyInventoryManagement.java`.
 
-| Field | Value |
-|-------|-------|
-| Name | Admin |
-| Password | admin123 |
+### Default Login
+A default admin account is seeded automatically on first launch:
+- **Username:** `Admin`
+- **Password:** `admin123`
 
 ---
 
@@ -86,32 +106,18 @@ On first launch, a default admin account is created automatically:
 
 ```
 src/pharmacyinventorymanagement/
-    PharmacyInventoryManagement.java   Entry point
-    SplashFrame.java                   Loading screen
-    LoginFrame.java                    Authentication
-    DashboardFrame.java                Navigation hub and alerts
-    MedicineFrame.java                 Inventory CRUD
-    SellingFrame.java                  Point-of-sale billing
-    AgentsFrame.java                   Staff management
-    CompanyFrame.java                  Supplier management
-    PurchaseOrderFrame.java            Procurement workflow
-    DatabaseHelper.java                JDBC layer and schema bootstrap
-    ForecastingHelper.java             SMA forecasting and alert logic
+    PharmacyInventoryManagement.java   – Application Entry Point
+    SplashFrame.java                   – Loading & DB Initialization
+    LoginFrame.java                    – Role-Based Authentication
+    DashboardFrame.java                – Navigation & Live Alerts
+    MedicineFrame.java                 – Inventory Management
+    SellingFrame.java                  – POS & Sales Log
+    AgentsFrame.java                   – User Management (Admin Only)
+    CompanyFrame.java                  – Supplier Management
+    PurchaseOrderFrame.java            – Procurement Workflow
+    DatabaseHelper.java                – MySQL Connection & Schema Init
+    ForecastingHelper.java             – SMA Algorithm & Analytics
 ```
-
----
-
-## Database Schema
-
-Five tables managed entirely by `DatabaseHelper.initializeDatabase()`:
-
-| Table | Purpose |
-|-------|---------|
-| MEDICINE | Medicine records with 14 fields including batch and threshold |
-| AGENTS | Staff accounts with role assignment |
-| SALES | Append-only transaction log, auto-incremented ID |
-| PURCHASE_ORDERS | Procurement records with Pending/Received status |
-| COMPANY | Supplier directory with lead time and preference flag |
 
 ---
 
@@ -119,3 +125,7 @@ Five tables managed entirely by `DatabaseHelper.initializeDatabase()`:
 
 **Abdoullah Ndao**
 Junior II, Dakar American University of Science and Technology
+[GitHub Portfolio](https://github.com/utachicodes)
+
+---
+*This project is part of the Software Engineering curriculum at DAUST.*

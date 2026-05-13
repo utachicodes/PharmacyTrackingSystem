@@ -1,6 +1,4 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package pharmacyinventorymanagement;
 
@@ -77,7 +75,7 @@ public class SplashFrame extends javax.swing.JFrame {
 
         title.setBackground(new java.awt.Color(255, 255, 255));
         title.setFont(new java.awt.Font("MS UI Gothic", 1, 24)); // NOI18N
-        title.setForeground(new java.awt.Color(51, 204, 0));
+        title.setForeground(new java.awt.Color(16, 185, 129));
         title.setText("PHARMACY INVENTORY MANAGEMENT SYSTEM");
 
         mainIcon.setIcon(new javax.swing.ImageIcon("D:\\JAVA_Projects_2022\\PharmacyMiniProject\\PIM_project_images\\plusIcon.jpg")); // NOI18N
@@ -91,7 +89,7 @@ public class SplashFrame extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jList1);
 
         percentage.setFont(new java.awt.Font("Segoe UI Semibold", 0, 14)); // NOI18N
-        percentage.setForeground(new java.awt.Color(51, 153, 0));
+        percentage.setForeground(new java.awt.Color(16, 185, 129));
         percentage.setText("100");
         percentage.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -181,28 +179,6 @@ public class SplashFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SplashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SplashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SplashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SplashFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
         
             SplashFrame splash = new SplashFrame();

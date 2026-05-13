@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package pharmacyinventorymanagement;
 
 /**
@@ -17,6 +13,8 @@ import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import java.sql.ResultSet;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import javax.swing.*;
 
 public class AgentsFrame extends javax.swing.JFrame {
 
@@ -74,7 +72,7 @@ public class AgentsFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
 
-        jPanel1.setBackground(new java.awt.Color(51, 153, 0));
+        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
         jPanel1.setPreferredSize(new java.awt.Dimension(985, 687));
         jPanel1.setRequestFocusEnabled(false);
 
@@ -87,41 +85,41 @@ public class AgentsFrame extends javax.swing.JFrame {
             }
         });
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 204));
+        jPanel2.setBackground(new java.awt.Color(248, 250, 252));
 
         Title4.setBackground(new java.awt.Color(255, 255, 255));
         Title4.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title4.setForeground(new java.awt.Color(51, 153, 0));
+        Title4.setForeground(new java.awt.Color(16, 185, 129));
         Title4.setText("ID");
 
         Title5.setBackground(new java.awt.Color(255, 255, 255));
         Title5.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title5.setForeground(new java.awt.Color(51, 153, 0));
+        Title5.setForeground(new java.awt.Color(16, 185, 129));
         Title5.setText("NAME");
 
         Title6.setBackground(new java.awt.Color(255, 255, 255));
         Title6.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title6.setForeground(new java.awt.Color(51, 153, 0));
+        Title6.setForeground(new java.awt.Color(16, 185, 129));
         Title6.setText("AGE");
 
         Title7.setBackground(new java.awt.Color(255, 255, 255));
         Title7.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title7.setForeground(new java.awt.Color(51, 153, 0));
+        Title7.setForeground(new java.awt.Color(16, 185, 129));
         Title7.setText("PASSWORD");
 
         Title8.setBackground(new java.awt.Color(255, 255, 255));
         Title8.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title8.setForeground(new java.awt.Color(51, 153, 0));
+        Title8.setForeground(new java.awt.Color(16, 185, 129));
         Title8.setText("PHONE");
 
         Title9.setBackground(new java.awt.Color(255, 255, 255));
         Title9.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title9.setForeground(new java.awt.Color(51, 153, 0));
+        Title9.setForeground(new java.awt.Color(16, 185, 129));
         Title9.setText("GENDER");
 
         Title10.setBackground(new java.awt.Color(255, 255, 255));
         Title10.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title10.setForeground(new java.awt.Color(51, 153, 0));
+        Title10.setForeground(new java.awt.Color(16, 185, 129));
         Title10.setText("EMAIL");
 
         a_id.addActionListener(new java.awt.event.ActionListener() {
@@ -158,7 +156,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             }
         });
 
-        btnAdd.setBackground(new java.awt.Color(0, 204, 0));
+        btnAdd.setBackground(new java.awt.Color(16, 185, 129));
         btnAdd.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnAdd.setForeground(new java.awt.Color(255, 255, 255));
         btnAdd.setText("ADD");
@@ -168,7 +166,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             }
         });
 
-        btnDelete.setBackground(new java.awt.Color(0, 204, 0));
+        btnDelete.setBackground(new java.awt.Color(16, 185, 129));
         btnDelete.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnDelete.setForeground(new java.awt.Color(255, 255, 255));
         btnDelete.setText("DELETE");
@@ -183,7 +181,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             }
         });
 
-        btnUpdate.setBackground(new java.awt.Color(0, 204, 0));
+        btnUpdate.setBackground(new java.awt.Color(16, 185, 129));
         btnUpdate.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnUpdate.setForeground(new java.awt.Color(255, 255, 255));
         btnUpdate.setText("UPDATE");
@@ -198,7 +196,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             }
         });
 
-        btnClear.setBackground(new java.awt.Color(0, 204, 0));
+        btnClear.setBackground(new java.awt.Color(16, 185, 129));
         btnClear.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnClear.setForeground(new java.awt.Color(255, 255, 255));
         btnClear.setText("CLEAR");
@@ -479,7 +477,7 @@ public class AgentsFrame extends javax.swing.JFrame {
         try{
         Con = DatabaseHelper.getConnection();
         St = Con.createStatement();
-        Rs = St.executeQuery("Select * from User1.AGENTS");
+        Rs = St.executeQuery("Select * from AGENTS");
         AgentTable.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
@@ -541,7 +539,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             Con.close(); 
             JOptionPane.showMessageDialog(this, "Agent Added Successfully");
         
-        }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
+        }catch(java.sql.SQLIntegrityConstraintViolationException e){
             JOptionPane.showMessageDialog(this, "Error: Constraint violation!");
         }catch(SQLException e)
         {
@@ -571,13 +569,13 @@ public class AgentsFrame extends javax.swing.JFrame {
            try{
                Con = DatabaseHelper.getConnection();
                String Id = a_id.getText();
-               String Query = "Delete from User1.AGENTS where A_ID="+Id;
+               String Query = "Delete from AGENTS where A_ID="+Id;
                Statement Add = Con.createStatement();
                Add.executeUpdate(Query);
                SelectMed();
                JOptionPane.showMessageDialog(this, "Agent "+Id+" Deleted Successfully");
  
-           }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
+           }catch(java.sql.SQLIntegrityConstraintViolationException e){
                 JOptionPane.showMessageDialog(this, "Error: Constraint violation!");
             }catch(SQLException e)
             {
@@ -614,7 +612,7 @@ public class AgentsFrame extends javax.swing.JFrame {
                 Con = DatabaseHelper.getConnection();
                
                 int Id = Integer.valueOf(a_id.getText());
-                String retriveId = "Select A_ID from User1.AGENTS where A_ID="+Id; 
+                String retriveId = "Select A_ID from AGENTS where A_ID="+Id; 
                 Statement select = Con.createStatement();
                 ResultSet row = select.executeQuery(retriveId);
 
@@ -623,14 +621,14 @@ public class AgentsFrame extends javax.swing.JFrame {
                 }else{
                 
                 
-                    String UpdateQuery = "Update User1.AGENTS set A_NAME = '"+a_name.getText()+"'"+",A_AGE = "+a_age.getText()+",A_PHONE = '"+a_phone.getText()+"',A_PASSWORD = '"+a_password.getText()+"',A_GENDER = '"+a_gender.getSelectedItem().toString()+"',A_ROLE = '"+a_role.getSelectedItem().toString()+"'"+" where A_ID = "+a_id.getText();
+                    String UpdateQuery = "Update AGENTS set A_NAME = '"+a_name.getText()+"'"+",A_AGE = "+a_age.getText()+",A_PHONE = '"+a_phone.getText()+"',A_PASSWORD = '"+a_password.getText()+"',A_GENDER = '"+a_gender.getSelectedItem().toString()+"',A_ROLE = '"+a_role.getSelectedItem().toString()+"'"+" where A_ID = "+a_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
                     JOptionPane.showMessageDialog(this, "Agent Updated Successfully");
 
                     SelectMed();
                 }
-            }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
+            }catch(java.sql.SQLIntegrityConstraintViolationException e){
                 JOptionPane.showMessageDialog(this, "Error: check your internet");
             }catch(SQLException e)
             {
@@ -694,30 +692,6 @@ public class AgentsFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AgentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AgentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AgentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AgentsFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -757,5 +731,6 @@ public class AgentsFrame extends javax.swing.JFrame {
     private javax.swing.JLabel medBtn;
     private javax.swing.JComboBox<String> a_role;
     private javax.swing.JLabel TitleRole;
+    private javax.swing.JLabel sellerBtn;
     // End of variables declaration//GEN-END:variables
 }

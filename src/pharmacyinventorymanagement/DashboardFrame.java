@@ -71,7 +71,7 @@ public class DashboardFrame extends javax.swing.JFrame {
         setTitle("Pharmacy Management Dashboard");
         setResizable(false);
 
-        jPanel1.setBackground(new java.awt.Color(51, 153, 0));
+        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); 
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
@@ -152,7 +152,7 @@ public class DashboardFrame extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); 
-        jLabel2.setForeground(new java.awt.Color(51, 153, 0));
+        jLabel2.setForeground(new java.awt.Color(16, 185, 129));
         jLabel2.setText("Inventory Alerts & Forecasting");
 
         alertList.setFont(new java.awt.Font("Segoe UI", 0, 14)); 

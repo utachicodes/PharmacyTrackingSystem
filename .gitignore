@@ -1,36 +1,46 @@
-# Java class files
+# Compiled class files
 *.class
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Log files
+*.log
 
 # Package Files #
 *.jar
 *.war
 *.ear
 
-# virtual machine crash logs, see http://www.oracle.com/technetwork/java/javase/troubleshoot-11-2603205.html#g6124
+# Virtual machine crash logs
 hs_err_pid*
 
-# NetBeans specific
-nbproject/private/
-build/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# IntelliJ specific
+# IntelliJ IDEA
 .idea/
 *.iml
+*.iws
+.idea_modules/
 out/
-
-# Claude
-.claude/
-
-# Reports
-PharmacyTrackingSystem_Report.html
 
 # Presentation build artifacts
 presentation/.next/
 presentation/node_modules/
+presentation/out/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

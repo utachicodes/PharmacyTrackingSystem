@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package pharmacyinventorymanagement;
 
 /**
@@ -18,6 +14,8 @@ import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import java.sql.ResultSet;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import javax.swing.*;
 
 public class MedicineFrame extends javax.swing.JFrame {
 
@@ -115,7 +113,7 @@ public class MedicineFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
 
-        jPanel1.setBackground(new java.awt.Color(51, 153, 0));
+        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
 
         companyBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
         companyBtn.setForeground(new java.awt.Color(255, 255, 255));
@@ -126,41 +124,41 @@ public class MedicineFrame extends javax.swing.JFrame {
             }
         });
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 204));
+        jPanel2.setBackground(new java.awt.Color(248, 250, 252));
 
         Title4.setBackground(new java.awt.Color(255, 255, 255));
         Title4.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title4.setForeground(new java.awt.Color(51, 153, 0));
+        Title4.setForeground(new java.awt.Color(16, 185, 129));
         Title4.setText("ID");
 
         Title5.setBackground(new java.awt.Color(255, 255, 255));
         Title5.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title5.setForeground(new java.awt.Color(51, 153, 0));
+        Title5.setForeground(new java.awt.Color(16, 185, 129));
         Title5.setText("NAME");
 
         Title6.setBackground(new java.awt.Color(255, 255, 255));
         Title6.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title6.setForeground(new java.awt.Color(51, 153, 0));
+        Title6.setForeground(new java.awt.Color(16, 185, 129));
         Title6.setText("QUANTITY");
 
         Title7.setBackground(new java.awt.Color(255, 255, 255));
         Title7.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title7.setForeground(new java.awt.Color(51, 153, 0));
+        Title7.setForeground(new java.awt.Color(16, 185, 129));
         Title7.setText("PRICE");
 
         Title8.setBackground(new java.awt.Color(255, 255, 255));
         Title8.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title8.setForeground(new java.awt.Color(51, 153, 0));
+        Title8.setForeground(new java.awt.Color(16, 185, 129));
         Title8.setText("EXP.DATE");
 
         Title9.setBackground(new java.awt.Color(255, 255, 255));
         Title9.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title9.setForeground(new java.awt.Color(51, 153, 0));
+        Title9.setForeground(new java.awt.Color(16, 185, 129));
         Title9.setText("BRANCH");
 
         Title10.setBackground(new java.awt.Color(255, 255, 255));
         Title10.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title10.setForeground(new java.awt.Color(51, 153, 0));
+        Title10.setForeground(new java.awt.Color(16, 185, 129));
         Title10.setText("MFT.DATE");
 
         m_id.addActionListener(new java.awt.event.ActionListener() {
@@ -190,7 +188,7 @@ public class MedicineFrame extends javax.swing.JFrame {
         m_owner = new javax.swing.JTextField();
         Title12 = new javax.swing.JLabel();
         Title12.setFont(new java.awt.Font("High Tower Text", 1, 17));
-        Title12.setForeground(new java.awt.Color(51, 153, 0));
+        Title12.setForeground(new java.awt.Color(16, 185, 129));
         Title12.setText("OWNER");
 
         m_company.setBackground(new java.awt.Color(51, 204, 0));
@@ -198,7 +196,7 @@ public class MedicineFrame extends javax.swing.JFrame {
         m_company.setForeground(new java.awt.Color(255, 255, 255));
         m_company.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Bangalore south", "Chennai", "China", "Kolkata", "Delhi" }));
 
-        btnAdd.setBackground(new java.awt.Color(0, 204, 0));
+        btnAdd.setBackground(new java.awt.Color(16, 185, 129));
         btnAdd.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnAdd.setForeground(new java.awt.Color(255, 255, 255));
         btnAdd.setText("ADD");
@@ -208,7 +206,7 @@ public class MedicineFrame extends javax.swing.JFrame {
             }
         });
 
-        btnDelete.setBackground(new java.awt.Color(0, 204, 0));
+        btnDelete.setBackground(new java.awt.Color(16, 185, 129));
         btnDelete.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnDelete.setForeground(new java.awt.Color(255, 255, 255));
         btnDelete.setText("DELETE");
@@ -223,7 +221,7 @@ public class MedicineFrame extends javax.swing.JFrame {
             }
         });
 
-        btnUpdate.setBackground(new java.awt.Color(0, 204, 0));
+        btnUpdate.setBackground(new java.awt.Color(16, 185, 129));
         btnUpdate.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnUpdate.setForeground(new java.awt.Color(255, 255, 255));
         btnUpdate.setText("UPDATE");
@@ -238,7 +236,7 @@ public class MedicineFrame extends javax.swing.JFrame {
             }
         });
 
-        btnClear.setBackground(new java.awt.Color(0, 204, 0));
+        btnClear.setBackground(new java.awt.Color(16, 185, 129));
         btnClear.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnClear.setForeground(new java.awt.Color(255, 255, 255));
         btnClear.setText("CLEAR");
@@ -543,7 +541,7 @@ public class MedicineFrame extends javax.swing.JFrame {
         try{
             Con = DatabaseHelper.getConnection();
             St = Con.createStatement();
-            Rs = St.executeQuery("Select * from User1.MEDICINE");
+            Rs = St.executeQuery("Select * from MEDICINE");
             medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
@@ -564,7 +562,7 @@ public class MedicineFrame extends javax.swing.JFrame {
             
             String Id = m_id.getText();
                 
-            String retriveId = "select * from User1.MEDICINE where M_ID="+Id; 
+            String retriveId = "select * from MEDICINE where M_ID="+Id; 
             Statement select = Con.createStatement();
             ResultSet rowSet = select.executeQuery(retriveId);
 
@@ -616,7 +614,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                 Con = DatabaseHelper.getConnection();
                 String Id = m_id.getText();
                 
-                String retriveId = "Select M_ID from User1.MEDICINE where M_ID="+Id; 
+                String retriveId = "Select M_ID from MEDICINE where M_ID="+Id; 
                 Statement select = Con.createStatement();
                 ResultSet row = select.executeQuery(retriveId);
                 
@@ -624,7 +622,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(this, "Medicine "+Id+" Unavailable! Please enter valid ID");
                 }else{
                     System.out.print(row.next());
-                    String Query = "Delete from User1.MEDICINE where M_ID="+Id;
+                    String Query = "Delete from MEDICINE where M_ID="+Id;
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(Query);
                     SelectMed();
@@ -656,7 +654,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                 Con = DatabaseHelper.getConnection();
 
                 int Id = Integer.valueOf(m_id.getText());
-                String retriveId = "Select M_ID from User1.MEDICINE where M_ID="+Id; 
+                String retriveId = "Select M_ID from MEDICINE where M_ID="+Id; 
                 Statement select = Con.createStatement();
                 ResultSet row = select.executeQuery(retriveId);
 
@@ -667,14 +665,14 @@ public class MedicineFrame extends javax.swing.JFrame {
                     MyFabdate = new java.sql.Date(FDate.getTime());
                     EDate = m_expdate.getDate();
                     MyExpDate = new java.sql.Date(EDate.getTime());
-                    String UpdateQuery = "Update User1.MEDICINE set M_NAME = '"+m_name.getText()+"'"+",M_PRICE = "+Double.valueOf(m_price.getText())+",M_QUANTITY = "+m_quantity.getText()+",M_MFTDATE = '"+MyFabdate+"',M_EXPDATE = '"+MyExpDate+"',M_COMPANY = '"+m_company.getSelectedItem().toString()+"',M_OWNER = '"+(m_owner.getText().isEmpty() ? "Main" : m_owner.getText())+"',M_CATEGORY = '"+m_category.getSelectedItem().toString()+"',M_STRENGTH = '"+m_strength.getText()+"',M_DOSAGE = '"+m_dosage.getText()+"',M_UNIT_COST = "+(m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()))+",M_THRESHOLD = "+(m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()))+",M_BATCH = '"+m_batch.getText()+"' where M_ID = "+m_id.getText();
+                    String UpdateQuery = "Update MEDICINE set M_NAME = '"+m_name.getText()+"'"+",M_PRICE = "+Double.valueOf(m_price.getText())+",M_QUANTITY = "+m_quantity.getText()+",M_MFTDATE = '"+MyFabdate+"',M_EXPDATE = '"+MyExpDate+"',M_COMPANY = '"+m_company.getSelectedItem().toString()+"',M_OWNER = '"+(m_owner.getText().isEmpty() ? "Main" : m_owner.getText())+"',M_CATEGORY = '"+m_category.getSelectedItem().toString()+"',M_STRENGTH = '"+m_strength.getText()+"',M_DOSAGE = '"+m_dosage.getText()+"',M_UNIT_COST = "+(m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()))+",M_THRESHOLD = "+(m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()))+",M_BATCH = '"+m_batch.getText()+"' where M_ID = "+m_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
 
                     SelectMed();
                     JOptionPane.showMessageDialog(this, "Medicine "+m_id.getText()+" Updated Successfully");
                 }
-            }catch(org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException e){
+            }catch(java.sql.SQLIntegrityConstraintViolationException e){
                 JOptionPane.showMessageDialog(this, "Error: Expiry date must not be lesser than manufacture date!");
             }catch(SQLException e)
             {
@@ -759,29 +757,6 @@ public class MedicineFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MedicineFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MedicineFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MedicineFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MedicineFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {

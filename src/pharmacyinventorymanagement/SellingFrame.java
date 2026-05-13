@@ -1,6 +1,4 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package pharmacyinventorymanagement;
 
@@ -49,7 +47,7 @@ public class SellingFrame extends javax.swing.JFrame {
         try{
             Con = DatabaseHelper.getConnection();
             St = Con.createStatement();
-            Rs = St.executeQuery("Select * from User1.MEDICINE");
+            Rs = St.executeQuery("Select * from MEDICINE");
             medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
         }
         catch(SQLException e)
@@ -67,7 +65,7 @@ public class SellingFrame extends javax.swing.JFrame {
                     mQty = newQty;
                     Con = DatabaseHelper.getConnection();
 
-                    String UpdateQuery = "Update User1.MEDICINE set M_QUANTITY = "+newQty+" where M_ID = "+medId;
+                    String UpdateQuery = "Update MEDICINE set M_QUANTITY = "+newQty+" where M_ID = "+medId;
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
 
@@ -97,7 +95,7 @@ public class SellingFrame extends javax.swing.JFrame {
     public void recordSale(int medId, String medName, int qty, double total) {
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO User1.SALES (S_MED_NAME, S_DATE, S_QTY, S_TOTAL) VALUES (?, ?, ?, ?)")) {
+                 "INSERT INTO SALES (S_MED_NAME, S_DATE, S_QTY, S_TOTAL) VALUES (?, ?, ?, ?)")) {
             
             pstmt.setString(1, medName);
             pstmt.setDate(2, new java.sql.Date(System.currentTimeMillis()));
@@ -141,7 +139,7 @@ public class SellingFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
 
-        jPanel1.setBackground(new java.awt.Color(51, 153, 0));
+        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
 
         medicineBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
         medicineBtn.setForeground(new java.awt.Color(255, 255, 255));
@@ -152,16 +150,16 @@ public class SellingFrame extends javax.swing.JFrame {
             }
         });
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 204));
+        jPanel2.setBackground(new java.awt.Color(248, 250, 252));
 
         Title4.setBackground(new java.awt.Color(255, 255, 255));
         Title4.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title4.setForeground(new java.awt.Color(51, 153, 0));
+        Title4.setForeground(new java.awt.Color(16, 185, 129));
         Title4.setText("BILL ID");
 
         Title5.setBackground(new java.awt.Color(255, 255, 255));
         Title5.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title5.setForeground(new java.awt.Color(51, 153, 0));
+        Title5.setForeground(new java.awt.Color(16, 185, 129));
         Title5.setText("MEDICINE");
 
         b_id.addActionListener(new java.awt.event.ActionListener() {
@@ -176,7 +174,7 @@ public class SellingFrame extends javax.swing.JFrame {
             }
         });
 
-        btnAddToBill.setBackground(new java.awt.Color(0, 204, 0));
+        btnAddToBill.setBackground(new java.awt.Color(16, 185, 129));
         btnAddToBill.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnAddToBill.setForeground(new java.awt.Color(255, 255, 255));
         btnAddToBill.setText("ADD TO BILL");
@@ -191,7 +189,7 @@ public class SellingFrame extends javax.swing.JFrame {
             }
         });
 
-        btnClear.setBackground(new java.awt.Color(0, 204, 0));
+        btnClear.setBackground(new java.awt.Color(16, 185, 129));
         btnClear.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnClear.setForeground(new java.awt.Color(255, 255, 255));
         btnClear.setText("CLEAR");
@@ -238,12 +236,12 @@ public class SellingFrame extends javax.swing.JFrame {
         jScrollPane1.setViewportView(medicine_table);
 
         Title11.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
-        Title11.setForeground(new java.awt.Color(51, 153, 0));
+        Title11.setForeground(new java.awt.Color(16, 185, 129));
         Title11.setText("MEDICINE STOCK");
 
         Title6.setBackground(new java.awt.Color(255, 255, 255));
         Title6.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title6.setForeground(new java.awt.Color(51, 153, 0));
+        Title6.setForeground(new java.awt.Color(16, 185, 129));
         Title6.setText("QTY.");
 
         b_quantity.addActionListener(new java.awt.event.ActionListener() {
@@ -345,7 +343,7 @@ public class SellingFrame extends javax.swing.JFrame {
 
         jPanel3.setBackground(new java.awt.Color(255, 255, 153));
 
-        btnPrint.setBackground(new java.awt.Color(0, 204, 0));
+        btnPrint.setBackground(new java.awt.Color(16, 185, 129));
         btnPrint.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
         btnPrint.setForeground(new java.awt.Color(255, 255, 255));
         btnPrint.setText("PRINT");
@@ -361,7 +359,7 @@ public class SellingFrame extends javax.swing.JFrame {
         });
 
         Title12.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
-        Title12.setForeground(new java.awt.Color(51, 153, 0));
+        Title12.setForeground(new java.awt.Color(16, 185, 129));
         Title12.setText("INVOICE");
 
         b_textArea.setColumns(20);
@@ -604,28 +602,7 @@ public class SellingFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SellingFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SellingFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SellingFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SellingFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+        /* Create and display the form */
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>

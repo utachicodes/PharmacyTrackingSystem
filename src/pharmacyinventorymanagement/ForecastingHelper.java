@@ -16,7 +16,7 @@ public class ForecastingHelper {
         
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(
-                 "SELECT S_QTY FROM User1.SALES WHERE S_MED_NAME = ? AND S_DATE >= ?")) {
+                 "SELECT S_QTY FROM SALES WHERE S_MED_NAME = ? AND S_DATE >= ?")) {
             
             // Look at the last 30 days of sales
             LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
@@ -49,7 +49,7 @@ public class ForecastingHelper {
         List<String> alerts = new ArrayList<>();
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_QUANTITY FROM User1.MEDICINE")) {
+             ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_QUANTITY FROM MEDICINE")) {
             
             while (rs.next()) {
                 String name = rs.getString("M_NAME");
@@ -73,7 +73,7 @@ public class ForecastingHelper {
         List<String> alerts = new ArrayList<>();
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_EXPDATE FROM User1.MEDICINE")) {
+             ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_EXPDATE FROM MEDICINE")) {
             
             LocalDate thirtyDaysFromNow = LocalDate.now().plusDays(30);
             while (rs.next()) {
@@ -99,7 +99,7 @@ public class ForecastingHelper {
         double totalValue = 0;
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT M_QUANTITY, M_UNIT_COST FROM User1.MEDICINE")) {
+             ResultSet rs = stmt.executeQuery("SELECT M_QUANTITY, M_UNIT_COST FROM MEDICINE")) {
             
             while (rs.next()) {
                 totalValue += rs.getInt("M_QUANTITY") * rs.getDouble("M_UNIT_COST");

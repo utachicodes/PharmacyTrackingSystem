@@ -1,6 +1,4 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package pharmacyinventorymanagement;
 
@@ -55,7 +53,7 @@ public class LoginFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
 
-        PanelLeft.setBackground(new java.awt.Color(51, 184, 0));
+        PanelLeft.setBackground(new java.awt.Color(16, 185, 129));
 
         Title.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
         Title.setForeground(new java.awt.Color(255, 255, 255));
@@ -86,10 +84,10 @@ public class LoginFrame extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        PanelRight.setBackground(new java.awt.Color(255, 255, 204));
+        PanelRight.setBackground(new java.awt.Color(248, 250, 252));
 
         labelTitle.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
-        labelTitle.setForeground(new java.awt.Color(51, 204, 0));
+        labelTitle.setForeground(new java.awt.Color(16, 185, 129));
         labelTitle.setText("Login");
 
         txtUserName.addActionListener(new java.awt.event.ActionListener() {
@@ -99,11 +97,11 @@ public class LoginFrame extends javax.swing.JFrame {
         });
 
         labelUserName.setFont(new java.awt.Font("Georgia", 1, 20)); // NOI18N
-        labelUserName.setForeground(new java.awt.Color(51, 204, 0));
+        labelUserName.setForeground(new java.awt.Color(16, 185, 129));
         labelUserName.setText("ID");
 
         labelPassword.setFont(new java.awt.Font("Georgia", 1, 20)); // NOI18N
-        labelPassword.setForeground(new java.awt.Color(51, 204, 0));
+        labelPassword.setForeground(new java.awt.Color(16, 185, 129));
         labelPassword.setText("Pass");
 
         btnLogin.setBackground(new java.awt.Color(0, 204, 0));
@@ -235,7 +233,7 @@ public class LoginFrame extends javax.swing.JFrame {
 
     private void btnLoginMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnLoginMouseClicked
         String pwd = new String(l_password.getPassword());
-        String selectQ = "select * from User1.AGENTS where A_NAME='"+txtUserName.getText()+"' and A_PASSWORD = '"+pwd+"'";
+        String selectQ = "select * from AGENTS where A_NAME='"+txtUserName.getText()+"' and A_PASSWORD = '"+pwd+"'";
         
         try{
             Con = DatabaseHelper.getConnection();
@@ -281,28 +279,7 @@ public class LoginFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(LoginFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(LoginFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(LoginFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(LoginFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+        /* Create and display the form */
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {

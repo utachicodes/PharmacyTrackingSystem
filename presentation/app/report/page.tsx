@@ -200,7 +200,7 @@ function UMLClassDiagram() {
           <text x="14" y="393" fontSize="8.5" fill="#374151">«static» +initializeDatabase()</text>
           <text x="14" y="406" fontSize="8.5" fill="#374151">«static» +resultSetToTableModel(rs)</text>
           <text x="14" y="419" fontSize="8.5" fill="#6b7280">              : DefaultTableModel</text>
-          <text x="14" y="432" fontSize="8" fill="#9ca3af" fontStyle="italic">URL: jdbc:derby://localhost:1527/PharmaDb</text>
+          <text x="14" y="432" fontSize="8" fill="#9ca3af" fontStyle="italic">URL: jdbc:mysql://localhost:3306/PharmaDb</text>
 
           {/* ── ForecastingHelper ── */}
           <rect x="648" y="332" width="204" height="103" fill="#eff6ff" stroke="#1d4ed8" strokeWidth="1.5" rx="2"/>
@@ -355,7 +355,7 @@ function AuthFlowDiagram() {
     step('START: User opens LoginFrame', undefined, 'term', 'border-gray-700 bg-gray-800 text-white'),
     step('User enters A_NAME + Password', 'txtUserName + l_password fields'),
     step('btnLoginMouseClicked() fires', 'Builds SQL via string concat'),
-    step('SELECT * FROM User1.AGENTS\nWHERE A_NAME=? AND A_PASSWORD=?', 'DatabaseHelper.getConnection()', 'rect', 'border-blue-300 bg-blue-50 text-blue-900'),
+    step('SELECT * FROM AGENTS\nWHERE A_NAME=? AND A_PASSWORD=?', 'DatabaseHelper.getConnection()', 'rect', 'border-blue-300 bg-blue-50 text-blue-900'),
     step('Result found?', undefined, 'diamond', 'border-amber-400 bg-amber-50 text-amber-900'),
     step('Extract A_ROLE from ResultSet', 'Admin / Pharmacist / Technician'),
     step('new DashboardFrame(role).setVisible(true)', 'LoginFrame.dispose()', 'rect', 'border-green-400 bg-green-50 text-green-900'),
@@ -497,7 +497,7 @@ export default function Report() {
                     ['Student', '[Your Name]'],
                     ['Course', 'OOP with Java'],
                     ['Semester', 'Spring 2026'],
-                    ['Language', 'Java 17 + Apache Derby'],
+                    ['Language', 'Java 17 + MySQL 8.x'],
                   ].map(([k, v]) => (
                     <tr key={k} className="border-b border-gray-200 last:border-0">
                       <td className="px-4 py-2 font-semibold text-gray-600 text-left w-28">{k}</td>
@@ -530,7 +530,7 @@ export default function Report() {
             <H2 id="intro" n="1.">Introduction</H2>
             <P>PharmTrack is a desktop application developed in Java to address operational challenges in retail pharmacy inventory management. A typical pharmacy stocks hundreds of distinct medications — each with its own stock level, unit cost, expiration date, reorder threshold, dosage form, and supplier relationship. Without structured tooling, staff must rely on manual checks and spreadsheets, which scale poorly and fail to provide proactive alerts.</P>
             <P>The application addresses three core operational problems: stock-outs (running out of critical medication before restocking), expired medication on shelves (a safety and compliance risk), and reactive rather than predictive inventory management. PharmTrack solves all three through a demand forecasting engine, automated alerts, and structured procurement workflows.</P>
-            <P>The system is implemented in a single Java package (<IC>pharmacyinventorymanagement</IC>) containing eleven classes: two static utility helpers, one application entry point, and eight Swing frame classes — one for each functional screen. The database is Apache Derby, accessed via JDBC and managed entirely by <IC>DatabaseHelper</IC>.</P>
+            <P>The system is implemented in a single Java package (<IC>pharmacyinventorymanagement</IC>) containing eleven classes: two static utility helpers, one application entry point, and eight Swing frame classes — one for each functional screen. The database is MySQL 8.x, accessed via JDBC and managed entirely by <IC>DatabaseHelper</IC>.</P>
 
             {/* 2 */}
             <H2 id="arch" n="2.">System Architecture</H2>
@@ -570,16 +570,14 @@ public class PurchaseOrderFrame extends javax.swing.JFrame { ... }
             <Note><strong>Why this matters:</strong> Without JFrame inheritance, each frame would need hundreds of lines of low-level AWT windowing code. Inheritance eliminates this entirely.</Note>
 
             <H3 id="oop-enc" n="3.2">Encapsulation</H3>
-            <P><strong>DatabaseHelper.getConnection()</strong> hides whether Derby is running as a network server or embedded. Callers never know which mode is active:</P>
-            <Code label="DatabaseHelper.java — lines 18–25">{`public static Connection getConnection() throws SQLException {
+            <P><strong>DatabaseHelper.getConnection()</strong> hides the details of connecting to the MySQL server. Callers get a Connection without knowing the URL, driver class, or credentials:</P>
+            <Code label="DatabaseHelper.java — getConnection()">{`public static Connection getConnection() throws SQLException {
+    String url = "jdbc:mysql://localhost:3306/PharmaDb";
     try {
-        return DriverManager.getConnection(DB_URL, USER, PASS);
-        // DB_URL = "jdbc:derby://localhost:1527/PharmaDb"
-    } catch (SQLException e) {
-        // Network server not running — fall back to embedded
-        return DriverManager.getConnection(
-            "jdbc:derby:PharmaDb;create=true", USER, PASS
-        );
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection(url, USER, PASS);
+    } catch (ClassNotFoundException e) {
+        throw new SQLException("MySQL Driver not found", e);
     }
 }`}</Code>
             <P><strong>DashboardFrame.applyRolePermissions()</strong> encapsulates all RBAC logic in one private method called once from the constructor. All access rules are auditable in 10 lines:</P>
@@ -659,7 +657,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame { ... }
     int totalQty = 0, count = 0;
     try (Connection conn = DatabaseHelper.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(
-             "SELECT S_QTY FROM User1.SALES " +
+             "SELECT S_QTY FROM SALES " +
              "WHERE S_MED_NAME = ? AND S_DATE >= ?")) {
 
         pstmt.setString(1, medicineName);
@@ -678,10 +676,10 @@ public class PurchaseOrderFrame extends javax.swing.JFrame { ... }
 
             {/* 4 */}
             <H2 id="database" n="4.">Database Design</H2>
-            <P>The application uses five tables in Apache Derby, all created by <IC>DatabaseHelper.initializeDatabase()</IC> on first run. All tables are in the <IC>User1</IC> schema. Relationships between tables are enforced by application logic rather than foreign key constraints — a known limitation discussed in section 9.</P>
+            <P>The application uses five tables in MySQL, all created by <IC>DatabaseHelper.initializeDatabase()</IC> on first run using <IC>CREATE TABLE IF NOT EXISTS</IC>. Relationships between tables are enforced by application logic rather than foreign key constraints — a known limitation discussed in section 9.</P>
             <DBSchemaDiagram />
             <H3 id="db-migration" n="4.1">Schema Auto-Migration</H3>
-            <P><IC>initializeDatabase()</IC> uses a try/catch pattern: it attempts <IC>CREATE TABLE</IC> first; if the table already exists, it attempts to add new columns via <IC>ALTER TABLE ADD COLUMN</IC> in a loop. Each column addition is wrapped in its own try/catch so that already-existing columns are silently skipped. This allows the schema to evolve across application versions without dropping and recreating tables.</P>
+            <P><IC>initializeDatabase()</IC> uses <IC>CREATE TABLE IF NOT EXISTS</IC> so the method is safe to run on every launch. If the table already exists, MySQL silently skips it. Columns added in later development iterations are applied with <IC>ALTER TABLE ADD COLUMN</IC>, each wrapped in its own try/catch so that already-existing columns are silently skipped. This allows the schema to evolve across application versions without dropping and recreating tables.</P>
 
             {/* 5 */}
             <H2 id="auth" n="5.">Authentication & Role-Based Access Control</H2>
@@ -712,13 +710,13 @@ public class PurchaseOrderFrame extends javax.swing.JFrame { ... }
     conn.setAutoCommit(false);   // BEGIN TRANSACTION
     try {
         PreparedStatement updatePO = conn.prepareStatement(
-            "UPDATE User1.PURCHASE_ORDERS " +
+            "UPDATE PURCHASE_ORDERS " +
             "SET PO_STATUS = 'Received' WHERE PO_ID = ?");
         updatePO.setInt(1, poId);
         updatePO.executeUpdate();
 
         PreparedStatement updateMed = conn.prepareStatement(
-            "UPDATE User1.MEDICINE " +
+            "UPDATE MEDICINE " +
             "SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?");
         updateMed.setInt(1, qty);
         updateMed.setString(2, medName);
@@ -744,7 +742,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame { ... }
     int orderQty = Integer.valueOf(b_quantity.getText());
     if (mQty >= orderQty) {
         int newQty = mQty - orderQty;
-        String updateQ = "Update User1.MEDICINE set M_QUANTITY = "
+        String updateQ = "Update MEDICINE set M_QUANTITY = "
             + newQty + " where M_ID = " + medId; // ← SQL injection risk
         Statement add = Con.createStatement();
         add.executeUpdate(updateQ);
@@ -757,7 +755,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame { ... }
 
 public void recordSale(int medId, String medName, int qty, double total) {
     try (PreparedStatement pstmt = conn.prepareStatement(
-             "INSERT INTO User1.SALES (S_MED_NAME,S_DATE,S_QTY,S_TOTAL)"
+             "INSERT INTO SALES (S_MED_NAME,S_DATE,S_QTY,S_TOTAL)"
            + " VALUES (?,?,?,?)")) {
         pstmt.setString(1, medName);
         pstmt.setDate(2, new java.sql.Date(System.currentTimeMillis()));
@@ -773,12 +771,12 @@ public void recordSale(int medId, String medName, int qty, double total) {
 
             <H3 id="w1" n="9.1">SQL Injection in LoginFrame</H3>
             <P>The login query on line 238 builds SQL via string concatenation of raw user input:</P>
-            <Code label="LoginFrame.java line 238 — VULNERABLE">{`String selectQ = "select * from User1.AGENTS " +
+            <Code label="LoginFrame.java line 238 — VULNERABLE">{`String selectQ = "select * from AGENTS " +
     "where A_NAME='" + txtUserName.getText() + "'" +
     " and A_PASSWORD = '" + pwd + "'";`}</Code>
             <P>Entering <IC>admin&apos; --</IC> as the username produces a valid SQL query that bypasses the password check entirely. The fix is one line:</P>
             <Code label="Fixed version — PreparedStatement">{`PreparedStatement ps = conn.prepareStatement(
-    "SELECT * FROM User1.AGENTS WHERE A_NAME=? AND A_PASSWORD=?");
+    "SELECT * FROM AGENTS WHERE A_NAME=? AND A_PASSWORD=?");
 ps.setString(1, txtUserName.getText());
 ps.setString(2, pwd);`}</Code>
 
@@ -839,9 +837,9 @@ ps.setString(2, pwd);`}</Code>
                 ['Default Admin username', 'Admin'],
                 ['Default Admin password', 'admin123'],
                 ['Default Admin ID', '1'],
-                ['Derby schema', 'User1'],
-                ['Derby network URL', 'jdbc:derby://localhost:1527/PharmaDb'],
-                ['Derby embedded fallback', 'jdbc:derby:PharmaDb;create=true'],
+                ['Database URL', 'jdbc:mysql://localhost:3306/PharmaDb'],
+                ['Database', 'MySQL 8.x'],
+                ['Build tool', 'Maven'],
                 ['Forecasting window', '30 days lookback, 7 days forward'],
                 ['Expiry alert threshold', '30 days from today'],
                 ['Low-stock hardcoded floor', '10 units'],
@@ -849,17 +847,16 @@ ps.setString(2, pwd);`}</Code>
               ]}
             />
             <H3 n="B." id="app-build">Build & Run</H3>
-            <Code>{`# Requirements: Java 17+, Apache Derby in classpath
+            <Code>{`# Requirements: Java 17+, MySQL 8.x, Maven
 
-# Using NetBeans:
-#   File → Open Project → Run (F6)
+# Using IntelliJ IDEA:
+#   File → Open → Select pom.xml → Run Main class
 
-# Using Ant CLI:
-ant run
+# Using Maven CLI:
+mvn clean compile exec:java
 
 # Database is created automatically on first launch.
-# To run Derby as a network server (optional):
-java -jar derby/lib/derbyrun.jar server start`}</Code>
+# MySQL must be running on localhost:3306.`}</Code>
 
             <div className="mt-14 pt-5 border-t border-gray-300 text-gray-400 text-xs text-center">
               PharmTrack · Pharmacy Inventory Management System · OOP Java Project · Spring 2026

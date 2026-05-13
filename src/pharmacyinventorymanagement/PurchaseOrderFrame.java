@@ -16,7 +16,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
     private void loadPOs() {
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM User1.PURCHASE_ORDERS")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM PURCHASE_ORDERS")) {
             poTable.setModel(DatabaseHelper.resultSetToTableModel(rs));
         } catch (SQLException e) {
             e.printStackTrace();
@@ -35,7 +35,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
 
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO User1.PURCHASE_ORDERS (PO_MED_NAME, PO_SUPPLIER, PO_QTY, PO_DATE) VALUES (?, ?, ?, ?)")) {
+                 "INSERT INTO PURCHASE_ORDERS (PO_MED_NAME, PO_SUPPLIER, PO_QTY, PO_DATE) VALUES (?, ?, ?, ?)")) {
             
             pstmt.setString(1, medName);
             pstmt.setString(2, supplier);
@@ -72,13 +72,13 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
             try {
                 // Update PO status
                 PreparedStatement updatePO = conn.prepareStatement(
-                    "UPDATE User1.PURCHASE_ORDERS SET PO_STATUS = 'Received' WHERE PO_ID = ?");
+                    "UPDATE PURCHASE_ORDERS SET PO_STATUS = 'Received' WHERE PO_ID = ?");
                 updatePO.setInt(1, poId);
                 updatePO.executeUpdate();
 
                 // Update Medicine stock
                 PreparedStatement updateMed = conn.prepareStatement(
-                    "UPDATE User1.MEDICINE SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?");
+                    "UPDATE MEDICINE SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?");
                 updateMed.setInt(1, qty);
                 updateMed.setString(2, medName);
                 int updatedRows = updateMed.executeUpdate();
