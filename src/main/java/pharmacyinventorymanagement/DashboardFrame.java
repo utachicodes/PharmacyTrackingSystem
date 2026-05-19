@@ -37,24 +37,28 @@ public class DashboardFrame extends javax.swing.JFrame {
     }
 
     private void loadAlerts() {
+        // Fetch both alert categories from the forecasting engine
         List<String> stockAlerts = ForecastingHelper.getLowStockAlerts();
         List<String> expAlerts = ForecastingHelper.getExpirationAlerts();
         DefaultListModel<String> model = new DefaultListModel<>();
-        
+
         if (stockAlerts.isEmpty() && expAlerts.isEmpty()) {
+            // All clear — show a positive status message
             model.addElement("All stock levels healthy and no near-expiry items.");
         } else {
+            // Expiry alerts are higher urgency — show first
             for (String alert : expAlerts) {
                 // ForecastingHelper.getExpirationAlerts already prefixes "EXPIRY: "
                 model.addElement(alert);
             }
+            // Low-stock alerts follow with explicit prefix
             for (String alert : stockAlerts) {
                 model.addElement("LOW STOCK: " + alert);
             }
         }
         alertList.setModel(model);
-        
-        // Add summary info to the list
+
+        // Prepend inventory value summary header at the top of the alert list
         double totalValue = ForecastingHelper.getInventoryValue();
         model.add(0, "------------------------------------------");
         model.add(0, "TOTAL INVENTORY VALUE: $" + String.format("%.2f", totalValue));
