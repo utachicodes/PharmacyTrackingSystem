@@ -1,6 +1,10 @@
 package pharmacyinventorymanagement;
 
 /**
+ * CompanyFrame manages the pharmacy supplier directory. It provides CRUD operations
+ * for supplier records including company name, address, contact, experience, email,
+ * lead time, and preferred-supplier flag. All write operations use
+ * {@link java.sql.PreparedStatement} to prevent SQL injection.
  *
  * @author Abdoullah Ndao
  */
