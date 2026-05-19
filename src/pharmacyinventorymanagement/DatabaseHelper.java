@@ -10,6 +10,13 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.ResultSetMetaData;
 import java.util.Vector;
 
+/**
+ * DatabaseHelper provides centralised MySQL connectivity and schema initialisation
+ * for the Pharmacy Tracking System. It exposes a static {@code getConnection()} factory
+ * used by every frame/helper, and an {@code initializeDatabase()} method that
+ * auto-creates all required tables and seeds the default admin account on first launch.
+ * Connection credentials are stored as named constants at the top of this class.
+ */
 public class DatabaseHelper {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/PharmaDb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
