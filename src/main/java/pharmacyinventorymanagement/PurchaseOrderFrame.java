@@ -69,21 +69,23 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         int qty = (int) poTable.getValueAt(selectedRow, 3);
         String status = (String) poTable.getValueAt(selectedRow, 4);
 
+        // Guard against double-receiving the same order
         if ("Received".equals(status)) {
             JOptionPane.showMessageDialog(this, "This order is already received");
             return;
         }
 
         try (Connection conn = DatabaseHelper.getConnection()) {
+            // Disable auto-commit to wrap both updates in a single atomic transaction
             conn.setAutoCommit(false);
             try {
-                // Update PO status
+                // Step 1: Mark the purchase order as received
                 PreparedStatement updatePO = conn.prepareStatement(
                     "UPDATE PURCHASE_ORDERS SET PO_STATUS = 'Received' WHERE PO_ID = ?");
                 updatePO.setInt(1, poId);
                 updatePO.executeUpdate();
 
-                // Update Medicine stock
+                // Step 2: Add the received quantity to the medicine's current stock
                 PreparedStatement updateMed = conn.prepareStatement(
                     "UPDATE MEDICINE SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?");
                 updateMed.setInt(1, qty);
@@ -91,14 +93,16 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
                 int updatedRows = updateMed.executeUpdate();
 
                 if (updatedRows == 0) {
-                    // Medicine not found, maybe handle creating it?
+                    // Medicine not found in inventory; warn but still commit PO status update
                     JOptionPane.showMessageDialog(this, "Warning: Medicine not found in inventory. Stock not updated.");
                 }
 
+                // Commit both changes together — all-or-nothing
                 conn.commit();
                 loadPOs();
                 JOptionPane.showMessageDialog(this, "Stock received and inventory updated!");
             } catch (SQLException e) {
+                // Roll back both changes if either step fails
                 conn.rollback();
                 throw e;
             }
