@@ -6,7 +6,7 @@ package pharmacyinventorymanagement;
  *
  * @author Abdoullah Ndao
  */
-
+import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -141,7 +141,7 @@ public class LoginFrame extends javax.swing.JFrame {
 
         Description1.setFont(new java.awt.Font("Segoe UI", 2, 13)); // NOI18N
         Description1.setForeground(new java.awt.Color(0, 204, 51));
-        Description1.setText("By Team: 4");
+        Description1.setText("By Abdoullah Ndao");
 
         closeX.setBackground(new java.awt.Color(255, 255, 255));
         closeX.setFont(new java.awt.Font("MS Gothic", 1, 24)); // NOI18N
