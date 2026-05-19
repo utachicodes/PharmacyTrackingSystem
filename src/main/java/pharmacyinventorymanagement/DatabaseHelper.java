@@ -18,9 +18,14 @@ import java.util.Vector;
  * Connection credentials are stored as named constants at the top of this class.
  */
 public class DatabaseHelper {
+    /** JDBC URL — auto-creates the PharmaDb database on first connection. */
     private static final String DB_URL = "jdbc:mysql://localhost:3306/PharmaDb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true";
+
+    /** MySQL username. Change to match your local MySQL installation. */
     private static final String USER = "root";
-    private static final String PASS = ""; // Update this with your MySQL password
+
+    /** MySQL password. Update this with your MySQL password (empty by default). */
+    private static final String PASS = "";
 
     public static Connection getConnection() throws SQLException {
         try {
