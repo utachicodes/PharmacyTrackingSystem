@@ -13,6 +13,12 @@ import java.time.LocalDate;
  */
 public class ForecastingHelper {
 
+    /** Number of trailing days used as the SMA calculation window. */
+    private static final int SALES_WINDOW_DAYS = 30;
+
+    /** Number of days ahead to forecast demand. */
+    private static final int FORECAST_HORIZON_DAYS = 7;
+
     /**
      * Predicts demand for a medicine based on past sales.
      * Uses a simple moving average or trend analysis.
@@ -20,29 +26,31 @@ public class ForecastingHelper {
     public static int predictDemand(String medicineName) {
         int totalQty = 0;
         int count = 0;
-        
+
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(
                  "SELECT S_QTY FROM SALES WHERE S_MED_NAME = ? AND S_DATE >= ?")) {
-            
-            // Look at the last 30 days of sales
-            LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
+
+            // SMA window: look at sales transactions in the last 30 days
+            LocalDate thirtyDaysAgo = LocalDate.now().minusDays(SALES_WINDOW_DAYS);
             pstmt.setString(1, medicineName);
             pstmt.setDate(2, java.sql.Date.valueOf(thirtyDaysAgo));
-            
+
+            // Accumulate total units sold across all matching transactions
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     totalQty += rs.getInt("S_QTY");
                     count++;
                 }
             }
-            
+
+            // If no sales history exists, return 0 (no forecast possible)
             if (count == 0) return 0;
-            
-            // Simple forecast: average daily sales * next 7 days
-            double avgDaily = (double) totalQty / 30.0;
-            return (int) Math.ceil(avgDaily * 7);
-            
+
+            // SMA forecast: average daily sales over the window * forecast horizon
+            double avgDaily = (double) totalQty / (double) SALES_WINDOW_DAYS;
+            return (int) Math.ceil(avgDaily * FORECAST_HORIZON_DAYS);
+
         } catch (SQLException e) {
             e.printStackTrace();
             return 0;
