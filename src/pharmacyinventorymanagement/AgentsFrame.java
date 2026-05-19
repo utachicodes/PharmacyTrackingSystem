@@ -593,7 +593,9 @@ public class AgentsFrame extends javax.swing.JFrame {
         a_id.setText(model.getValueAt(Myindex, 0).toString());
         a_name.setText(model.getValueAt(Myindex, 1).toString());
         a_age.setText(model.getValueAt(Myindex, 2).toString());
+        a_password.setText(model.getValueAt(Myindex, 3).toString());
         a_phone.setText(model.getValueAt(Myindex, 4).toString());
+        a_gender.setSelectedItem(model.getValueAt(Myindex, 5).toString());
         a_email.setText(model.getValueAt(Myindex, 6).toString());
         a_role.setSelectedItem(model.getValueAt(Myindex, 7) == null ? "Technician" : model.getValueAt(Myindex, 7).toString());
 
