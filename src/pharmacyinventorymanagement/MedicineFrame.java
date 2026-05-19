@@ -491,6 +491,25 @@ public class MedicineFrame extends javax.swing.JFrame {
         customInit();
     }// </editor-fold>
 
+    /** Reload company names from COMPANY table into the m_company combobox. */
+    public void loadCompanyComboBox() {
+        m_company.removeAllItems();
+        try (java.sql.Connection conn = DatabaseHelper.getConnection();
+             java.sql.Statement stmt = conn.createStatement();
+             java.sql.ResultSet rs = stmt.executeQuery("SELECT C_NAME FROM COMPANY ORDER BY C_NAME")) {
+            while (rs.next()) {
+                m_company.addItem(rs.getString("C_NAME"));
+            }
+        } catch (java.sql.SQLException e) {
+            // Fallback: keep default items if DB unavailable
+        }
+        if (m_company.getItemCount() == 0) {
+            for (String s : new String[]{"Bangalore south","Chennai","China","Kolkata","Delhi"}) {
+                m_company.addItem(s);
+            }
+        }
+    }
+
     private void customInit() {
         m_category = new javax.swing.JComboBox<>(new String[] { "Tablet", "Syrup", "Injection", "Capsule", "Ointment", "Other" });
         m_strength = new javax.swing.JTextField(10);
@@ -510,6 +529,7 @@ public class MedicineFrame extends javax.swing.JFrame {
         
         getContentPane().add(extraPanel, BorderLayout.SOUTH);
         pack();
+        loadCompanyComboBox();
     }
 
     private void m_idActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_idActionPerformed
