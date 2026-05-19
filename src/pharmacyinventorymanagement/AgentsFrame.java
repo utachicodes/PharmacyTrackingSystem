@@ -623,9 +623,17 @@ public class AgentsFrame extends javax.swing.JFrame {
                 }else{
                 
                 
-                    String UpdateQuery = "Update AGENTS set A_NAME = '"+a_name.getText()+"'"+",A_AGE = "+a_age.getText()+",A_PHONE = '"+a_phone.getText()+"',A_PASSWORD = '"+a_password.getText()+"',A_GENDER = '"+a_gender.getSelectedItem().toString()+"',A_ROLE = '"+a_role.getSelectedItem().toString()+"'"+" where A_ID = "+a_id.getText();
-                    Statement Add = Con.createStatement();
-                    Add.executeUpdate(UpdateQuery);
+                    PreparedStatement upd = Con.prepareStatement(
+                        "UPDATE AGENTS SET A_NAME=?,A_AGE=?,A_PHONE=?,A_PASSWORD=?,A_GENDER=?,A_EMAIL=?,A_ROLE=? WHERE A_ID=?");
+                    upd.setString(1, a_name.getText());
+                    upd.setInt(2, Integer.parseInt(a_age.getText()));
+                    upd.setString(3, a_phone.getText());
+                    upd.setString(4, a_password.getText());
+                    upd.setString(5, a_gender.getSelectedItem().toString());
+                    upd.setString(6, a_email.getText());
+                    upd.setString(7, a_role.getSelectedItem().toString());
+                    upd.setInt(8, Integer.parseInt(a_id.getText()));
+                    upd.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Agent Updated Successfully");
 
                     SelectMed();
