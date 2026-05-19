@@ -37,6 +37,7 @@ public class MedicineFrame extends javax.swing.JFrame {
      */
     public MedicineFrame() {
         initComponents();
+        setTitle("Manage Medicines - Pharmacy System");
         SelectMed();
         applyTableHighlighters();
     }
