@@ -49,15 +49,17 @@ public class ForecastingHelper {
         List<String> alerts = new ArrayList<>();
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_QUANTITY FROM MEDICINE")) {
-            
+             // Fetch per-medicine threshold instead of using hardcoded 10
+             ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_QUANTITY, M_THRESHOLD FROM MEDICINE")) {
+
             while (rs.next()) {
                 String name = rs.getString("M_NAME");
                 int currentQty = rs.getInt("M_QUANTITY");
+                int threshold = rs.getInt("M_THRESHOLD");
                 int predicted = predictDemand(name);
-                
-                if (currentQty < predicted || currentQty < 10) {
-                    alerts.add(name + " (Current: " + currentQty + ", Needed: " + predicted + ")");
+
+                if (currentQty < predicted || currentQty < threshold) {
+                    alerts.add(name + " (Current: " + currentQty + ", Threshold: " + threshold + ", Needed: " + predicted + ")");
                 }
             }
         } catch (SQLException e) {
