@@ -94,13 +94,15 @@ public class ForecastingHelper {
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_EXPDATE FROM MEDICINE")) {
-            
-            LocalDate thirtyDaysFromNow = LocalDate.now().plusDays(30);
+
+            // Flag any medicine expiring within the next 30 days
+            LocalDate thirtyDaysFromNow = LocalDate.now().plusDays(SALES_WINDOW_DAYS);
             while (rs.next()) {
                 String name = rs.getString("M_NAME");
                 java.sql.Date expDate = rs.getDate("M_EXPDATE");
                 if (expDate != null) {
                     LocalDate expiry = expDate.toLocalDate();
+                    // isBefore check covers both expired and near-expiry items
                     if (expiry.isBefore(thirtyDaysFromNow)) {
                         alerts.add("EXPIRY: " + name + " (Expires: " + expiry + ")");
                     }
