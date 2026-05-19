@@ -122,7 +122,8 @@ public class ForecastingHelper {
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT M_QUANTITY, M_UNIT_COST FROM MEDICINE")) {
-            
+
+            // Sum value = quantity * unit cost for every medicine in stock
             while (rs.next()) {
                 totalValue += rs.getInt("M_QUANTITY") * rs.getDouble("M_UNIT_COST");
             }
