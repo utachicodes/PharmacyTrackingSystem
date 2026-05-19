@@ -13,6 +13,10 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
+ * SellingFrame implements the point-of-sale billing module. It displays current
+ * medicine stock, allows the pharmacist to select items and quantities, enforces
+ * stock constraints, deducts inventory atomically, records each sale to the SALES
+ * table, and generates a formatted invoice with a running total in the text area.
  *
  * @author Abdoullah Ndao
  */
