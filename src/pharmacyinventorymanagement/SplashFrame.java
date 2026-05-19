@@ -190,49 +190,8 @@ public class SplashFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-
-        
-            SplashFrame splash = new SplashFrame();
-            splash.setVisible(true);
-//                new SplashFrame().setVisible(true);
-            try{
-                for(int i=0; i<=100; i++){
-                    Thread.sleep(25);
-                   
-                    splash.progressBar.setValue(i);
-                    splash.percentage.setText(Integer.toString(i)+"%");
-                }
-                new LoginFrame().setVisible(true);
-                splash.dispose();
-            }catch(Exception e){
-                JOptionPane.showMessageDialog(splash, "Error: Check your internet!");
-                e.printStackTrace();
-
-            }
-        }
-        
-        /* Create and display the form */
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-//            public void run() {
-////                SplashFrame splash = new SplashFrame();
-////                splash.setVisible(true);
-//////                new SplashFrame().setVisible(true);
-////                try{
-////                    for(int i=0; i<=100; i++){
-////                        Thread.sleep(100);
-////                        splash.progressBar.setValue(i);
-////                        splash.percentage.setText(Integer.toString(i));
-////                    }
-////                    new LoginFrame().setVisible(true);
-////                    splash.dispose();
-////                }catch(Exception e){
-////                    JOptionPane.showMessageDialog(splash, "Error: Check your internet!");
-////                    e.printStackTrace();
-////
-////                }
-////            }
-//        });
-//    }
+        java.awt.EventQueue.invokeLater(() -> new SplashFrame().startApp());
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel closeX;
