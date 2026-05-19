@@ -64,15 +64,18 @@ public class ForecastingHelper {
         List<String> alerts = new ArrayList<>();
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
-             // Fetch per-medicine threshold instead of using hardcoded 10
+             // Fetch per-medicine reorder threshold stored in the MEDICINE table
              ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_QUANTITY, M_THRESHOLD FROM MEDICINE")) {
 
             while (rs.next()) {
                 String name = rs.getString("M_NAME");
                 int currentQty = rs.getInt("M_QUANTITY");
+                // Use the medicine-specific threshold, not a global hardcoded value
                 int threshold = rs.getInt("M_THRESHOLD");
+                // Get SMA-based demand forecast for the next horizon period
                 int predicted = predictDemand(name);
 
+                // Alert if stock is below the SMA forecast OR below the reorder threshold
                 if (currentQty < predicted || currentQty < threshold) {
                     alerts.add(name + " (Current: " + currentQty + ", Threshold: " + threshold + ", Needed: " + predicted + ")");
                 }
