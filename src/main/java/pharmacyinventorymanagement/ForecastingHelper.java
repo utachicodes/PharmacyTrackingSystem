@@ -20,7 +20,10 @@ public class ForecastingHelper {
      */
     private static final int SALES_WINDOW_DAYS = 30;
 
-    /** Number of days ahead to forecast demand. */
+    /**
+     * Number of days ahead to forecast demand (the forecast horizon).
+     * A 7-day window aligns with weekly restocking cycles.
+     */
     private static final int FORECAST_HORIZON_DAYS = 7;
 
     /**
