@@ -403,16 +403,31 @@ public class CompanyFrame extends javax.swing.JFrame {
         c_email = new javax.swing.JTextField(15);
         c_leadtime = new javax.swing.JTextField("7", 5);
         c_preferred = new javax.swing.JComboBox<>(new String[] { "No", "Yes" });
-        
+
         JPanel extraPanel = new JPanel(new FlowLayout());
         extraPanel.setBackground(new Color(255, 255, 204));
         extraPanel.add(new JLabel("Email:")); extraPanel.add(c_email);
         extraPanel.add(new JLabel("Lead Time:")); extraPanel.add(c_leadtime);
         extraPanel.add(new JLabel("Preferred:")); extraPanel.add(c_preferred);
-        
+
         getContentPane().add(extraPanel, BorderLayout.SOUTH);
+
+        // Add Dashboard navigation button to sidebar
+        dashboardBtn = new javax.swing.JLabel("Dashboard");
+        dashboardBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22));
+        dashboardBtn.setForeground(new java.awt.Color(255, 255, 255));
+        dashboardBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        dashboardBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                new DashboardFrame().setVisible(true);
+                dispose();
+            }
+        });
+        jPanel1.add(dashboardBtn);
+
         pack();
     }
+    private javax.swing.JLabel dashboardBtn;
 
     private void c_idActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_c_idActionPerformed
         // TODO add your handling code here:
