@@ -83,7 +83,7 @@ public class DashboardFrame extends javax.swing.JFrame {
         alertList = new javax.swing.JList<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Pharmacy Management Dashboard");
+        setTitle("Pharmacy Management Dashboard — " + userRole);
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(16, 185, 129));
