@@ -27,13 +27,16 @@ public class DashboardFrame extends javax.swing.JFrame {
     }
 
     private void applyRolePermissions() {
+        // Technician: restricted to Medicines and Billing only
         if ("Technician".equalsIgnoreCase(userRole)) {
             btnAgents.setEnabled(false);
             btnCompany.setEnabled(false);
             btnPO.setEnabled(false);
+        // Pharmacist: full access except user management
         } else if ("Pharmacist".equalsIgnoreCase(userRole)) {
             btnAgents.setEnabled(false);
         }
+        // Admin: no restrictions — all buttons remain enabled
     }
 
     private void loadAlerts() {
