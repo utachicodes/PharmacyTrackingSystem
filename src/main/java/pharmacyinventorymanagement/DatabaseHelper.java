@@ -59,6 +59,12 @@ public class DatabaseHelper {
         }
     }
 
+    /**
+     * Auto-creates all required database tables and seeds the default admin account
+     * if the AGENTS table is empty. Designed to be called once on application startup
+     * so the app works out-of-the-box with no manual SQL setup. Uses IF NOT EXISTS
+     * DDL to make each statement idempotent across repeated launches.
+     */
     public static void initializeDatabase() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
             // Create MEDICINE table if it doesn't exist
