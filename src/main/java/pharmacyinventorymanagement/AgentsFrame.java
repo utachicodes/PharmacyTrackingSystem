@@ -34,6 +34,7 @@ public class AgentsFrame extends javax.swing.JFrame {
     public AgentsFrame(String role) {
         this.userRole = role;
         initComponents();
+        // Include role in title bar for quick identification
         setTitle("Manage Agents [" + role + "] - Pharmacy System");
         SelectMed();
     }
