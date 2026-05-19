@@ -588,7 +588,8 @@ public class MedicineFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_btnDeleteActionPerformed
 
-    public void SelectMed()
+    /** Loads (or reloads) the full medicine list from the database into the table. */
+    public void loadMedicines()
     {
         try{
             Con = DatabaseHelper.getConnection();
@@ -605,6 +606,10 @@ public class MedicineFrame extends javax.swing.JFrame {
 
             }
     }
+
+    /** @deprecated Use {@link #loadMedicines()} instead. */
+    @Deprecated
+    public void SelectMed() { loadMedicines(); }
 
     //Add button
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
