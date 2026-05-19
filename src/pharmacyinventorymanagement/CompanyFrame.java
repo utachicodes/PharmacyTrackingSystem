@@ -617,7 +617,8 @@ public class CompanyFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnClearMouseClicked
 
     private void closeXMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_closeXMouseClicked
-        System.exit(0);
+        int choice = JOptionPane.showConfirmDialog(this, "Exit application?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) System.exit(0);
     }//GEN-LAST:event_closeXMouseClicked
 
     private void TitleMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_TitleMouseClicked
