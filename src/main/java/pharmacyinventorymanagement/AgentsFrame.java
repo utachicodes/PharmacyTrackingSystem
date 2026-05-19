@@ -543,6 +543,7 @@ public class AgentsFrame extends javax.swing.JFrame {
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
         try{
             Con = DatabaseHelper.getConnection();
+            // Insert all 8 agent fields: id, name, age, password, phone, gender, email, role
             PreparedStatement add = Con.prepareStatement("insert into AGENTS values(?,?,?,?,?,?,?,?)");
             add.setInt(1, Integer.valueOf(a_id.getText()));
             add.setString(2, a_name.getText());
