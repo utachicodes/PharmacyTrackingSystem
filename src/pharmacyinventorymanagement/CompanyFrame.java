@@ -542,15 +542,15 @@ public class CompanyFrame extends javax.swing.JFrame {
         {
             try{
                 String Id = c_id.getText();
-                String retriveId = "Select * from COMPANY where C_ID="+Id; 
+                Con = DatabaseHelper.getConnection();
+                String retriveId = "Select * from COMPANY where C_ID="+Id;
                 Statement select = Con.createStatement();
-                
+
                 ResultSet row = select.executeQuery(retriveId);
 
                 if(!row.next()){
                     JOptionPane.showMessageDialog(this, "Company "+Id+" does not exist! Please enter valid ID to update");
                 }else{
-                    Con = DatabaseHelper.getConnection();
                     String UpdateQuery = "Update COMPANY set C_NAME = '"+c_name.getText()+"'"+",C_ADDRESS = '"+c_address.getText()+"'"+",C_EXP = "+c_exp.getText()+""+",C_PHONE = '"+c_phone.getText()+"',C_EMAIL = '"+c_email.getText()+"',C_LEADTIME = "+c_leadtime.getText()+",C_PREFERRED = '"+c_preferred.getSelectedItem().toString()+"'"+" where C_ID = "+c_id.getText();
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
