@@ -8,6 +8,12 @@ import javax.swing.JOptionPane;
  *
  * @author Abdoullah Ndao
  */
+/**
+ * SplashFrame displays the application loading screen with an animated progress
+ * bar while the system initialises. It uses a {@link javax.swing.SwingWorker} to
+ * drive the animation off the Event Dispatch Thread, then transitions to
+ * {@link LoginFrame} once loading is complete.
+ */
 public class SplashFrame extends javax.swing.JFrame {
 
     /**
