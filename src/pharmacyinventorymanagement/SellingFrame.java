@@ -502,30 +502,36 @@ public class SellingFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_b_idActionPerformed
 
     int billID = 0;
+    double billTotal = 0.0;
     private void btnAddToBillMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddToBillMouseClicked
         boolean updateResult = updateQty();
-        
+
         if(b_medName.getText().isEmpty()){
             JOptionPane.showMessageDialog(this, "Please fill medicine name");
         }else if(updateResult){
             billID++;
             b_id.setText(Integer.toString(billID));
-            
-            
+
             String billHeader = "";
             try{
+                double lineTotal = Integer.valueOf(b_quantity.getText()) * price;
+                billTotal += lineTotal;
                 if(billID==1){
                     billHeader = "***************** PHARMA-EASY ********************";
                     billHeader += "\n ID  Name\tPrice     Qty     Net";
-                    billHeader += "\n "+billID+"  "+b_medName.getText()+"\t"+price+"       "+b_quantity.getText()+"       "+Integer.valueOf(b_quantity.getText())*price;
+                    billHeader += "\n "+billID+"  "+b_medName.getText()+"\t"+price+"       "+b_quantity.getText()+"       "+lineTotal;
                 }else
                 {
-                    billHeader += b_textArea.getText();
-                    billHeader+= "\n "+billID+"  "+b_medName.getText()+"\t"+price+"       "+b_quantity.getText()+"        "+Integer.valueOf(b_quantity.getText())*price;
+                    // Remove previous TOTAL line if present, then append new line
+                    String existing = b_textArea.getText();
+                    int totIdx = existing.lastIndexOf("\n---");
+                    if (totIdx >= 0) existing = existing.substring(0, totIdx);
+                    billHeader += existing;
+                    billHeader+= "\n "+billID+"  "+b_medName.getText()+"\t"+price+"       "+b_quantity.getText()+"        "+lineTotal;
                 }
-
+                billHeader += "\n-------------------------------------------";
+                billHeader += "\n TOTAL: " + String.format("%.2f", billTotal);
                 b_textArea.setText(billHeader);
-
 
             }catch(NullPointerException npe){
                 JOptionPane.showMessageDialog(this, "Error: A Null exception occured");
@@ -536,7 +542,7 @@ public class SellingFrame extends javax.swing.JFrame {
         }else{
             //no stock
         }
-               
+
     }//GEN-LAST:event_btnAddToBillMouseClicked
 
     private void btnPrintMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnPrintMouseClicked
