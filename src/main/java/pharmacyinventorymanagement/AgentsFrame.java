@@ -1,6 +1,11 @@
 package pharmacyinventorymanagement;
 
 /**
+ * AgentsFrame provides administrator-level user account management for the
+ * Pharmacy Tracking System. It allows creating, updating, and deleting staff
+ * accounts with roles (Admin, Pharmacist, Technician), and displays the full
+ * agent list in an interactive table. All database operations use
+ * {@link java.sql.PreparedStatement} to prevent SQL injection.
  *
  * @author Abdoullah Ndao
  */
