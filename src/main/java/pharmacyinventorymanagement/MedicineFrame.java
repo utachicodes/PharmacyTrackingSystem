@@ -607,13 +607,13 @@ public class MedicineFrame extends javax.swing.JFrame {
 
     //Add button
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
-        
+
         try{
             Con = DatabaseHelper.getConnection();
-            
             String Id = m_id.getText();
-                
-            String retriveId = "select * from MEDICINE where M_ID="+Id; 
+
+            // Check for duplicate ID before inserting
+            String retriveId = "select * from MEDICINE where M_ID="+Id;
             Statement select = Con.createStatement();
             ResultSet rowSet = select.executeQuery(retriveId);
 
