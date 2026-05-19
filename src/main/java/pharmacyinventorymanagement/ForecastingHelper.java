@@ -124,6 +124,20 @@ public class ForecastingHelper {
     /**
      * Calculates the total value of the inventory.
      */
+    /**
+     * Returns the total number of distinct medicines currently in the inventory.
+     */
+    public static int getMedicineCount() {
+        try (java.sql.Connection conn = DatabaseHelper.getConnection();
+             java.sql.Statement stmt = conn.createStatement();
+             java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM MEDICINE")) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public static double getInventoryValue() {
         double totalValue = 0;
         try (Connection conn = DatabaseHelper.getConnection();
