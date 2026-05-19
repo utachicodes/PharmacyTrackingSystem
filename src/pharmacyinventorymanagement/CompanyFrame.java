@@ -550,10 +550,18 @@ public class CompanyFrame extends javax.swing.JFrame {
                 if(!row.next()){
                     JOptionPane.showMessageDialog(this, "Company "+Id+" does not exist! Please enter valid ID to update");
                 }else{
-                    String UpdateQuery = "Update COMPANY set C_NAME = '"+c_name.getText()+"'"+",C_ADDRESS = '"+c_address.getText()+"'"+",C_EXP = "+c_exp.getText()+""+",C_PHONE = '"+c_phone.getText()+"',C_EMAIL = '"+c_email.getText()+"',C_LEADTIME = "+c_leadtime.getText()+",C_PREFERRED = '"+c_preferred.getSelectedItem().toString()+"'"+" where C_ID = "+c_id.getText();
-                    Statement Add = Con.createStatement();
-                    Add.executeUpdate(UpdateQuery);
-                    
+                    PreparedStatement upd = Con.prepareStatement(
+                        "UPDATE COMPANY SET C_NAME=?,C_ADDRESS=?,C_EXP=?,C_PHONE=?,C_EMAIL=?,C_LEADTIME=?,C_PREFERRED=? WHERE C_ID=?");
+                    upd.setString(1, c_name.getText());
+                    upd.setString(2, c_address.getText());
+                    upd.setInt(3, Integer.parseInt(c_exp.getText()));
+                    upd.setString(4, c_phone.getText());
+                    upd.setString(5, c_email.getText());
+                    upd.setInt(6, Integer.parseInt(c_leadtime.getText()));
+                    upd.setString(7, c_preferred.getSelectedItem().toString());
+                    upd.setInt(8, Integer.parseInt(c_id.getText()));
+                    upd.executeUpdate();
+
                     SelectCompany();
                     JOptionPane.showMessageDialog(this, "Company "+Id+" Updated Successfully");
                 }
