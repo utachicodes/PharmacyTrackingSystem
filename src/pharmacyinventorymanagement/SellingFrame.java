@@ -34,8 +34,8 @@ public class SellingFrame extends javax.swing.JFrame {
     }
     
     Connection Con = null;
-    Statement St = null, St1=null;
-    ResultSet Rs =null, Rs1=null;
+    Statement St = null;
+    ResultSet Rs = null;
     double price=0;
     int medId = 0, mQty;
     
