@@ -528,9 +528,24 @@ public class MedicineFrame extends javax.swing.JFrame {
         extraPanel.add(new JLabel("Batch:")); extraPanel.add(m_batch);
         
         getContentPane().add(extraPanel, BorderLayout.SOUTH);
+
+        // Add Dashboard navigation button to sidebar
+        dashboardBtn = new javax.swing.JLabel("Dashboard");
+        dashboardBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22));
+        dashboardBtn.setForeground(new java.awt.Color(255, 255, 255));
+        dashboardBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        dashboardBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                new DashboardFrame().setVisible(true);
+                dispose();
+            }
+        });
+        jPanel1.add(dashboardBtn);
+
         pack();
         loadCompanyComboBox();
     }
+    private javax.swing.JLabel dashboardBtn;
 
     private void m_idActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_idActionPerformed
         // TODO add your handling code here:
