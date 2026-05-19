@@ -118,7 +118,8 @@ public class DashboardFrame extends javax.swing.JFrame {
 
         btnPO.setText("Purchase Orders/Receiving");
         btnPO.addActionListener(e -> {
-            new PurchaseOrderFrame().setVisible(true);
+            // Pass userRole so PurchaseOrderFrame can navigate back with correct permissions
+            new PurchaseOrderFrame(userRole).setVisible(true);
             this.dispose();
         });
 
