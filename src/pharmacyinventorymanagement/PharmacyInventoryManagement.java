@@ -6,6 +6,12 @@ package pharmacyinventorymanagement;
  *
  * @author Abdoullah Ndao
  */
+/**
+ * PharmacyInventoryManagement is the application entry point.
+ * It initialises the FlatLaf look-and-feel, triggers the auto-create database
+ * schema via {@link DatabaseHelper#initializeDatabase()}, and launches the
+ * {@link SplashFrame} which transitions to the login screen after loading.
+ */
 public class PharmacyInventoryManagement {
 
     /**
