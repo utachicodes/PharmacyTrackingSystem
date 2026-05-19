@@ -4,6 +4,13 @@ import java.sql.*;
 import java.util.*;
 import java.time.LocalDate;
 
+/**
+ * ForecastingHelper provides analytics and alerting services for the pharmacy
+ * inventory. It implements a Simple Moving Average (SMA) demand forecasting
+ * algorithm over a configurable trailing window (default 30 days), identifies
+ * medicines at risk of stockout using per-medicine reorder thresholds, flags
+ * items expiring within 30 days, and calculates the total current inventory value.
+ */
 public class ForecastingHelper {
 
     /**
