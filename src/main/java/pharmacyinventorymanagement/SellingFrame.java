@@ -46,7 +46,8 @@ public class SellingFrame extends javax.swing.JFrame {
     
     @SuppressWarnings("unchecked")
     
-    public void SelectMed()
+    /** Loads (or reloads) the medicine stock list from the database into the table. */
+    public void loadMedicines()
     {
         try{
             Con = DatabaseHelper.getConnection();
@@ -60,6 +61,10 @@ public class SellingFrame extends javax.swing.JFrame {
             e.printStackTrace();
         }
     }
+
+    /** @deprecated Use {@link #loadMedicines()} instead. */
+    @Deprecated
+    public void SelectMed() { loadMedicines(); }
     
     public boolean updateQty(){
             int orderQty = Integer.valueOf(b_quantity.getText());
