@@ -31,6 +31,11 @@ public class DatabaseHelper {
         }
     }
 
+    /**
+     * Converts a {@link ResultSet} into a Swing {@link DefaultTableModel} for display
+     * in a JTable. Note: this method does NOT close the ResultSet; callers are
+     * responsible for closing the ResultSet and its parent Statement/Connection.
+     */
     public static DefaultTableModel resultSetToTableModel(ResultSet rs) {
         try {
             ResultSetMetaData metaData = rs.getMetaData();
