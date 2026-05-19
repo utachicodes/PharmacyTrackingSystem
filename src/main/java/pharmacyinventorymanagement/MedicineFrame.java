@@ -23,6 +23,13 @@ import javax.swing.*;
  * colour-highlighted: red for low stock, yellow for near-expiry items.
  * Supplier names are loaded dynamically from the COMPANY table.
  */
+/**
+ * MedicineFrame provides full CRUD management of the pharmacy medicine inventory.
+ * It supports 14 fields per medicine record including batch number, therapeutic
+ * category, unit cost, and per-medicine reorder threshold. Table rows are
+ * colour-highlighted: red for low stock, yellow for near-expiry items.
+ * Supplier names are loaded dynamically from the COMPANY table.
+ */
 public class MedicineFrame extends javax.swing.JFrame {
 
     /**
