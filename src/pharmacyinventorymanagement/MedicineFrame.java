@@ -61,8 +61,8 @@ public class MedicineFrame extends javax.swing.JFrame {
     
     
     Connection Con = null;
-    Statement St = null, St1=null;
-    ResultSet Rs =null, Rs1=null;
+    Statement St = null;
+    ResultSet Rs = null;
     java.util.Date FDate, EDate;
     java.sql.Date MyFabdate, MyExpDate;
     
