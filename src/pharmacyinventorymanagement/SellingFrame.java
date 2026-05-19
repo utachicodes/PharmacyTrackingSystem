@@ -469,6 +469,20 @@ public class SellingFrame extends javax.swing.JFrame {
 
         pack();
         setLocationRelativeTo(null);
+
+        // Add Dashboard navigation button to sidebar
+        javax.swing.JLabel dashboardBtn = new javax.swing.JLabel("Dashboard");
+        dashboardBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22));
+        dashboardBtn.setForeground(new java.awt.Color(255, 255, 255));
+        dashboardBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        dashboardBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                new DashboardFrame().setVisible(true);
+                dispose();
+            }
+        });
+        jPanel1.add(dashboardBtn);
+        pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrintActionPerformed
