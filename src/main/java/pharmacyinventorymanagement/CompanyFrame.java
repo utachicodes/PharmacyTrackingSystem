@@ -24,6 +24,7 @@ public class CompanyFrame extends javax.swing.JFrame {
      */
     public CompanyFrame() {
         initComponents();
+        setTitle("Supplier Management - Pharmacy System");
         SelectCompany();
     }
     
