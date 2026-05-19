@@ -482,6 +482,7 @@ public class CompanyFrame extends javax.swing.JFrame {
 
         try{
             Con = DatabaseHelper.getConnection();
+            // Insert all 8 company fields: id, name, address, exp, phone, email, leadtime, preferred
             PreparedStatement add = Con.prepareStatement("insert into COMPANY values(?,?,?,?,?,?,?,?)");
             add.setInt(1, Integer.valueOf(c_id.getText()));
             add.setString(2, c_name.getText());
