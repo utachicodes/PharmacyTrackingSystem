@@ -621,10 +621,9 @@ public class MedicineFrame extends javax.swing.JFrame {
                 if(!row.next()){
                     JOptionPane.showMessageDialog(this, "Medicine "+Id+" Unavailable! Please enter valid ID");
                 }else{
-                    System.out.print(row.next());
-                    String Query = "Delete from MEDICINE where M_ID="+Id;
-                    Statement Add = Con.createStatement();
-                    Add.executeUpdate(Query);
+                    PreparedStatement del = Con.prepareStatement("DELETE FROM MEDICINE WHERE M_ID=?");
+                    del.setInt(1, Integer.parseInt(Id));
+                    del.executeUpdate();
                     SelectMed();
                     JOptionPane.showMessageDialog(this, "Medicine "+Id+" Deleted Successfully");
                 }
