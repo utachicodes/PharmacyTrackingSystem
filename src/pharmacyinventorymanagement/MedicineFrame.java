@@ -707,7 +707,20 @@ public class MedicineFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_medicine_tableMouseClicked
 
     private void btnClearMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnClearMouseClicked
-       
+        m_id.setText("");
+        m_name.setText("");
+        m_quantity.setText("");
+        m_price.setText("");
+        m_owner.setText("");
+        m_strength.setText("");
+        m_dosage.setText("");
+        m_unitcost.setText("");
+        m_threshold.setText("10");
+        m_batch.setText("");
+        m_category.setSelectedIndex(0);
+        m_company.setSelectedIndex(0);
+        m_expdate.setDate(null);
+        m_mftdate.setDate(null);
     }//GEN-LAST:event_btnClearMouseClicked
 
     private void closeXMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_closeXMouseClicked
