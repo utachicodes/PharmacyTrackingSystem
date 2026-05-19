@@ -42,32 +42,35 @@ public class MedicineFrame extends javax.swing.JFrame {
     }
     
     private void applyTableHighlighters() {
+        // Custom renderer: highlights rows based on stock level and expiry proximity
         medicine_table.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                
+
                 try {
-                    int qty = Integer.parseInt(table.getValueAt(row, 2).toString()); // Quantity
-                    int threshold = 10; // Default or fetch from model
+                    int qty = Integer.parseInt(table.getValueAt(row, 2).toString()); // Column 2 = M_QUANTITY
+                    // Try to read per-row threshold (col 12 = M_THRESHOLD); fall back to 10
+                    int threshold = 10;
                     try { threshold = Integer.parseInt(table.getValueAt(row, 12).toString()); } catch(Exception e) {}
 
                     java.sql.Date expDate = (java.sql.Date) table.getValueAt(row, 4);
                     long daysToExpiry = (expDate.getTime() - System.currentTimeMillis()) / (1000 * 60 * 60 * 24);
 
                     if (qty <= threshold) {
-                        c.setBackground(new Color(255, 204, 204)); // Light Red
+                        c.setBackground(new Color(255, 204, 204)); // Light Red = low stock
                     } else if (daysToExpiry < 30) {
-                        c.setBackground(new Color(255, 255, 204)); // Light Orange/Yellow
+                        c.setBackground(new Color(255, 255, 204)); // Light Yellow = near expiry
                     } else {
-                        c.setBackground(Color.WHITE);
+                        c.setBackground(Color.WHITE); // Normal stock
                     }
-                    
+
+                    // Selection colour always overrides row highlighting
                     if (isSelected) {
                         c.setBackground(table.getSelectionBackground());
                     }
                 } catch (Exception e) {}
-                
+
                 return c;
             }
         });
