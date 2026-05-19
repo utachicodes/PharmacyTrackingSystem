@@ -664,9 +664,23 @@ public class MedicineFrame extends javax.swing.JFrame {
                     MyFabdate = new java.sql.Date(FDate.getTime());
                     EDate = m_expdate.getDate();
                     MyExpDate = new java.sql.Date(EDate.getTime());
-                    String UpdateQuery = "Update MEDICINE set M_NAME = '"+m_name.getText()+"'"+",M_PRICE = "+Double.valueOf(m_price.getText())+",M_QUANTITY = "+m_quantity.getText()+",M_MFTDATE = '"+MyFabdate+"',M_EXPDATE = '"+MyExpDate+"',M_COMPANY = '"+m_company.getSelectedItem().toString()+"',M_OWNER = '"+(m_owner.getText().isEmpty() ? "Main" : m_owner.getText())+"',M_CATEGORY = '"+m_category.getSelectedItem().toString()+"',M_STRENGTH = '"+m_strength.getText()+"',M_DOSAGE = '"+m_dosage.getText()+"',M_UNIT_COST = "+(m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()))+",M_THRESHOLD = "+(m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()))+",M_BATCH = '"+m_batch.getText()+"' where M_ID = "+m_id.getText();
-                    Statement Add = Con.createStatement();
-                    Add.executeUpdate(UpdateQuery);
+                    PreparedStatement upd = Con.prepareStatement(
+                        "UPDATE MEDICINE SET M_NAME=?,M_PRICE=?,M_QUANTITY=?,M_MFTDATE=?,M_EXPDATE=?,M_COMPANY=?,M_OWNER=?,M_CATEGORY=?,M_STRENGTH=?,M_DOSAGE=?,M_UNIT_COST=?,M_THRESHOLD=?,M_BATCH=? WHERE M_ID=?");
+                    upd.setString(1, m_name.getText());
+                    upd.setDouble(2, Double.valueOf(m_price.getText()));
+                    upd.setInt(3, Integer.valueOf(m_quantity.getText()));
+                    upd.setDate(4, MyFabdate);
+                    upd.setDate(5, MyExpDate);
+                    upd.setString(6, m_company.getSelectedItem().toString());
+                    upd.setString(7, m_owner.getText().isEmpty() ? "Main" : m_owner.getText());
+                    upd.setString(8, m_category.getSelectedItem().toString());
+                    upd.setString(9, m_strength.getText());
+                    upd.setString(10, m_dosage.getText());
+                    upd.setDouble(11, m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()));
+                    upd.setInt(12, m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()));
+                    upd.setString(13, m_batch.getText());
+                    upd.setInt(14, Id);
+                    upd.executeUpdate();
 
                     SelectMed();
                     JOptionPane.showMessageDialog(this, "Medicine "+m_id.getText()+" Updated Successfully");
