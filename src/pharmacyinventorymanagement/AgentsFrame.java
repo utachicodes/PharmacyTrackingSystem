@@ -569,9 +569,9 @@ public class AgentsFrame extends javax.swing.JFrame {
            try{
                Con = DatabaseHelper.getConnection();
                String Id = a_id.getText();
-               String Query = "Delete from AGENTS where A_ID="+Id;
-               Statement Add = Con.createStatement();
-               Add.executeUpdate(Query);
+               PreparedStatement del = Con.prepareStatement("DELETE FROM AGENTS WHERE A_ID=?");
+               del.setInt(1, Integer.parseInt(Id));
+               del.executeUpdate();
                SelectMed();
                JOptionPane.showMessageDialog(this, "Agent "+Id+" Deleted Successfully");
  
