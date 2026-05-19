@@ -250,9 +250,12 @@ public class LoginFrame extends javax.swing.JFrame {
             if(Rs.next()){
                 // Retrieve the role to apply RBAC permissions in DashboardFrame
                 String role = Rs.getString("A_ROLE");
+                String name = txtUserName.getText();
                 new DashboardFrame(role).setVisible(true);
-
-                JOptionPane.showMessageDialog(this, "Logged in as " + role);
+                // Welcome message includes the user's name and role
+                JOptionPane.showMessageDialog(this,
+                    "Welcome, " + name + "!\nRole: " + role, "Login Successful",
+                    JOptionPane.INFORMATION_MESSAGE);
                 this.dispose();
             }else{
                 JOptionPane.showMessageDialog(this, "Invalid Username/Password");
