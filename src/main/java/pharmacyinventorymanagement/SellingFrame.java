@@ -62,18 +62,22 @@ public class SellingFrame extends javax.swing.JFrame {
     
     public boolean updateQty(){
             int orderQty = Integer.valueOf(b_quantity.getText());
+            // Enforce stock constraint: cannot sell more than currently available
             if(mQty >= orderQty){
                 try{
+                    // Calculate the new stock level after this sale
                     int newQty = mQty - orderQty;
-                    mQty = newQty;
+                    mQty = newQty; // Update the local cache of current quantity
                     Con = DatabaseHelper.getConnection();
 
+                    // Deduct the sold quantity from MEDICINE table
                     String UpdateQuery = "Update MEDICINE set M_QUANTITY = "+newQty+" where M_ID = "+medId;
                     Statement Add = Con.createStatement();
                     Add.executeUpdate(UpdateQuery);
 
+                    // Record the completed sale in the SALES audit table for forecasting
                     recordSale(medId, b_medName.getText(), orderQty, price * orderQty);
-                    
+
                     SelectMed();
                     Con.close();
                     return true;
@@ -87,11 +91,12 @@ public class SellingFrame extends javax.swing.JFrame {
 
                 }
             }else{
+                // Inform the user of the exact stock shortage
                 JOptionPane.showMessageDialog(this, "Insufficient stock!\n  Available: "+mQty+"\n  Ordered: "+b_quantity.getText());
                 return false;
             }
             return false;
-            
+
 
     }
     
