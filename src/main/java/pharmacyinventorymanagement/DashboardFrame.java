@@ -61,10 +61,11 @@ public class DashboardFrame extends javax.swing.JFrame {
         }
         alertList.setModel(model);
 
-        // Prepend inventory value summary header at the top of the alert list
+        // Prepend inventory value summary header and medicine count at the top
         double totalValue = ForecastingHelper.getInventoryValue();
+        int medCount = ForecastingHelper.getMedicineCount();
         model.add(0, "------------------------------------------");
-        model.add(0, "TOTAL INVENTORY VALUE: $" + String.format("%.2f", totalValue));
+        model.add(0, "TOTAL MEDICINES: " + medCount + "  |  INVENTORY VALUE: $" + String.format("%.2f", totalValue));
         model.add(0, "------------------------------------------");
     }
 
