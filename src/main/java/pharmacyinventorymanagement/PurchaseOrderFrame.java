@@ -15,7 +15,14 @@ import java.util.Vector;
  */
 public class PurchaseOrderFrame extends javax.swing.JFrame {
 
+    private String userRole = "Admin";
+
     public PurchaseOrderFrame() {
+        this("Admin");
+    }
+
+    public PurchaseOrderFrame(String role) {
+        this.userRole = role;
         initComponents();
         loadPOs();
     }
@@ -151,8 +158,9 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         btnReceive.addActionListener(e -> receiveStock());
 
         btnBack.setText("Back to Dashboard");
+        // Pass the stored role so Dashboard applies correct RBAC permissions
         btnBack.addActionListener(e -> {
-            new DashboardFrame().setVisible(true);
+            new DashboardFrame(userRole).setVisible(true);
             this.dispose();
         });
 
