@@ -500,7 +500,8 @@ public class AgentsFrame extends javax.swing.JFrame {
     }
     private javax.swing.JLabel dashboardBtn;
 
-    public void SelectMed()
+    /** Loads (or reloads) the full agent list from the database into the table. */
+    public void loadAgents()
     {
         try{
         Con = DatabaseHelper.getConnection();
@@ -513,6 +514,10 @@ public class AgentsFrame extends javax.swing.JFrame {
             e.printStackTrace();
         }
     }
+
+    /** @deprecated Use {@link #loadAgents()} instead. */
+    @Deprecated
+    public void SelectMed() { loadAgents(); }
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnUpdateActionPerformed
