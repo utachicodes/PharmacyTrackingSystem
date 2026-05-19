@@ -38,6 +38,7 @@ public class DashboardFrame extends javax.swing.JFrame {
             model.addElement("All stock levels healthy and no near-expiry items.");
         } else {
             for (String alert : expAlerts) {
+                // ForecastingHelper.getExpirationAlerts already prefixes "EXPIRY: "
                 model.addElement(alert);
             }
             for (String alert : stockAlerts) {
