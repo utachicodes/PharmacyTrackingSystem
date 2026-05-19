@@ -78,7 +78,7 @@ public class SplashFrame extends javax.swing.JFrame {
         title.setForeground(new java.awt.Color(16, 185, 129));
         title.setText("PHARMACY INVENTORY MANAGEMENT SYSTEM");
 
-        mainIcon.setIcon(new javax.swing.ImageIcon("D:\\JAVA_Projects_2022\\PharmacyMiniProject\\PIM_project_images\\plusIcon.jpg")); // NOI18N
+        mainIcon.setText("+"); // Placeholder; original image path was Windows-specific
 
         jList1.setFont(new java.awt.Font("Bahnschrift", 0, 14)); // NOI18N
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
