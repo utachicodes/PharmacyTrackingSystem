@@ -22,11 +22,19 @@ import javax.swing.*;
 
 public class AgentsFrame extends javax.swing.JFrame {
 
+    private String userRole = "Admin";
+
     /**
      * Creates new form Agents
      */
     public AgentsFrame() {
+        this("Admin");
+    }
+
+    public AgentsFrame(String role) {
+        this.userRole = role;
         initComponents();
+        setTitle("Manage Agents [" + role + "] - Pharmacy System");
         SelectMed();
     }
     
