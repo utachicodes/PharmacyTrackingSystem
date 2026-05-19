@@ -6,6 +6,13 @@ import java.awt.*;
 import java.sql.*;
 import java.util.Vector;
 
+/**
+ * PurchaseOrderFrame manages the procurement workflow for the pharmacy.
+ * It allows creation of purchase orders for medicines from suppliers, displays
+ * the full PO list, and supports atomic stock receiving via a two-phase
+ * database transaction: updating the PO status to 'Received' and incrementing
+ * the corresponding medicine's quantity in a single committed transaction.
+ */
 public class PurchaseOrderFrame extends javax.swing.JFrame {
 
     public PurchaseOrderFrame() {
