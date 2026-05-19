@@ -512,10 +512,9 @@ public class CompanyFrame extends javax.swing.JFrame {
                     if(!row.next()){
                         JOptionPane.showMessageDialog(this, "Company "+Id+" does not exist! Please enter valid C_ID");
                     }else{
-                    
-                        String Query = "Delete from COMPANY where C_ID="+Id;
-                        Statement Add = Con.createStatement();
-                        Add.executeUpdate(Query);
+                        PreparedStatement del = Con.prepareStatement("DELETE FROM COMPANY WHERE C_ID=?");
+                        del.setInt(1, Integer.parseInt(Id));
+                        del.executeUpdate();
                         SelectCompany();
                         JOptionPane.showMessageDialog(this, "Company "+Id+" Deleted Successfully!");
                     }
