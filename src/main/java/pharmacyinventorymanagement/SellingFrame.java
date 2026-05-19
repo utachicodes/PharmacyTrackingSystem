@@ -27,6 +27,7 @@ public class SellingFrame extends javax.swing.JFrame {
      */
     public SellingFrame() {
         initComponents();
+        setTitle("Billing - Pharmacy System");
         ShowDate();
         SelectMed();
     }
