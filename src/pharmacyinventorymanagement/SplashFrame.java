@@ -19,17 +19,28 @@ public class SplashFrame extends javax.swing.JFrame {
 
     public void startApp() {
         this.setVisible(true);
-        try {
-            for (int i = 0; i <= 100; i++) {
-                Thread.sleep(25);
-                progressBar.setValue(i);
-                percentage.setText(Integer.toString(i) + "%");
+        // Use SwingWorker to animate the progress bar off the EDT
+        new javax.swing.SwingWorker<Void, Integer>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                for (int i = 0; i <= 100; i++) {
+                    Thread.sleep(25);
+                    publish(i);
+                }
+                return null;
             }
-            new LoginFrame().setVisible(true);
-            this.dispose();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            @Override
+            protected void process(java.util.List<Integer> chunks) {
+                int latest = chunks.get(chunks.size() - 1);
+                progressBar.setValue(latest);
+                percentage.setText(latest + "%");
+            }
+            @Override
+            protected void done() {
+                new LoginFrame().setVisible(true);
+                dispose();
+            }
+        }.execute();
     }
 
     /**
