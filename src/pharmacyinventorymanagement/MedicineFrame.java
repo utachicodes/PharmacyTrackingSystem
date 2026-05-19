@@ -6,13 +6,12 @@ package pharmacyinventorymanagement;
  *
  *
  */
-import java.sql.*;
-import java.sql.Statement;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import javax.swing.*;
