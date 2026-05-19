@@ -463,14 +463,29 @@ public class AgentsFrame extends javax.swing.JFrame {
     private void customInit() {
         a_role = new javax.swing.JComboBox<>(new String[] { "Admin", "Pharmacist", "Technician" });
         TitleRole = new javax.swing.JLabel("ROLE:");
-        
+
         JPanel extraPanel = new JPanel(new FlowLayout());
         extraPanel.setBackground(new Color(255, 255, 204));
         extraPanel.add(TitleRole); extraPanel.add(a_role);
-        
+
         getContentPane().add(extraPanel, BorderLayout.SOUTH);
+
+        // Add Dashboard navigation button to sidebar
+        dashboardBtn = new javax.swing.JLabel("Dashboard");
+        dashboardBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22));
+        dashboardBtn.setForeground(new java.awt.Color(255, 255, 255));
+        dashboardBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        dashboardBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                new DashboardFrame().setVisible(true);
+                dispose();
+            }
+        });
+        jPanel1.add(dashboardBtn);
+
         pack();
     }
+    private javax.swing.JLabel dashboardBtn;
 
     public void SelectMed()
     {
