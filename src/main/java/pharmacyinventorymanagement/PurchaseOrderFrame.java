@@ -35,6 +35,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         String supplier = txtSupplier.getText();
         String qtyStr = txtQty.getText();
 
+        // Validate all required fields before attempting DB insert
         if (medName.isEmpty() || supplier.isEmpty() || qtyStr.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill all fields");
             return;
@@ -43,13 +44,14 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         try (Connection conn = DatabaseHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(
                  "INSERT INTO PURCHASE_ORDERS (PO_MED_NAME, PO_SUPPLIER, PO_QTY, PO_DATE) VALUES (?, ?, ?, ?)")) {
-            
+
             pstmt.setString(1, medName);
             pstmt.setString(2, supplier);
             pstmt.setInt(3, Integer.parseInt(qtyStr));
+            // Record today's date as the order date for audit purposes
             pstmt.setDate(4, new java.sql.Date(System.currentTimeMillis()));
             pstmt.executeUpdate();
-            
+
             loadPOs();
             JOptionPane.showMessageDialog(this, "Purchase Order Created");
         } catch (SQLException | NumberFormatException e) {
