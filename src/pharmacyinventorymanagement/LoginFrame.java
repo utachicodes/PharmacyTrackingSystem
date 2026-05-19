@@ -233,28 +233,30 @@ public class LoginFrame extends javax.swing.JFrame {
 
     private void btnLoginMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnLoginMouseClicked
         String pwd = new String(l_password.getPassword());
-        String selectQ = "select * from AGENTS where A_NAME='"+txtUserName.getText()+"' and A_PASSWORD = '"+pwd+"'";
-        
+
         try{
             Con = DatabaseHelper.getConnection();
-            St = Con.createStatement();
-            Rs = St.executeQuery(selectQ);
+            java.sql.PreparedStatement ps = Con.prepareStatement(
+                "select * from AGENTS where A_NAME=? and A_PASSWORD=?");
+            ps.setString(1, txtUserName.getText());
+            ps.setString(2, pwd);
+            Rs = ps.executeQuery();
 
             if(Rs.next()){
                 String role = Rs.getString("A_ROLE");
                 new DashboardFrame(role).setVisible(true);
-                
+
                 JOptionPane.showMessageDialog(this, "Logged in as " + role);
                 this.dispose();
             }else{
-                JOptionPane.showMessageDialog(this, "Invalid Username/Password");                
+                JOptionPane.showMessageDialog(this, "Invalid Username/Password");
             }
         }catch(SQLException s){
             s.printStackTrace();
         }catch(Exception e){
             e.printStackTrace();
         }
-        
+
     }//GEN-LAST:event_btnLoginMouseClicked
 
     private void l_passwordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_l_passwordActionPerformed
