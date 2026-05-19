@@ -133,7 +133,8 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Purchase Orders & Receiving");
 
-        jPanel1.setBackground(new java.awt.Color(51, 153, 0));
+        // Match the system-wide green theme used in all other frames
+        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); 
         jLabel1.setForeground(Color.WHITE);
         jLabel1.setText("PURCHASE ORDERS");
