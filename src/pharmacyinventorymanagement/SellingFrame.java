@@ -30,7 +30,7 @@ public class SellingFrame extends javax.swing.JFrame {
     
     public void ShowDate(){
         Date d = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         date_text.setText(sdf.format(d));
     }
     
