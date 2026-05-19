@@ -13,6 +13,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+/**
+ * LoginFrame provides role-based authentication for the Pharmacy Tracking System.
+ * It queries the AGENTS table using a parameterised {@link java.sql.PreparedStatement}
+ * to prevent SQL injection, retrieves the user's role (Admin / Pharmacist / Technician),
+ * and routes them to the appropriate {@link DashboardFrame} with the correct permissions.
+ */
 public class LoginFrame extends javax.swing.JFrame {
 
     /**
