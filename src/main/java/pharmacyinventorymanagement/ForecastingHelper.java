@@ -13,7 +13,11 @@ import java.time.LocalDate;
  */
 public class ForecastingHelper {
 
-    /** Number of trailing days used as the SMA calculation window. */
+    /**
+     * Number of trailing calendar days used as the SMA calculation window.
+     * Increase this value to smooth out demand spikes; decrease for more
+     * responsiveness to recent sales trends.
+     */
     private static final int SALES_WINDOW_DAYS = 30;
 
     /** Number of days ahead to forecast demand. */
