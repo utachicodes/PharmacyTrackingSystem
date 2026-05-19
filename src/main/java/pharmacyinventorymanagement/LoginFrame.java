@@ -240,6 +240,7 @@ public class LoginFrame extends javax.swing.JFrame {
 
         try{
             Con = DatabaseHelper.getConnection();
+            // Parameterised query prevents SQL injection on login credentials
             java.sql.PreparedStatement ps = Con.prepareStatement(
                 "select * from AGENTS where A_NAME=? and A_PASSWORD=?");
             ps.setString(1, txtUserName.getText());
@@ -247,6 +248,7 @@ public class LoginFrame extends javax.swing.JFrame {
             Rs = ps.executeQuery();
 
             if(Rs.next()){
+                // Retrieve the role to apply RBAC permissions in DashboardFrame
                 String role = Rs.getString("A_ROLE");
                 new DashboardFrame(role).setVisible(true);
 
