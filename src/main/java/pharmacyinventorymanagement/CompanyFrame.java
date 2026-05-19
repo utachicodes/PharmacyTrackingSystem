@@ -461,7 +461,8 @@ public class CompanyFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_c_expActionPerformed
 
-    public void SelectCompany()
+    /** Loads (or reloads) the full company list from the database into the table. */
+    public void loadCompanies()
     {
         try{
             Con = DatabaseHelper.getConnection();
@@ -478,7 +479,11 @@ public class CompanyFrame extends javax.swing.JFrame {
 
         }
     }
-    
+
+    /** @deprecated Use {@link #loadCompanies()} instead. */
+    @Deprecated
+    public void SelectCompany() { loadCompanies(); }
+
     private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
 
         try{
