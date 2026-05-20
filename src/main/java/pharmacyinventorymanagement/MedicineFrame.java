@@ -198,6 +198,10 @@ public class MedicineFrame extends javax.swing.JFrame {
         body.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         body.add(buildFormCard(), BorderLayout.NORTH);
+        JSeparator divider = new JSeparator();
+        divider.setForeground(new Color(226, 232, 240));
+        divider.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        body.add(divider, BorderLayout.CENTER);
         body.add(buildTablePanel(), BorderLayout.CENTER);
 
         content.add(body, BorderLayout.CENTER);
