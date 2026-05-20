@@ -188,6 +188,11 @@ public class DashboardFrame extends javax.swing.JFrame {
         btnCompany  = navLabel("🏢  Suppliers");
         btnSelling  = navLabel("💳  Billing");
         btnPO       = navLabel("📦  Purchase Orders");
+        btnMedicine.setToolTipText("Manage medicine inventory — add, edit, delete stock records");
+        btnAgents.setToolTipText("Manage staff accounts and assign roles");
+        btnCompany.setToolTipText("Manage supplier directory with lead times");
+        btnSelling.setToolTipText("Process sales and generate invoices");
+        btnPO.setToolTipText("Create and receive purchase orders atomically");
 
         btnMedicine.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { if (btnMedicine.isEnabled()) { new MedicineFrame().setVisible(true); dispose(); } }
