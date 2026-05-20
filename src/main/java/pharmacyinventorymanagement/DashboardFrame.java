@@ -126,11 +126,27 @@ public class DashboardFrame extends javax.swing.JFrame {
         alertsWrapper.setBackground(CONTENT_BG);
         alertsWrapper.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        JPanel alertsHeader = new JPanel(new BorderLayout());
+        alertsHeader.setBackground(CONTENT_BG);
+        alertsHeader.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
+
         JLabel alertsTitle = new JLabel("Inventory Alerts & Forecasting");
         alertsTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
         alertsTitle.setForeground(TEXT_DARK);
-        alertsTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
-        alertsWrapper.add(alertsTitle, BorderLayout.NORTH);
+
+        JButton refreshBtn = new JButton("⟳ Refresh");
+        refreshBtn.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        refreshBtn.setBackground(new Color(241, 245, 249));
+        refreshBtn.setForeground(new Color(100, 116, 139));
+        refreshBtn.setBorderPainted(false);
+        refreshBtn.setFocusPainted(false);
+        refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        refreshBtn.setToolTipText("Reload inventory alerts from database");
+        refreshBtn.addActionListener(e -> loadAlerts());
+
+        alertsHeader.add(alertsTitle, BorderLayout.WEST);
+        alertsHeader.add(refreshBtn, BorderLayout.EAST);
+        alertsWrapper.add(alertsHeader, BorderLayout.NORTH);
 
         alertList = new JList<>();
         alertList.setFont(new Font("Segoe UI", Font.PLAIN, 13));
