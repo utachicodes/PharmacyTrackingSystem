@@ -297,15 +297,36 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         poRowCount.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         poRowCount.setForeground(TEXT_MUTED);
 
+        JTextField poSearch = new JTextField();
+        poSearch.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        poSearch.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        poSearch.putClientProperty("JTextField.placeholderText", "🔍  Search orders...");
+        poSearch.setToolTipText("Filter purchase orders by any column");
+        poSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterPO(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterPO(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterPO(); }
+            private void filterPO() {
+                javax.swing.table.TableRowSorter<javax.swing.table.TableModel> s =
+                    new javax.swing.table.TableRowSorter<>(poTable.getModel());
+                poTable.setRowSorter(s);
+                String t = poSearch.getText().trim();
+                s.setRowFilter(t.isEmpty() ? null : javax.swing.RowFilter.regexFilter("(?i)" + t));
+                if (poRowCount != null) poRowCount.setText("  " + poTable.getRowCount() + " orders  ");
+            }
+        });
+
         JPanel topBar = new JPanel(new BorderLayout(8, 0));
         topBar.setBackground(Color.WHITE);
         topBar.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
             BorderFactory.createEmptyBorder(6, 10, 6, 10)));
-        JLabel hdr = new JLabel("  Purchase Order List  (select a row to receive)");
+        JLabel hdr = new JLabel("  Purchase Orders");
         hdr.setFont(new Font("Segoe UI", Font.BOLD, 13));
         hdr.setForeground(TEXT_MUTED);
         topBar.add(hdr, BorderLayout.WEST);
+        topBar.add(poSearch, BorderLayout.CENTER);
         topBar.add(poRowCount, BorderLayout.EAST);
 
         JPanel panel = new JPanel(new BorderLayout());
