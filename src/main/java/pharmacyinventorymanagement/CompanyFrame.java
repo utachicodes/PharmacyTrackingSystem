@@ -349,11 +349,19 @@ public class CompanyFrame extends javax.swing.JFrame {
             Rs = St.executeQuery("SELECT * FROM COMPANY");
             company_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
             if (companyRowCount != null) companyRowCount.setText("  " + company_table.getRowCount() + " suppliers  ");
+            setCompanyColumnWidths();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "SQL Error: " + e.getMessage());
         }
     }
     @Deprecated public void SelectCompany() { loadCompanies(); }
+
+    private void setCompanyColumnWidths() {
+        if (company_table.getColumnCount() < 5) return;
+        int[] widths = {50, 160, 180, 70, 120, 160, 80, 80};
+        for (int i = 0; i < Math.min(widths.length, company_table.getColumnCount()); i++)
+            company_table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+    }
 
     private void btnAddMouseClicked(MouseEvent evt) {
         try {
