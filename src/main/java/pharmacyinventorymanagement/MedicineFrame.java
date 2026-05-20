@@ -599,12 +599,20 @@ public class MedicineFrame extends javax.swing.JFrame {
         m_batch.setText(nullSafe(model.getValueAt(i, 13), ""));
     }
 
+    private void resetFieldBorder(JTextField... fields) {
+        for (JTextField f : fields)
+            f.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4,8,4,8)));
+    }
+
     private void btnClearMouseClicked(MouseEvent evt) {
         m_id.setText(""); m_name.setText(""); m_quantity.setText(""); m_price.setText("");
         m_owner.setText(""); m_strength.setText(""); m_dosage.setText("");
         m_unitcost.setText(""); m_threshold.setText("10"); m_batch.setText("");
         m_category.setSelectedIndex(0); m_company.setSelectedIndex(0);
         m_expdate.setDate(null); m_mftdate.setDate(null);
+        resetFieldBorder(m_id, m_name, m_quantity, m_price, m_owner, m_strength, m_dosage, m_unitcost, m_threshold, m_batch);
+        setStatus("Form cleared");
     }
 
     private String nullSafe(Object v, String def) { return v == null ? def : v.toString(); }
