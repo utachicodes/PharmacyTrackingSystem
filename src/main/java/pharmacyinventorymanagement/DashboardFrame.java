@@ -2,22 +2,34 @@ package pharmacyinventorymanagement;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.List;
 
 /**
  * DashboardFrame is the central navigation hub of the Pharmacy Tracking System.
  * It displays live inventory alerts (low-stock and near-expiry) sourced from
  * {@link ForecastingHelper}, applies role-based button permissions via
- * {@link #applyRolePermissions()}, and provides navigation buttons to all
+ * {@link #applyRolePermissions()}, and provides sidebar navigation to all
  * functional modules: Medicines, Agents, Suppliers, Billing, and Purchase Orders.
+ *
+ * @author Abdoullah Ndao
  */
 public class DashboardFrame extends javax.swing.JFrame {
 
+    // ── Design constants ──────────────────────────────────────────────────────
+    private static final Color SIDEBAR_BG   = new Color(30, 41, 59);
+    private static final Color SIDEBAR_HOVER= new Color(51, 65, 85);
+    private static final Color ACCENT       = new Color(16, 185, 129);
+    private static final Color CONTENT_BG   = new Color(241, 245, 249);
+    private static final Color TEXT_DARK    = new Color(30, 41, 59);
+    private static final Color WARNING_BG   = new Color(255, 251, 235);
+    private static final Color DANGER_BG    = new Color(254, 242, 242);
+    private static final Color WARNING_BORDER = new Color(251, 191, 36);
+    private static final Color DANGER_BORDER  = new Color(239, 68, 68);
+
     private String userRole;
 
-    public DashboardFrame() {
-        this("Admin"); // Default for dev/testing
-    }
+    public DashboardFrame() { this("Admin"); }
 
     public DashboardFrame(String role) {
         this.userRole = role;
@@ -26,205 +38,234 @@ public class DashboardFrame extends javax.swing.JFrame {
         applyRolePermissions();
     }
 
+    // ── Role-based access control ─────────────────────────────────────────────
     private void applyRolePermissions() {
         // Technician: restricted to Medicines and Billing only
         if ("Technician".equalsIgnoreCase(userRole)) {
-            btnAgents.setEnabled(false);
-            btnCompany.setEnabled(false);
-            btnPO.setEnabled(false);
+            btnAgents.setEnabled(false);  btnAgents.setForeground(new Color(71, 85, 105));
+            btnCompany.setEnabled(false); btnCompany.setForeground(new Color(71, 85, 105));
+            btnPO.setEnabled(false);      btnPO.setForeground(new Color(71, 85, 105));
         // Pharmacist: full access except user management
         } else if ("Pharmacist".equalsIgnoreCase(userRole)) {
-            btnAgents.setEnabled(false);
+            btnAgents.setEnabled(false);  btnAgents.setForeground(new Color(71, 85, 105));
         }
-        // Admin: no restrictions — all buttons remain enabled
+        // Admin: no restrictions
     }
 
+    // ── Alert panel population ────────────────────────────────────────────────
     private void loadAlerts() {
-        // Fetch both alert categories from the forecasting engine
         List<String> stockAlerts = ForecastingHelper.getLowStockAlerts();
-        List<String> expAlerts = ForecastingHelper.getExpirationAlerts();
+        List<String> expAlerts   = ForecastingHelper.getExpirationAlerts();
         DefaultListModel<String> model = new DefaultListModel<>();
 
         if (stockAlerts.isEmpty() && expAlerts.isEmpty()) {
-            // All clear — show a positive status message
-            model.addElement("All stock levels healthy and no near-expiry items.");
+            model.addElement("OK All stock levels healthy — no near-expiry items.");
         } else {
-            // Expiry alerts are higher urgency — show first
-            for (String alert : expAlerts) {
-                // ForecastingHelper.getExpirationAlerts already prefixes "EXPIRY: "
-                model.addElement(alert);
-            }
-            // Low-stock alerts follow with explicit prefix
-            for (String alert : stockAlerts) {
-                model.addElement("LOW STOCK: " + alert);
-            }
+            for (String a : expAlerts)  model.addElement("EXPIRY: " + a);
+            for (String a : stockAlerts) model.addElement("LOW STOCK: " + a);
         }
-        alertList.setModel(model);
 
-        // Prepend inventory value summary header and medicine count at the top
         double totalValue = ForecastingHelper.getInventoryValue();
-        int medCount = ForecastingHelper.getMedicineCount();
-        model.add(0, "------------------------------------------");
-        model.add(0, "TOTAL MEDICINES: " + medCount + "  |  INVENTORY VALUE: $" + String.format("%.2f", totalValue));
-        model.add(0, "------------------------------------------");
+        int    medCount   = ForecastingHelper.getMedicineCount();
+        model.add(0, "─────────────────────────────────────────");
+        model.add(0, "  Medicines: " + medCount + "   |   Inventory Value: $" + String.format("%.2f", totalValue));
+        model.add(0, "─────────────────────────────────────────");
+        alertList.setModel(model);
     }
 
+    // ── UI construction ───────────────────────────────────────────────────────
     private void initComponents() {
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        btnMedicine = new javax.swing.JButton();
-        btnAgents = new javax.swing.JButton();
-        btnCompany = new javax.swing.JButton();
-        btnSelling = new javax.swing.JButton();
-        btnPO = new javax.swing.JButton();
-        btnLogout = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        alertList = new javax.swing.JList<>();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Pharmacy Management Dashboard — " + userRole);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Pharmacy System — Dashboard");
+        setSize(880, 580);
+        setLocationRelativeTo(null);
         setResizable(false);
 
-        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(CONTENT_BG);
+        setContentPane(root);
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); 
-        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel1.setText("PHARMA DASHBOARD");
+        // ── Sidebar ───────────────────────────────────────────────────────────
+        JPanel sidebar = buildSidebar();
+        root.add(sidebar, BorderLayout.WEST);
 
-        btnMedicine.setText("Manage Medicines");
-        btnMedicine.addActionListener(e -> {
-            new MedicineFrame().setVisible(true);
-            this.dispose();
-        });
+        // ── Main content ──────────────────────────────────────────────────────
+        JPanel content = new JPanel(new BorderLayout(0, 0));
+        content.setBackground(CONTENT_BG);
+        root.add(content, BorderLayout.CENTER);
 
-        btnAgents.setText("Manage Agents");
-        btnAgents.addActionListener(e -> {
-            new AgentsFrame().setVisible(true);
-            this.dispose();
-        });
+        // Header bar
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 64));
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(0, 24, 0, 24)
+        ));
 
-        btnCompany.setText("Supplier Management");
-        btnCompany.addActionListener(e -> {
-            new CompanyFrame().setVisible(true);
-            this.dispose();
-        });
+        JLabel headerTitle = new JLabel("Dashboard");
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        headerTitle.setForeground(TEXT_DARK);
 
-        btnSelling.setText("Billing/Selling");
-        btnSelling.addActionListener(e -> {
-            new SellingFrame().setVisible(true);
-            this.dispose();
-        });
+        JLabel roleBadge = new JLabel("  " + userRole + "  ");
+        roleBadge.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        roleBadge.setForeground(ACCENT);
+        roleBadge.setBackground(new Color(209, 250, 229));
+        roleBadge.setOpaque(true);
+        roleBadge.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(167, 243, 208), 1),
+            BorderFactory.createEmptyBorder(3, 8, 3, 8)
+        ));
 
-        btnPO.setText("Purchase Orders/Receiving");
-        btnPO.addActionListener(e -> {
-            // Pass userRole so PurchaseOrderFrame can navigate back with correct permissions
-            new PurchaseOrderFrame(userRole).setVisible(true);
-            this.dispose();
-        });
+        header.add(headerTitle, BorderLayout.WEST);
+        header.add(roleBadge,   BorderLayout.EAST);
+        content.add(header, BorderLayout.NORTH);
 
-        btnLogout.setText("Logout");
-        btnLogout.addActionListener(e -> {
-            new LoginFrame().setVisible(true);
-            this.dispose();
-        });
+        // Alerts panel
+        JPanel alertsWrapper = new JPanel(new BorderLayout());
+        alertsWrapper.setBackground(CONTENT_BG);
+        alertsWrapper.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnMedicine, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnAgents, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnCompany, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnSelling, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnPO, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnLogout, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(20, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addComponent(jLabel1)
-                .addGap(40, 40, 40)
-                .addComponent(btnMedicine, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(btnAgents, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(btnCompany, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(btnSelling, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(btnPO, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
-                .addComponent(btnLogout, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30))
-        );
+        JLabel alertsTitle = new JLabel("Inventory Alerts & Forecasting");
+        alertsTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        alertsTitle.setForeground(TEXT_DARK);
+        alertsTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
+        alertsWrapper.add(alertsTitle, BorderLayout.NORTH);
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+        alertList = new JList<>();
+        alertList.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        alertList.setCellRenderer(new AlertCellRenderer());
+        alertList.setBackground(Color.WHITE);
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); 
-        jLabel2.setForeground(new java.awt.Color(16, 185, 129));
-        jLabel2.setText("Inventory Alerts & Forecasting");
+        JScrollPane scroll = new JScrollPane(alertList);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        alertsWrapper.add(scroll, BorderLayout.CENTER);
 
-        alertList.setFont(new java.awt.Font("Segoe UI", 0, 14)); 
-        jScrollPane1.setViewportView(alertList);
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 450, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(20, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addComponent(jLabel2)
-                .addGap(20, 20, 20)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-
-        pack();
-        setLocationRelativeTo(null);
+        content.add(alertsWrapper, BorderLayout.CENTER);
     }
 
-    private javax.swing.JButton btnAgents;
-    private javax.swing.JButton btnCompany;
-    private javax.swing.JButton btnLogout;
-    private javax.swing.JButton btnMedicine;
-    private javax.swing.JButton btnSelling;
-    private javax.swing.JButton btnPO;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList<String> alertList;
+    // ── Sidebar builder ───────────────────────────────────────────────────────
+    private JPanel buildSidebar() {
+        JPanel sidebar = new JPanel();
+        sidebar.setBackground(SIDEBAR_BG);
+        sidebar.setPreferredSize(new Dimension(200, 0));
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+
+        // Logo area
+        JPanel logoPanel = new JPanel(new BorderLayout());
+        logoPanel.setBackground(new Color(15, 23, 42));
+        logoPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 72));
+        logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
+
+        JLabel logo = new JLabel("⚕ PHARMA");
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        logo.setForeground(ACCENT);
+        logoPanel.add(logo, BorderLayout.CENTER);
+        sidebar.add(logoPanel);
+
+        // Divider
+        sidebar.add(makeDivider());
+
+        // Nav items
+        btnMedicine = navLabel("💊  Medicines");
+        btnAgents   = navLabel("👤  Agents");
+        btnCompany  = navLabel("🏢  Suppliers");
+        btnSelling  = navLabel("💳  Billing");
+        btnPO       = navLabel("📦  Purchase Orders");
+
+        btnMedicine.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { if (btnMedicine.isEnabled()) { new MedicineFrame().setVisible(true); dispose(); } }
+        });
+        btnAgents.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { if (btnAgents.isEnabled()) { new AgentsFrame().setVisible(true); dispose(); } }
+        });
+        btnCompany.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { if (btnCompany.isEnabled()) { new CompanyFrame().setVisible(true); dispose(); } }
+        });
+        btnSelling.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { if (btnSelling.isEnabled()) { new SellingFrame().setVisible(true); dispose(); } }
+        });
+        btnPO.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { if (btnPO.isEnabled()) { new PurchaseOrderFrame(userRole).setVisible(true); dispose(); } }
+        });
+
+        sidebar.add(btnMedicine);
+        sidebar.add(btnAgents);
+        sidebar.add(btnCompany);
+        sidebar.add(btnSelling);
+        sidebar.add(btnPO);
+
+        sidebar.add(Box.createVerticalGlue());
+        sidebar.add(makeDivider());
+
+        // Logout
+        btnLogout = navLabel("← Logout");
+        btnLogout.setForeground(new Color(252, 165, 165));
+        btnLogout.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { new LoginFrame().setVisible(true); dispose(); }
+        });
+        sidebar.add(btnLogout);
+        sidebar.add(Box.createVerticalStrut(8));
+
+        return sidebar;
+    }
+
+    // ── Helper: sidebar nav label ─────────────────────────────────────────────
+    private JLabel navLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        l.setForeground(new Color(203, 213, 225));
+        l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        l.setBorder(BorderFactory.createEmptyBorder(11, 18, 11, 8));
+        l.setOpaque(true);
+        l.setBackground(SIDEBAR_BG);
+        l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        l.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { if (l.isEnabled()) l.setBackground(SIDEBAR_HOVER); }
+            public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG); }
+        });
+        return l;
+    }
+
+    private JSeparator makeDivider() {
+        JSeparator sep = new JSeparator();
+        sep.setForeground(new Color(51, 65, 85));
+        sep.setBackground(new Color(51, 65, 85));
+        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        return sep;
+    }
+
+    // ── Custom alert list cell renderer ──────────────────────────────────────
+    private class AlertCellRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(
+                JList<?> list, Object value, int index, boolean isSelected, boolean hasFocus) {
+            JLabel c = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
+            String text = value == null ? "" : value.toString();
+            c.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 3, 0, 0,
+                    text.startsWith("LOW STOCK") ? DANGER_BORDER :
+                    text.startsWith("EXPIRY")    ? WARNING_BORDER : new Color(226, 232, 240)),
+                BorderFactory.createEmptyBorder(7, 10, 7, 8)
+            ));
+            if (!isSelected) {
+                c.setBackground(
+                    text.startsWith("LOW STOCK") ? DANGER_BG :
+                    text.startsWith("EXPIRY")    ? WARNING_BG : Color.WHITE
+                );
+                c.setForeground(TEXT_DARK);
+            }
+            c.setFont(new Font("Segoe UI", text.startsWith("─") ? Font.BOLD : Font.PLAIN, 12));
+            return c;
+        }
+    }
+
+    // ── Field declarations (JLabel used for nav so setEnabled works visually) ─
+    private JLabel btnMedicine;
+    private JLabel btnAgents;
+    private JLabel btnCompany;
+    private JLabel btnSelling;
+    private JLabel btnPO;
+    private JLabel btnLogout;
+    private JList<String> alertList;
 }
