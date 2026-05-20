@@ -503,10 +503,18 @@ public class CompanyFrame extends javax.swing.JFrame {
         c_preferred.setSelectedItem(model.getValueAt(i, 7) == null ? "No" : model.getValueAt(i, 7).toString());
     }
 
+    private void resetFieldBorder(JTextField... fields) {
+        for (JTextField f : fields)
+            f.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4,8,4,8)));
+    }
+
     private void btnClearMouseClicked(MouseEvent evt) {
         c_id.setText(""); c_name.setText(""); c_address.setText("");
         c_phone.setText(""); c_exp.setText(""); c_email.setText("");
         c_leadtime.setText("7"); c_preferred.setSelectedIndex(0);
+        resetFieldBorder(c_id, c_name, c_address, c_phone, c_exp, c_email, c_leadtime);
+        setStatus("Form cleared");
     }
 
     public static void main(String args[]) {
