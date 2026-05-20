@@ -69,6 +69,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
             ps.executeUpdate();
             loadPOs();
             txtMedName.setText(""); txtSupplier.setText(""); txtQty.setText("");
+            if (poStatusBar != null) poStatusBar.setText("PO created for: " + txtMedName.getText());
             JOptionPane.showMessageDialog(this, "Purchase Order created.");
         } catch (SQLException | NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
@@ -237,7 +238,23 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         body.add(buildTablePanel(), BorderLayout.CENTER);
         body.add(buildActionBar(), BorderLayout.SOUTH);
         content.add(body, BorderLayout.CENTER);
+        content.add(buildStatusBar(), BorderLayout.SOUTH);
         return content;
+    }
+
+    private JLabel poStatusBar;
+
+    private JPanel buildStatusBar() {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setBackground(new Color(248, 250, 252));
+        bar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(4, 16, 4, 16)));
+        poStatusBar = new JLabel("Ready — select a Pending PO and click Receive Stock");
+        poStatusBar.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        poStatusBar.setForeground(TEXT_MUTED);
+        bar.add(poStatusBar, BorderLayout.WEST);
+        return bar;
     }
 
     private JPanel buildFormCard() {
