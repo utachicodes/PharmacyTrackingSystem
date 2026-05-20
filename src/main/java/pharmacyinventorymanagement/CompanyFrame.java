@@ -363,7 +363,15 @@ public class CompanyFrame extends javax.swing.JFrame {
             company_table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
     }
 
+    private void highlightRequired(JTextField... fields) {
+        for (JTextField f : fields)
+            f.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(f.getText().trim().isEmpty() ? new Color(239,68,68) : BORDER_CLR),
+                BorderFactory.createEmptyBorder(4,8,4,8)));
+    }
+
     private void btnAddMouseClicked(MouseEvent evt) {
+        highlightRequired(c_id, c_name, c_address, c_phone, c_exp);
         try {
             Con = DatabaseHelper.getConnection();
             try (PreparedStatement add = Con.prepareStatement("INSERT INTO COMPANY VALUES(?,?,?,?,?,?,?,?)")) {
