@@ -238,6 +238,11 @@ public class SellingFrame extends javax.swing.JFrame {
         btnAddToBill.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnAddToBillMouseClicked(e); } });
         btnClear.addMouseListener(new MouseAdapter()     { public void mouseClicked(MouseEvent e) { btnClearMouseClicked(e); } });
         btnPrint.addMouseListener(new MouseAdapter()     { public void mouseClicked(MouseEvent e) { btnPrintMouseClicked(e); } });
+        b_quantity.addActionListener(e -> btnAddToBillMouseClicked(null));
+        b_quantity.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "clr");
+        b_quantity.getActionMap().put("clr", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { btnClearMouseClicked(null); }
+        });
 
         JPanel formCard = new JPanel(new GridBagLayout());
         formCard.setBackground(Color.WHITE);
