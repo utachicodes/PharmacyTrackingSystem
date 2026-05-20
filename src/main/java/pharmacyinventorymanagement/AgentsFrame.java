@@ -77,6 +77,16 @@ public class AgentsFrame extends javax.swing.JFrame {
         sidebar.add(logoArea);
         sidebar.add(sep());
 
+        JLabel activeLabel = new JLabel("  👤 Agents");
+        activeLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        activeLabel.setForeground(ACCENT);
+        activeLabel.setBackground(new Color(6, 78, 59));
+        activeLabel.setOpaque(true);
+        activeLabel.setBorder(BorderFactory.createEmptyBorder(6, 18, 6, 8));
+        activeLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        sidebar.add(activeLabel);
+        sidebar.add(sep());
+
         String[][] items = {
             {"🏠  Dashboard", "dash"}, {"💊  Medicines", "med"},
             {"🏢  Suppliers", "comp"}, {"💳  Billing", "sell"},
