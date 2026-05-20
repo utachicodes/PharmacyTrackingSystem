@@ -49,6 +49,7 @@ public class MedicineFrame extends javax.swing.JFrame {
     // ── Table & action buttons ────────────────────────────────────────────────
     private JTable medicine_table;
     private JButton btnAdd, btnDelete, btnUpdate, btnClear;
+    private JLabel headerSubtitle;
 
     public MedicineFrame() {
         initComponents();
@@ -181,9 +182,10 @@ public class MedicineFrame extends javax.swing.JFrame {
         JLabel title = new JLabel("💊  Medicine Inventory");
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(TEXT_DARK);
-        JLabel sub = new JLabel("Manage stock records");
-        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        sub.setForeground(TEXT_MUTED);
+        headerSubtitle = new JLabel("Manage stock records");
+        headerSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        headerSubtitle.setForeground(TEXT_MUTED);
+        JLabel sub = headerSubtitle;
         JPanel titleBox = new JPanel(new GridLayout(2, 1));
         titleBox.setBackground(Color.WHITE);
         titleBox.add(title); titleBox.add(sub);
@@ -472,6 +474,8 @@ public class MedicineFrame extends javax.swing.JFrame {
             applyTableHighlighters();
             updateRowCount();
             setMedicineColumnWidths();
+            if (headerSubtitle != null)
+                headerSubtitle.setText(medicine_table.getRowCount() + " records in inventory");
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "SQL Error loading medicines: " + e.getMessage());
         }
