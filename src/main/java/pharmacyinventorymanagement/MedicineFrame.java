@@ -87,6 +87,7 @@ public class MedicineFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("Manage Medicines – Pharmacy System");
         setSize(1120, 720);
+        setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
 
         JPanel root = new JPanel(new BorderLayout());
