@@ -646,14 +646,14 @@ function Slide07() {
 
 function Slide08() {
   const rows = [
-    { icon: <Activity size={13} className="text-gray-400" />,     name: 'LoginFrame',          role: 'Credential auth, reads A_ROLE from AGENTS, passes role to Dashboard',       tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
-    { icon: <Layers size={13} className="text-gray-400" />,       name: 'DashboardFrame',      role: 'Navigation hub, enforces RBAC, loads alerts and inventory value on entry',  tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
-    { icon: <Package size={13} className="text-gray-400" />,      name: 'MedicineFrame',       role: 'Medicine CRUD with per-row colour renderer based on stock and expiry',      tag: 'Polymorphism',  tc: 'bg-amber-100 text-amber-800' },
-    { icon: <ShoppingCart size={13} className="text-gray-400" />, name: 'SellingFrame',        role: 'POS billing, stock deduction with oversell guard, automatic sale logging',  tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
-    { icon: <ClipboardList size={13} className="text-gray-400" />,name: 'PurchaseOrderFrame',  role: 'PO lifecycle management, atomic receiving with JDBC transaction',           tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
-    { icon: <Users size={13} className="text-gray-400" />,        name: 'AgentsFrame',         role: 'Staff account CRUD including role assignment via constrained dropdown',     tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
-    { icon: <Building2 size={13} className="text-gray-400" />,    name: 'CompanyFrame',        role: 'Supplier directory with lead-time tracking and preferred supplier flag',    tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
-    { icon: <Server size={13} className="text-gray-400" />,       name: 'SplashFrame',         role: 'Loading screen with progress bar while the MySQL database initialises on startup', tag: 'Inheritance',  tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Activity size={13} className="text-gray-400" />,     name: 'LoginFrame',          role: 'Drag-to-move undecorated window, PreparedStatement auth, auto-focuses username field',  tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
+    { icon: <Layers size={13} className="text-gray-400" />,       name: 'DashboardFrame',      role: 'Dark sidebar nav, RBAC role badge, live alert renderer, refresh button',               tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
+    { icon: <Package size={13} className="text-gray-400" />,      name: 'MedicineFrame',       role: 'Live search, row count, column sort, red/yellow stock highlights, validation borders', tag: 'Polymorphism',  tc: 'bg-amber-100 text-amber-800' },
+    { icon: <ShoppingCart size={13} className="text-gray-400" />, name: 'SellingFrame',        role: 'POS billing, dark invoice panel, stock row count, Enter-to-add keyboard shortcut',     tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <ClipboardList size={13} className="text-gray-400" />,name: 'PurchaseOrderFrame',  role: 'PO search filter, status badge renderer (green/orange), atomic receiving',            tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <Users size={13} className="text-gray-400" />,        name: 'AgentsFrame',         role: 'Role column color-coded (red/blue/green), Enter-to-add, live staff count',            tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Building2 size={13} className="text-gray-400" />,    name: 'CompanyFrame',        role: 'Preferred supplier green highlight, live supplier count, F5 refresh',                 tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Server size={13} className="text-gray-400" />,       name: 'SplashFrame',         role: 'SwingWorker progress animation, DAUST branding, version label, dark theme',           tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-5xl mx-auto w-full" variants={stagger(0.07)} initial="hidden" animate="show">
