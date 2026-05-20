@@ -117,8 +117,17 @@ public class DashboardFrame extends javax.swing.JFrame {
             BorderFactory.createEmptyBorder(3, 8, 3, 8)
         ));
 
+        JLabel dateLbl = new JLabel(new java.text.SimpleDateFormat("EEE, dd MMM yyyy").format(new java.util.Date()));
+        dateLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        dateLbl.setForeground(new Color(100, 116, 139));
+
+        JPanel headerRight = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
+        headerRight.setBackground(Color.WHITE);
+        headerRight.add(dateLbl);
+        headerRight.add(roleBadge);
+
         header.add(headerTitle, BorderLayout.WEST);
-        header.add(roleBadge,   BorderLayout.EAST);
+        header.add(headerRight, BorderLayout.EAST);
         content.add(header, BorderLayout.NORTH);
 
         // Alerts panel
