@@ -338,6 +338,13 @@ public class MedicineFrame extends javax.swing.JFrame {
             rowCountLabel.setText("  " + medicine_table.getRowCount() + " items  ");
     }
 
+    private void setMedicineColumnWidths() {
+        if (medicine_table.getColumnCount() < 5) return;
+        int[] widths = {50, 160, 70, 70, 90, 90, 110, 70, 90, 70, 80, 70, 60, 80};
+        for (int i = 0; i < Math.min(widths.length, medicine_table.getColumnCount()); i++)
+            medicine_table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+    }
+
     // ── Styling helpers ───────────────────────────────────────────────────────
     private JTextField field(String... def) {
         JTextField f = new JTextField(def.length > 0 ? def[0] : "");
@@ -438,6 +445,7 @@ public class MedicineFrame extends javax.swing.JFrame {
             medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
             applyTableHighlighters();
             updateRowCount();
+            setMedicineColumnWidths();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "SQL Error loading medicines: " + e.getMessage());
         }
