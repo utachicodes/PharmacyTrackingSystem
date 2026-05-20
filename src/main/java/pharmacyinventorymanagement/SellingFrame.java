@@ -177,18 +177,30 @@ public class SellingFrame extends javax.swing.JFrame {
         JScrollPane scroll = new JScrollPane(medicine_table);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
 
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        stockRowCount = new JLabel("  0 items");
+        stockRowCount.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        stockRowCount.setForeground(TEXT_MUTED);
+
+        JPanel topBar = new JPanel(new BorderLayout(8, 0));
+        topBar.setBackground(Color.WHITE);
+        topBar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(6, 10, 6, 10)));
         JLabel hdr = new JLabel("  Available Stock  (click a row to select)");
         hdr.setFont(new Font("Segoe UI", Font.BOLD, 13));
         hdr.setForeground(TEXT_MUTED);
-        hdr.setPreferredSize(new Dimension(0, 34));
-        hdr.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
-        panel.add(hdr, BorderLayout.NORTH);
+        topBar.add(hdr, BorderLayout.WEST);
+        topBar.add(stockRowCount, BorderLayout.EAST);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        panel.add(topBar, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
         return panel;
     }
+
+    private JLabel stockRowCount;
 
     // ── Right: billing form + invoice ─────────────────────────────────────────
     private JPanel buildBillingPanel() {
@@ -346,6 +358,7 @@ public class SellingFrame extends javax.swing.JFrame {
             St  = Con.createStatement();
             Rs  = St.executeQuery("SELECT * FROM MEDICINE");
             medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
+            if (stockRowCount != null) stockRowCount.setText("  " + medicine_table.getRowCount() + " items  ");
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "SQL Error: " + e.getMessage());
         }
