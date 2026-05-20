@@ -32,6 +32,8 @@ public class LoginFrame extends javax.swing.JFrame {
 
     public LoginFrame() {
         initComponents();
+        // Focus username field immediately on open
+        SwingUtilities.invokeLater(() -> txtUserName.requestFocusInWindow());
     }
 
     private void initComponents() {
