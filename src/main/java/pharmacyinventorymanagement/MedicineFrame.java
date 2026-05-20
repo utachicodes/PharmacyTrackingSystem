@@ -115,6 +115,17 @@ public class MedicineFrame extends javax.swing.JFrame {
         sidebar.add(logoArea);
         sidebar.add(sep());
 
+        // Active module indicator
+        JLabel activeLabel = new JLabel("  💊 Medicines");
+        activeLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        activeLabel.setForeground(ACCENT);
+        activeLabel.setBackground(new Color(6, 78, 59));
+        activeLabel.setOpaque(true);
+        activeLabel.setBorder(BorderFactory.createEmptyBorder(6, 18, 6, 8));
+        activeLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        sidebar.add(activeLabel);
+        sidebar.add(sep());
+
         String[][] navItems = {
             {"🏠  Dashboard",  "dashboard"},
             {"👤  Agents",     "agents"},
