@@ -231,6 +231,7 @@ public class SellingFrame extends javax.swing.JFrame {
         btnAddToBill.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnAddToBillMouseClicked(e); } });
         btnClear.addMouseListener(new MouseAdapter()     { public void mouseClicked(MouseEvent e) { btnClearMouseClicked(e); } });
         btnPrint.addMouseListener(new MouseAdapter()     { public void mouseClicked(MouseEvent e) { btnPrintMouseClicked(e); } });
+        // Enter on Quantity adds to the bill; Escape clears the billing form
         b_quantity.addActionListener(e -> btnAddToBillMouseClicked(null));
         b_quantity.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "clr");
         b_quantity.getActionMap().put("clr", new javax.swing.AbstractAction() {

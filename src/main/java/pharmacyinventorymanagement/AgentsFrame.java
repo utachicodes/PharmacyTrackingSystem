@@ -377,6 +377,7 @@ public class AgentsFrame extends javax.swing.JFrame {
     }
     @Deprecated public void SelectMed() { loadAgents(); }
 
+    // Colours the Role column: Admin = red, Pharmacist = blue, Technician = green.
     private void applyRoleRenderer() {
         int roleCol = -1;
         for (int i = 0; i < AgentTable.getColumnCount(); i++)
@@ -388,9 +389,9 @@ public class AgentsFrame extends javax.swing.JFrame {
                 JLabel c = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, row, col);
                 String role = v == null ? "" : v.toString();
                 if (!sel) {
-                    if ("Admin".equalsIgnoreCase(role))       { c.setBackground(new Color(254,242,242)); c.setForeground(new Color(185,28,28)); }
+                    if ("Admin".equalsIgnoreCase(role))           { c.setBackground(new Color(254,242,242)); c.setForeground(new Color(185,28,28)); }
                     else if ("Pharmacist".equalsIgnoreCase(role)) { c.setBackground(new Color(239,246,255)); c.setForeground(new Color(29,78,216)); }
-                    else                                       { c.setBackground(new Color(240,253,244)); c.setForeground(new Color(21,128,61)); }
+                    else                                          { c.setBackground(new Color(240,253,244)); c.setForeground(new Color(21,128,61)); }
                 }
                 c.setFont(new Font("Segoe UI", Font.BOLD, 11));
                 c.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));

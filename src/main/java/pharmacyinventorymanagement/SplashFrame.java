@@ -18,9 +18,11 @@ public class SplashFrame extends javax.swing.JFrame {
 
     public void startApp() {
         this.setVisible(true);
+        // Run the progress animation off the Event Dispatch Thread to keep the UI responsive
         new javax.swing.SwingWorker<Void, Integer>() {
             @Override
             protected Void doInBackground() throws Exception {
+                // Simulate loading — increment progress from 0 to 100
                 for (int i = 0; i <= 100; i++) {
                     Thread.sleep(25);
                     publish(i);
@@ -29,12 +31,14 @@ public class SplashFrame extends javax.swing.JFrame {
             }
             @Override
             protected void process(java.util.List<Integer> chunks) {
+                // Update the progress bar on the EDT with the latest published value
                 int latest = chunks.get(chunks.size() - 1);
                 progressBar.setValue(latest);
                 percentage.setText(latest + "%");
             }
             @Override
             protected void done() {
+                // Loading complete — open login and close the splash screen
                 new LoginFrame().setVisible(true);
                 dispose();
             }

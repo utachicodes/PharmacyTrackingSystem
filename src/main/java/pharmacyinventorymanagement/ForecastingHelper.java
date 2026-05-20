@@ -11,6 +11,7 @@ public class ForecastingHelper {
     private static final int SALES_WINDOW_DAYS    = 30; // look-back window for SMA
     private static final int FORECAST_HORIZON_DAYS = 7; // days ahead to forecast
 
+    // Predicts how many units of a medicine will be needed in the next 7 days using a 30-day SMA.
     public static int predictDemand(String medicineName) {
         int totalQty = 0;
         int count = 0;
@@ -19,6 +20,7 @@ public class ForecastingHelper {
              PreparedStatement pstmt = conn.prepareStatement(
                  "SELECT S_QTY FROM SALES WHERE S_MED_NAME = ? AND S_DATE >= ?")) {
 
+            // Look at all sales of this medicine in the last 30 days
             LocalDate thirtyDaysAgo = LocalDate.now().minusDays(SALES_WINDOW_DAYS);
             pstmt.setString(1, medicineName);
             pstmt.setDate(2, java.sql.Date.valueOf(thirtyDaysAgo));
@@ -30,9 +32,10 @@ public class ForecastingHelper {
                 }
             }
 
+            // No sales history — cannot make a forecast
             if (count == 0) return 0;
 
-            // SMA: average daily sales * forecast horizon
+            // SMA: average daily sales over 30 days × 7-day forecast horizon
             double avgDaily = (double) totalQty / (double) SALES_WINDOW_DAYS;
             return (int) Math.ceil(avgDaily * FORECAST_HORIZON_DAYS);
 
@@ -50,11 +53,12 @@ public class ForecastingHelper {
              ResultSet rs = stmt.executeQuery("SELECT M_NAME, M_QUANTITY, M_THRESHOLD FROM MEDICINE")) {
 
             while (rs.next()) {
-                String name       = rs.getString("M_NAME");
-                int currentQty    = rs.getInt("M_QUANTITY");
-                int threshold     = rs.getInt("M_THRESHOLD");
-                int predicted     = predictDemand(name);
+                String name    = rs.getString("M_NAME");
+                int currentQty = rs.getInt("M_QUANTITY");
+                int threshold  = rs.getInt("M_THRESHOLD"); // per-medicine reorder point
+                int predicted  = predictDemand(name);      // 7-day SMA forecast
 
+                // Alert if stock is below the SMA forecast or below the reorder threshold
                 if (currentQty < predicted || currentQty < threshold) {
                     alerts.add(name + " (Current: " + currentQty + ", Threshold: " + threshold + ", Needed: " + predicted + ")");
                 }
@@ -78,6 +82,7 @@ public class ForecastingHelper {
                 java.sql.Date expDate = rs.getDate("M_EXPDATE");
                 if (expDate != null) {
                     LocalDate expiry = expDate.toLocalDate();
+                    // isBefore covers both already-expired and near-expiry items
                     if (expiry.isBefore(thirtyDaysFromNow)) {
                         alerts.add("EXPIRY: " + name + " (Expires: " + expiry + ")");
                     }

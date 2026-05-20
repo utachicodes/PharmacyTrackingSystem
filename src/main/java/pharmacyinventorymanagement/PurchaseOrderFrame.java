@@ -83,21 +83,27 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
             "Confirm Stock Receipt", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) return;
         try (Connection conn = DatabaseHelper.getConnection()) {
+            // Disable auto-commit so both updates happen as a single atomic transaction
             conn.setAutoCommit(false);
             try {
+                // Step 1: mark the PO as Received
                 try (PreparedStatement upPO = conn.prepareStatement(
                         "UPDATE PURCHASE_ORDERS SET PO_STATUS='Received' WHERE PO_ID=?")) {
                     upPO.setInt(1, poId); upPO.executeUpdate();
                 }
+                // Step 2: increment the medicine stock
                 try (PreparedStatement upMed = conn.prepareStatement(
                         "UPDATE MEDICINE SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?")) {
                     upMed.setInt(1, qty); upMed.setString(2, medName);
                     if (upMed.executeUpdate() == 0)
                         JOptionPane.showMessageDialog(this, "Warning: medicine not found in inventory.");
                 }
+                // Both succeeded — commit together
                 conn.commit(); loadPOs();
                 JOptionPane.showMessageDialog(this, "Stock received and inventory updated.");
-            } catch (SQLException e) { conn.rollback(); throw e; }
+            } catch (SQLException e) {
+                // One step failed — roll back both so inventory stays consistent
+                conn.rollback(); throw e;
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
         }

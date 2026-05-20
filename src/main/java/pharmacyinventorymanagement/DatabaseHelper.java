@@ -19,6 +19,7 @@ public class DatabaseHelper {
     private static final String USER = "root";
     private static final String PASS = "";
 
+    // Opens a new connection to the local MySQL database.
     public static Connection getConnection() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -35,10 +36,12 @@ public class DatabaseHelper {
             int numberOfColumns = metaData.getColumnCount();
             Vector<String> columnNames = new Vector<>();
 
+            // Read column names from result metadata
             for (int column = 1; column <= numberOfColumns; column++) {
                 columnNames.add(metaData.getColumnLabel(column));
             }
 
+            // Read each row into a Vector
             Vector<Vector<Object>> rows = new Vector<>();
             while (rs.next()) {
                 Vector<Object> newRow = new Vector<>();
@@ -58,6 +61,7 @@ public class DatabaseHelper {
     // Creates all 5 tables on first run and seeds a default admin if AGENTS is empty.
     public static void initializeDatabase() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            // Medicine stock records — 14 fields including batch, category, thresholds
             stmt.execute("CREATE TABLE IF NOT EXISTS MEDICINE (" +
                     "M_ID INT PRIMARY KEY, " +
                     "M_NAME VARCHAR(50), " +
@@ -74,6 +78,7 @@ public class DatabaseHelper {
                     "M_THRESHOLD INT DEFAULT 10, " +
                     "M_BATCH VARCHAR(50))");
 
+            // Staff accounts with role (Admin / Pharmacist / Technician)
             stmt.execute("CREATE TABLE IF NOT EXISTS AGENTS (" +
                     "A_ID INT PRIMARY KEY, " +
                     "A_NAME VARCHAR(50), " +
@@ -84,6 +89,7 @@ public class DatabaseHelper {
                     "A_EMAIL VARCHAR(50), " +
                     "A_ROLE VARCHAR(20) DEFAULT 'Technician')");
 
+            // Sales audit log — used by ForecastingHelper for demand calculations
             stmt.execute("CREATE TABLE IF NOT EXISTS SALES (" +
                     "S_ID INT PRIMARY KEY AUTO_INCREMENT, " +
                     "S_MED_NAME VARCHAR(100), " +
@@ -91,6 +97,7 @@ public class DatabaseHelper {
                     "S_QTY INT, " +
                     "S_TOTAL DOUBLE)");
 
+            // Purchase orders with status (Pending / Received)
             stmt.execute("CREATE TABLE IF NOT EXISTS PURCHASE_ORDERS (" +
                     "PO_ID INT PRIMARY KEY AUTO_INCREMENT, " +
                     "PO_MED_NAME VARCHAR(100), " +
@@ -99,6 +106,7 @@ public class DatabaseHelper {
                     "PO_STATUS VARCHAR(20) DEFAULT 'Pending', " +
                     "PO_DATE DATE)");
 
+            // Supplier directory — feeds the Supplier dropdown in Medicine and PO screens
             stmt.execute("CREATE TABLE IF NOT EXISTS COMPANY (" +
                     "C_ID INT PRIMARY KEY, " +
                     "C_NAME VARCHAR(50), " +
@@ -109,6 +117,7 @@ public class DatabaseHelper {
                     "C_LEADTIME INT DEFAULT 7, " +
                     "C_PREFERRED VARCHAR(10) DEFAULT 'No')");
 
+            // Seed a default admin account so the app works out-of-the-box
             try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM AGENTS")) {
                 if (rs.next() && rs.getInt(1) == 0) {
                     stmt.execute("INSERT INTO AGENTS (A_ID, A_NAME, A_AGE, A_PASSWORD, A_PHONE, A_GENDER, A_EMAIL, A_ROLE) " +

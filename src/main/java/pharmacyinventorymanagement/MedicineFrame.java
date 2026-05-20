@@ -445,6 +445,7 @@ public class MedicineFrame extends javax.swing.JFrame {
     }
 
     // ── Company combobox loader ────────────────────────────────────────────────
+    // Populates the supplier dropdown from the COMPANY table; falls back to defaults if the table is empty.
     public void loadCompanyComboBox() {
         m_company.removeAllItems();
         try (Connection c = DatabaseHelper.getConnection();
@@ -452,6 +453,7 @@ public class MedicineFrame extends javax.swing.JFrame {
              ResultSet r  = s.executeQuery("SELECT C_NAME FROM COMPANY ORDER BY C_NAME")) {
             while (r.next()) m_company.addItem(r.getString("C_NAME"));
         } catch (SQLException ignored) {}
+        // Fallback list so the form is usable even before any suppliers are added
         if (m_company.getItemCount() == 0)
             for (String s : new String[]{"Dakar Pharma","MedSupply","HealthCo","Pfizer","Novartis"}) m_company.addItem(s);
     }

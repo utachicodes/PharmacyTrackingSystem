@@ -58,6 +58,7 @@ public class DashboardFrame extends javax.swing.JFrame {
             for (String a : stockAlerts) model.addElement("LOW STOCK: " + a);
         }
 
+        // Pin a summary row at the top of the alert list
         double totalValue = ForecastingHelper.getInventoryValue();
         int    medCount   = ForecastingHelper.getMedicineCount();
         model.add(0, "─────────────────────────────────────────");

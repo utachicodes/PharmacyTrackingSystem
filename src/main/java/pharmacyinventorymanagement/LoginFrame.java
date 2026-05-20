@@ -244,6 +244,7 @@ public class LoginFrame extends javax.swing.JFrame {
             pstmt.setString(2, pwd);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
+                    // Open the dashboard with the user's role so RBAC is applied correctly
                     String role = rs.getString("A_ROLE");
                     new DashboardFrame(role).setVisible(true);
                     this.dispose();
