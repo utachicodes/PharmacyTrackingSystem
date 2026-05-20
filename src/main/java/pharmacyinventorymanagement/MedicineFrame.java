@@ -453,7 +453,15 @@ public class MedicineFrame extends javax.swing.JFrame {
 
     @Deprecated public void SelectMed() { loadMedicines(); }
 
+    private void highlightRequired(JTextField... fields) {
+        for (JTextField f : fields)
+            f.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(f.getText().trim().isEmpty() ? new Color(239,68,68) : BORDER_CLR),
+                BorderFactory.createEmptyBorder(4,8,4,8)));
+    }
+
     private void btnAddMouseClicked(MouseEvent evt) {
+        highlightRequired(m_id, m_name, m_quantity, m_price);
         try {
             Con = DatabaseHelper.getConnection();
             String Id = m_id.getText();
