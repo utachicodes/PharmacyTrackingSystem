@@ -453,7 +453,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             try (PreparedStatement del = Con.prepareStatement("DELETE FROM AGENTS WHERE A_ID=?")) {
                 del.setInt(1, Integer.parseInt(a_id.getText())); del.executeUpdate();
             }
-            loadAgents(); JOptionPane.showMessageDialog(this, "Agent deleted.");
+            loadAgents(); setStatus("Agent deleted: ID " + a_id.getText()); JOptionPane.showMessageDialog(this, "Agent deleted.");
         } catch (SQLException e) { JOptionPane.showMessageDialog(this, "SQL Error: " + e.getMessage()); }
     }
 
@@ -477,7 +477,7 @@ public class AgentsFrame extends javax.swing.JFrame {
                 upd.setString(6, a_email.getText()); upd.setString(7, a_role.getSelectedItem().toString());
                 upd.setInt(8, id); upd.executeUpdate();
             }
-            loadAgents(); JOptionPane.showMessageDialog(this, "Agent updated.");
+            loadAgents(); setStatus("Updated agent: " + a_name.getText()); JOptionPane.showMessageDialog(this, "Agent updated.");
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error: " + e.getMessage()); }
     }
 
