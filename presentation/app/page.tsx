@@ -917,12 +917,12 @@ function Slide13() {
 
 function Slide14() {
   const steps = [
-    { label: 'Login as Admin',           detail: 'Name: Admin   Password: admin123' },
-    { label: 'Dashboard',                detail: 'Live alerts: expiry warnings and low-stock notices' },
-    { label: 'Medicine tab',             detail: 'Add, edit, and delete a medicine record' },
-    { label: 'Selling tab',              detail: 'Process a sale and watch the stock update in real time' },
-    { label: 'Purchase Orders',          detail: 'Create a PO, then receive it and verify the atomic update' },
-    { label: 'Back to Dashboard',        detail: 'Alerts reflect the updated inventory immediately' },
+    { label: 'Launch & Login',           detail: 'Splash → dark branded login — Username: Admin  |  Password: admin123' },
+    { label: 'Dashboard',               detail: 'Dark sidebar, role badge, date, live alert renderer with refresh button' },
+    { label: 'Medicine Inventory',      detail: 'Search bar, row count, column sort, red/yellow stock highlights, status bar' },
+    { label: 'Billing',                 detail: 'Click stock row → set qty → Enter adds to dark invoice panel with running total' },
+    { label: 'Purchase Orders',         detail: 'Create PO → search + status badge → receive atomically via JDBC transaction' },
+    { label: 'Agents & Suppliers',      detail: 'Role color-coding, preferred supplier green highlight, live counts' },
   ]
   return (
     <motion.div className="h-full flex flex-col items-center justify-center px-16 max-w-3xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
