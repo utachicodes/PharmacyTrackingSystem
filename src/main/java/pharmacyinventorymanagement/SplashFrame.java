@@ -74,16 +74,23 @@ public class SplashFrame extends javax.swing.JFrame {
         subtitleLabel.setForeground(TEXT_MUTED);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel authorLabel = new JLabel("by Abdoullah Ndao");
+        JLabel authorLabel = new JLabel("by Abdoullah Ndao  ·  DAUST");
         authorLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         authorLabel.setForeground(ACCENT);
         authorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        JLabel versionLabel = new JLabel("v1.0  ·  Software Engineering");
+        versionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        versionLabel.setForeground(new Color(71, 85, 105));
+        versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         centerPanel.add(logoLabel);
         centerPanel.add(Box.createVerticalStrut(8));
         centerPanel.add(subtitleLabel);
-        centerPanel.add(Box.createVerticalStrut(12));
+        centerPanel.add(Box.createVerticalStrut(10));
         centerPanel.add(authorLabel);
+        centerPanel.add(Box.createVerticalStrut(4));
+        centerPanel.add(versionLabel);
 
         root.add(centerPanel, BorderLayout.CENTER);
 
