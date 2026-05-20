@@ -227,6 +227,10 @@ public class MedicineFrame extends javax.swing.JFrame {
         btnUpdate = actionBtn("↻ UPDATE",  new Color(59, 130, 246), new Color(37, 99, 235));
         btnDelete = actionBtn("✕ DELETE",  DANGER,    new Color(185, 28, 28));
         btnClear  = actionBtn("⟳ CLEAR",   new Color(100,116,139),  new Color(71,85,105));
+        btnAdd.setToolTipText("Add a new medicine record to inventory");
+        btnUpdate.setToolTipText("Update the selected medicine record");
+        btnDelete.setToolTipText("Permanently delete the selected medicine");
+        btnClear.setToolTipText("Clear all form fields");
 
         btnAdd.addMouseListener(new MouseAdapter()    { public void mouseClicked(MouseEvent e) { btnAddMouseClicked(e); } });
         btnUpdate.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnUpdateMouseClicked(e); } });
