@@ -196,8 +196,11 @@ public class AgentsFrame extends javax.swing.JFrame {
         g.gridx = 3; g.weightx = 1; p.add(f2, g);
     }
 
+    private JLabel agentRowCount;
+
     private JPanel buildTablePanel() {
         AgentTable = new JTable();
+        AgentTable.setAutoCreateRowSorter(true);
         styleTable(AgentTable);
         AgentTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { AgentTableMouseClicked(e); }
@@ -205,16 +208,52 @@ public class AgentsFrame extends javax.swing.JFrame {
         JScrollPane scroll = new JScrollPane(AgentTable);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
 
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        JTextField searchField = new JTextField();
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        searchField.putClientProperty("JTextField.placeholderText", "🔍  Search agents...");
+        searchField.setToolTipText("Filter the agent list");
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filter(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filter(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filter(); }
+            private void filter() {
+                javax.swing.table.TableRowSorter<javax.swing.table.TableModel> s =
+                    new javax.swing.table.TableRowSorter<>(AgentTable.getModel());
+                AgentTable.setRowSorter(s);
+                String t = searchField.getText().trim();
+                s.setRowFilter(t.isEmpty() ? null : javax.swing.RowFilter.regexFilter("(?i)" + t));
+                if (agentRowCount != null) agentRowCount.setText("  " + AgentTable.getRowCount() + " agents  ");
+            }
+        });
+
+        agentRowCount = new JLabel("  0 agents");
+        agentRowCount.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        agentRowCount.setForeground(TEXT_MUTED);
+
+        JPanel topBar = new JPanel(new BorderLayout(8, 0));
+        topBar.setBackground(Color.WHITE);
+        topBar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(6, 10, 6, 10)));
         JLabel tblHdr = new JLabel("  Agent List");
         tblHdr.setFont(new Font("Segoe UI", Font.BOLD, 13));
         tblHdr.setForeground(TEXT_MUTED);
-        tblHdr.setPreferredSize(new Dimension(0, 34));
-        tblHdr.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
-        panel.add(tblHdr, BorderLayout.NORTH);
+        topBar.add(tblHdr, BorderLayout.WEST);
+        topBar.add(searchField, BorderLayout.CENTER);
+        topBar.add(agentRowCount, BorderLayout.EAST);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        panel.add(topBar, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
+
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F5"), "refresh");
+        panel.getActionMap().put("refresh", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { loadAgents(); }
+        });
         return panel;
     }
 
@@ -300,6 +339,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             St = Con.createStatement();
             Rs = St.executeQuery("SELECT * FROM AGENTS");
             AgentTable.setModel(DatabaseHelper.resultSetToTableModel(Rs));
+            if (agentRowCount != null) agentRowCount.setText("  " + AgentTable.getRowCount() + " agents  ");
         } catch (SQLException e) { e.printStackTrace(); }
     }
     @Deprecated public void SelectMed() { loadAgents(); }
