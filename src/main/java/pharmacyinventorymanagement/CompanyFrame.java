@@ -376,11 +376,40 @@ public class CompanyFrame extends javax.swing.JFrame {
             if (companyRowCount != null) companyRowCount.setText("  " + company_table.getRowCount() + " suppliers  ");
             setCompanyColumnWidths();
             if (headerSubtitle != null) headerSubtitle.setText(company_table.getRowCount() + " suppliers on record");
+            applyPreferredRenderer();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "SQL Error: " + e.getMessage());
         }
     }
     @Deprecated public void SelectCompany() { loadCompanies(); }
+
+    private void applyPreferredRenderer() {
+        int prefCol = -1;
+        for (int i = 0; i < company_table.getColumnCount(); i++)
+            if ("C_PREFERRED".equalsIgnoreCase(company_table.getColumnName(i))) { prefCol = i; break; }
+        if (prefCol < 0) return;
+        final int pc = prefCol;
+        company_table.getColumnModel().getColumn(pc).setCellRenderer(
+            new javax.swing.table.DefaultTableCellRenderer() {
+                public Component getTableCellRendererComponent(
+                        JTable t, Object v, boolean sel, boolean foc, int row, int col) {
+                    JLabel c = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, row, col);
+                    String val = v == null ? "" : v.toString();
+                    if (!sel) {
+                        if ("Yes".equalsIgnoreCase(val)) {
+                            c.setBackground(new Color(209, 250, 229));
+                            c.setForeground(new Color(6, 95, 70));
+                        } else {
+                            c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 250, 252));
+                            c.setForeground(TEXT_MUTED);
+                        }
+                    }
+                    c.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                    c.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                    return c;
+                }
+            });
+    }
 
     private void setCompanyColumnWidths() {
         if (company_table.getColumnCount() < 5) return;
