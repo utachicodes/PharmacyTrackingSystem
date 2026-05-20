@@ -363,7 +363,15 @@ public class AgentsFrame extends javax.swing.JFrame {
             AgentTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
     }
 
+    private void highlightRequired(JTextField... fields) {
+        for (JTextField f : fields)
+            f.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(f.getText().trim().isEmpty() ? new Color(239,68,68) : BORDER_CLR),
+                BorderFactory.createEmptyBorder(4,8,4,8)));
+    }
+
     private void btnAddMouseClicked(MouseEvent evt) {
+        highlightRequired(a_id, a_name, a_age, a_password, a_phone, a_email);
         try {
             Con = DatabaseHelper.getConnection();
             try (PreparedStatement add = Con.prepareStatement("INSERT INTO AGENTS VALUES(?,?,?,?,?,?,?,?)")) {
