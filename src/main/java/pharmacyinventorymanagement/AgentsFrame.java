@@ -351,9 +351,17 @@ public class AgentsFrame extends javax.swing.JFrame {
             Rs = St.executeQuery("SELECT * FROM AGENTS");
             AgentTable.setModel(DatabaseHelper.resultSetToTableModel(Rs));
             if (agentRowCount != null) agentRowCount.setText("  " + AgentTable.getRowCount() + " agents  ");
+            setAgentColumnWidths();
         } catch (SQLException e) { e.printStackTrace(); }
     }
     @Deprecated public void SelectMed() { loadAgents(); }
+
+    private void setAgentColumnWidths() {
+        if (AgentTable.getColumnCount() < 4) return;
+        int[] widths = {50, 140, 50, 110, 110, 70, 160, 100};
+        for (int i = 0; i < Math.min(widths.length, AgentTable.getColumnCount()); i++)
+            AgentTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+    }
 
     private void btnAddMouseClicked(MouseEvent evt) {
         try {
