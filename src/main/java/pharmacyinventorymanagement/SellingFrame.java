@@ -436,7 +436,7 @@ public class SellingFrame extends javax.swing.JFrame {
         mQty  = Integer.parseInt(model.getValueAt(i, 2).toString());
         price = Double.parseDouble(model.getValueAt(i, 3).toString());
         if (sellStatusBar != null)
-            sellStatusBar.setText("Selected: " + b_medName.getText() + "  |  In stock: " + mQty + "  |  Price: $" + price);
+            sellStatusBar.setText("Selected: " + b_medName.getText() + "  |  In stock: " + mQty + "  |  Unit price: $" + String.format("%.2f", price));
     }
 
     private void btnAddToBillMouseClicked(MouseEvent evt) {
