@@ -1,671 +1,424 @@
-/*
- */
 package pharmacyinventorymanagement;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-
 /**
- * SellingFrame implements the point-of-sale billing module. It displays current
- * medicine stock, allows the pharmacist to select items and quantities, enforces
- * stock constraints, deducts inventory atomically, records each sale to the SALES
- * table, and generates a formatted invoice with a running total in the text area.
+ * SellingFrame provides the Point-of-Sale billing interface for the Pharmacy
+ * Tracking System. It deducts stock from the MEDICINE table on each sale,
+ * records every transaction to the SALES audit table for forecasting, and
+ * generates a printable invoice with running totals.
  *
  * @author Abdoullah Ndao
  */
+
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
 public class SellingFrame extends javax.swing.JFrame {
 
-    /**
-     * Creates new form MedicineFrame
-     */
-    public SellingFrame() {
-        initComponents();
-        setTitle("Billing - Pharmacy System");
-        ShowDate();
-        SelectMed();
-    }
-    
-    public void ShowDate(){
-        Date d = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        date_text.setText(sdf.format(d));
-    }
-    
+    // ── Design constants ──────────────────────────────────────────────────────
+    private static final Color SIDEBAR_BG    = new Color(30, 41, 59);
+    private static final Color SIDEBAR_HOVER = new Color(51, 65, 85);
+    private static final Color ACCENT        = new Color(16, 185, 129);
+    private static final Color ACCENT_DARK   = new Color(5, 150, 105);
+    private static final Color CONTENT_BG    = new Color(241, 245, 249);
+    private static final Color TEXT_DARK     = new Color(30, 41, 59);
+    private static final Color TEXT_MUTED    = new Color(100, 116, 139);
+    private static final Color BORDER_CLR    = new Color(203, 213, 225);
+    private static final Color INVOICE_BG    = new Color(15, 23, 42);
+
+    // ── JDBC & billing state ──────────────────────────────────────────────────
     Connection Con = null;
     Statement St = null;
     ResultSet Rs = null;
-    double price=0;
-    int medId = 0, mQty;
-    
-    @SuppressWarnings("unchecked")
-    
-    /** Loads (or reloads) the medicine stock list from the database into the table. */
-    public void loadMedicines()
-    {
-        try{
-            Con = DatabaseHelper.getConnection();
-            St = Con.createStatement();
-            Rs = St.executeQuery("Select * from MEDICINE");
-            medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
-        }
-        catch(SQLException e)
-        {
-            JOptionPane.showMessageDialog(this, "Error: A SQL exception occured");
-            e.printStackTrace();
-        }
-    }
-
-    /** @deprecated Use {@link #loadMedicines()} instead. */
-    @Deprecated
-    public void SelectMed() { loadMedicines(); }
-    
-    public boolean updateQty(){
-            int orderQty = Integer.valueOf(b_quantity.getText());
-            // Enforce stock constraint: cannot sell more than currently available
-            if(mQty >= orderQty){
-                try{
-                    // Calculate the new stock level after this sale
-                    int newQty = mQty - orderQty;
-                    mQty = newQty; // Update the local cache of current quantity
-                    Con = DatabaseHelper.getConnection();
-
-                    // Deduct the sold quantity from MEDICINE table
-                    String UpdateQuery = "Update MEDICINE set M_QUANTITY = "+newQty+" where M_ID = "+medId;
-                    Statement Add = Con.createStatement();
-                    Add.executeUpdate(UpdateQuery);
-
-                    // Record the completed sale in the SALES audit table for forecasting
-                    recordSale(medId, b_medName.getText(), orderQty, price * orderQty);
-
-                    SelectMed();
-                    Con.close();
-                    return true;
-
-                }catch(SQLException e)
-                {
-                    JOptionPane.showMessageDialog(this, "Error: A SQL exception occured");
-                    e.printStackTrace();
-                }catch(Exception e){
-                    JOptionPane.showMessageDialog(this, "Error:Internal server error");
-
-                }
-            }else{
-                // Inform the user of the exact stock shortage
-                JOptionPane.showMessageDialog(this, "Insufficient stock!\n  Available: "+mQty+"\n  Ordered: "+b_quantity.getText());
-                return false;
-            }
-            return false;
-
-
-    }
-    
-    public void recordSale(int medId, String medName, int qty, double total) {
-        try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO SALES (S_MED_NAME, S_DATE, S_QTY, S_TOTAL) VALUES (?, ?, ?, ?)")) {
-            
-            pstmt.setString(1, medName);
-            pstmt.setDate(2, new java.sql.Date(System.currentTimeMillis()));
-            pstmt.setInt(3, qty);
-            pstmt.setDouble(4, total);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        jPanel1 = new javax.swing.JPanel();
-        medicineBtn = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        Title4 = new javax.swing.JLabel();
-        Title5 = new javax.swing.JLabel();
-        b_id = new javax.swing.JTextField();
-        b_medName = new javax.swing.JTextField();
-        btnAddToBill = new javax.swing.JButton();
-        btnClear = new javax.swing.JButton();
-        Title9 = new javax.swing.JLabel();
-        date_text = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        medicine_table = new javax.swing.JTable();
-        Title11 = new javax.swing.JLabel();
-        Title6 = new javax.swing.JLabel();
-        b_quantity = new javax.swing.JTextField();
-        companyBtn = new javax.swing.JLabel();
-        agentBtn = new javax.swing.JLabel();
-        Title3 = new javax.swing.JLabel();
-        jPanel3 = new javax.swing.JPanel();
-        btnPrint = new javax.swing.JButton();
-        Title12 = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        b_textArea = new javax.swing.JTextArea();
-        closeX = new javax.swing.JLabel();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setUndecorated(true);
-
-        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
-
-        medicineBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
-        medicineBtn.setForeground(new java.awt.Color(255, 255, 255));
-        medicineBtn.setText("MEDICINE");
-        medicineBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                medicineBtnMouseClicked(evt);
-            }
-        });
-
-        jPanel2.setBackground(new java.awt.Color(248, 250, 252));
-
-        Title4.setBackground(new java.awt.Color(255, 255, 255));
-        Title4.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title4.setForeground(new java.awt.Color(16, 185, 129));
-        Title4.setText("BILL ID");
-
-        Title5.setBackground(new java.awt.Color(255, 255, 255));
-        Title5.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title5.setForeground(new java.awt.Color(16, 185, 129));
-        Title5.setText("MEDICINE");
-
-        b_id.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                b_idActionPerformed(evt);
-            }
-        });
-
-        b_medName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                b_medNameActionPerformed(evt);
-            }
-        });
-
-        btnAddToBill.setBackground(new java.awt.Color(16, 185, 129));
-        btnAddToBill.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
-        btnAddToBill.setForeground(new java.awt.Color(255, 255, 255));
-        btnAddToBill.setText("ADD TO BILL");
-        btnAddToBill.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnAddToBillMouseClicked(evt);
-            }
-        });
-        btnAddToBill.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddToBillActionPerformed(evt);
-            }
-        });
-
-        btnClear.setBackground(new java.awt.Color(16, 185, 129));
-        btnClear.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
-        btnClear.setForeground(new java.awt.Color(255, 255, 255));
-        btnClear.setText("CLEAR");
-        btnClear.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnClearMouseClicked(evt);
-            }
-        });
-
-        Title9.setBackground(new java.awt.Color(255, 255, 255));
-        Title9.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title9.setForeground(new java.awt.Color(255, 51, 51));
-        Title9.setText("SELLER");
-
-        date_text.setBackground(new java.awt.Color(255, 255, 255));
-        date_text.setFont(new java.awt.Font("Mongolian Baiti", 0, 18)); // NOI18N
-        date_text.setForeground(new java.awt.Color(255, 51, 51));
-        date_text.setText("DATE");
-
-        medicine_table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
-            },
-            new String [] {
-                "ID", "Name", "Unit Price", "Quantity", "MFT.Date", "EXP.Date", "Company"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        medicine_table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                medicine_tableMouseClicked(evt);
-            }
-        });
-        jScrollPane1.setViewportView(medicine_table);
-
-        Title11.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
-        Title11.setForeground(new java.awt.Color(16, 185, 129));
-        Title11.setText("MEDICINE STOCK");
-
-        Title6.setBackground(new java.awt.Color(255, 255, 255));
-        Title6.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title6.setForeground(new java.awt.Color(16, 185, 129));
-        Title6.setText("QTY.");
-
-        b_quantity.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                b_quantityActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addGap(32, 32, 32)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(Title5)
-                            .addComponent(Title4)
-                            .addComponent(Title6))
-                        .addGap(32, 32, 32)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(b_id, javax.swing.GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE)
-                            .addComponent(b_medName)
-                            .addComponent(b_quantity)))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(Title9)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(15, 15, 15)
-                                .addComponent(btnAddToBill)
-                                .addGap(75, 75, 75)
-                                .addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 559, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addComponent(Title11)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(date_text)
-                        .addGap(45, 45, 45))))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Title11)
-                    .addComponent(date_text)
-                    .addComponent(Title9))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Title4)
-                            .addComponent(b_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(22, 22, 22)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Title5)
-                            .addComponent(b_medName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(22, 22, 22)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Title6)
-                            .addComponent(b_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(31, 31, 31)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnAddToBill, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(20, Short.MAX_VALUE))
-        );
-
-        companyBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
-        companyBtn.setForeground(new java.awt.Color(255, 255, 255));
-        companyBtn.setText("COMPANY");
-        companyBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                companyBtnMouseClicked(evt);
-            }
-        });
-
-        agentBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
-        agentBtn.setForeground(new java.awt.Color(255, 255, 255));
-        agentBtn.setText("Agent");
-        agentBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                agentBtnMouseClicked(evt);
-            }
-        });
-
-        Title3.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
-        Title3.setForeground(new java.awt.Color(255, 255, 255));
-        Title3.setText("BILLING");
-
-        jPanel3.setBackground(new java.awt.Color(255, 255, 153));
-
-        btnPrint.setBackground(new java.awt.Color(16, 185, 129));
-        btnPrint.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
-        btnPrint.setForeground(new java.awt.Color(255, 255, 255));
-        btnPrint.setText("PRINT");
-        btnPrint.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnPrintMouseClicked(evt);
-            }
-        });
-        btnPrint.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnPrintActionPerformed(evt);
-            }
-        });
-
-        Title12.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
-        Title12.setForeground(new java.awt.Color(16, 185, 129));
-        Title12.setText("INVOICE");
-
-        b_textArea.setColumns(20);
-        b_textArea.setFont(new java.awt.Font("Bahnschrift", 0, 16)); // NOI18N
-        b_textArea.setRows(5);
-        b_textArea.setText("********************** PHARMA-EASY ************************");
-        b_textArea.setToolTipText("");
-        jScrollPane2.setViewportView(b_textArea);
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(182, 182, 182)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 469, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(353, 353, 353)
-                        .addComponent(Title12))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(388, 388, 388)
-                        .addComponent(btnPrint)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(Title12, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnPrint, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        closeX.setFont(new java.awt.Font("Arial Black", 1, 32)); // NOI18N
-        closeX.setForeground(new java.awt.Color(255, 153, 153));
-        closeX.setText("x");
-        closeX.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                closeXMouseClicked(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(medicineBtn)
-                    .addComponent(companyBtn)
-                    .addComponent(agentBtn))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Title3)
-                        .addGap(360, 360, 360)
-                        .addComponent(closeX)
-                        .addGap(23, 23, 23))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addContainerGap(28, Short.MAX_VALUE))))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(116, 116, 116)
-                .addComponent(medicineBtn)
-                .addGap(18, 18, 18)
-                .addComponent(agentBtn)
-                .addGap(18, 18, 18)
-                .addComponent(companyBtn)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(closeX)
-                    .addComponent(Title3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-
-        pack();
-        setLocationRelativeTo(null);
-
-        // Add Dashboard navigation button to sidebar
-        javax.swing.JLabel dashboardBtn = new javax.swing.JLabel("Dashboard");
-        dashboardBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22));
-        dashboardBtn.setForeground(new java.awt.Color(255, 255, 255));
-        dashboardBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        dashboardBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                new DashboardFrame().setVisible(true);
-                dispose();
-            }
-        });
-        jPanel1.add(dashboardBtn);
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void btnPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrintActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnPrintActionPerformed
-
-    private void b_quantityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_quantityActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_b_quantityActionPerformed
-
-    private void medicine_tableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_medicine_tableMouseClicked
-        DefaultTableModel model = (DefaultTableModel)medicine_table.getModel();
-        int Myindex = medicine_table.getSelectedRow();
-        b_medName.setText(model.getValueAt(Myindex, 1).toString());
-
-        medId = Integer.valueOf(model.getValueAt(Myindex, 0).toString());
-        mQty = Integer.valueOf(model.getValueAt(Myindex, 2).toString());
-        price = Double.valueOf(model.getValueAt(Myindex, 3).toString());
-    }//GEN-LAST:event_medicine_tableMouseClicked
-
-    private void btnAddToBillActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddToBillActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnAddToBillActionPerformed
-
-    private void b_medNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_medNameActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_b_medNameActionPerformed
-
-    private void b_idActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_idActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_b_idActionPerformed
-
+    double price = 0;
+    int medId = 0, mQty = 0;
     int billID = 0;
     double billTotal = 0.0;
-    private void btnAddToBillMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddToBillMouseClicked
-        boolean updateResult = updateQty();
 
-        if(b_medName.getText().isEmpty()){
-            JOptionPane.showMessageDialog(this, "Please fill medicine name");
-        }else if(updateResult){
-            billID++;
-            b_id.setText(Integer.toString(billID));
+    // ── UI fields (referenced by business logic) ──────────────────────────────
+    private JTextField b_id, b_medName, b_quantity;
+    private JLabel date_text;
+    private JTable medicine_table;
+    private JTextArea b_textArea;
+    private JButton btnAddToBill, btnClear, btnPrint;
+    private JLabel totalLabel;
 
-            String billHeader = "";
-            try{
-                double lineTotal = Integer.valueOf(b_quantity.getText()) * price;
-                billTotal += lineTotal;
-                if(billID==1){
-                    billHeader = "***************** PHARMA-EASY ********************";
-                    billHeader += "\n ID  Name\tPrice     Qty     Net";
-                    billHeader += "\n "+billID+"  "+b_medName.getText()+"\t"+price+"       "+b_quantity.getText()+"       "+lineTotal;
-                }else
-                {
-                    // Remove previous TOTAL line if present, then append new line
-                    String existing = b_textArea.getText();
-                    int totIdx = existing.lastIndexOf("\n---");
-                    if (totIdx >= 0) existing = existing.substring(0, totIdx);
-                    billHeader += existing;
-                    billHeader+= "\n "+billID+"  "+b_medName.getText()+"\t"+price+"       "+b_quantity.getText()+"        "+lineTotal;
+    public SellingFrame() {
+        initComponents();
+        setTitle("Billing – Pharmacy System");
+        ShowDate();
+        loadMedicines();
+    }
+
+    public void ShowDate() {
+        date_text.setText(new SimpleDateFormat("dd-MM-yyyy").format(new Date()));
+    }
+
+    private void initComponents() {
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Billing – Pharmacy System");
+        setSize(1150, 720);
+        setLocationRelativeTo(null);
+
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(CONTENT_BG);
+        setContentPane(root);
+        root.add(buildSidebar(), BorderLayout.WEST);
+        root.add(buildContent(), BorderLayout.CENTER);
+    }
+
+    private JPanel buildSidebar() {
+        JPanel sidebar = new JPanel();
+        sidebar.setBackground(SIDEBAR_BG);
+        sidebar.setPreferredSize(new Dimension(185, 0));
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+
+        JPanel logoArea = new JPanel(new BorderLayout());
+        logoArea.setBackground(new Color(15, 23, 42));
+        logoArea.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
+        logoArea.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 8));
+        JLabel logo = new JLabel("⚕ PHARMA");
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        logo.setForeground(ACCENT);
+        logoArea.add(logo, BorderLayout.CENTER);
+        sidebar.add(logoArea);
+        sidebar.add(sep());
+
+        String[][] items = {
+            {"🏠  Dashboard",  "dash"}, {"💊  Medicines",  "med"},
+            {"👤  Agents",     "agents"}, {"🏢  Suppliers", "comp"},
+            {"📦  Purchase Orders", "po"}
+        };
+        for (String[] item : items) {
+            JLabel nav = navLabel(item[0]);
+            final String key = item[1];
+            nav.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    switch (key) {
+                        case "dash":   new DashboardFrame().setVisible(true);     dispose(); break;
+                        case "med":    new MedicineFrame().setVisible(true);      dispose(); break;
+                        case "agents": new AgentsFrame().setVisible(true);        dispose(); break;
+                        case "comp":   new CompanyFrame().setVisible(true);       dispose(); break;
+                        case "po":     new PurchaseOrderFrame().setVisible(true); dispose(); break;
+                    }
                 }
-                billHeader += "\n-------------------------------------------";
-                billHeader += "\n TOTAL: " + String.format("%.2f", billTotal);
-                b_textArea.setText(billHeader);
-
-            }catch(NullPointerException npe){
-                JOptionPane.showMessageDialog(this, "Error: A Null exception occured");
-            }catch(java.lang.NumberFormatException e){
-                JOptionPane.showMessageDialog(this, "Please fill quantity");
-                billID-=1;
+            });
+            sidebar.add(nav);
+        }
+        sidebar.add(Box.createVerticalGlue());
+        sidebar.add(sep());
+        JLabel exit = navLabel("✕  Exit");
+        exit.setForeground(new Color(252, 165, 165));
+        exit.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int c = JOptionPane.showConfirmDialog(SellingFrame.this, "Exit application?", "Confirm", JOptionPane.YES_NO_OPTION);
+                if (c == JOptionPane.YES_OPTION) System.exit(0);
             }
-        }else{
-            //no stock
-        }
+        });
+        sidebar.add(exit);
+        sidebar.add(Box.createVerticalStrut(8));
+        return sidebar;
+    }
 
-    }//GEN-LAST:event_btnAddToBillMouseClicked
+    private JPanel buildContent() {
+        JPanel content = new JPanel(new BorderLayout());
+        content.setBackground(CONTENT_BG);
 
-    private void btnPrintMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnPrintMouseClicked
-        try{
-            b_textArea.print();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }//GEN-LAST:event_btnPrintMouseClicked
+        // Header
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 60));
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(0, 24, 0, 24)));
+        JLabel title = new JLabel("💳  Billing & Sales");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setForeground(TEXT_DARK);
+        date_text = new JLabel();
+        date_text.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        date_text.setForeground(TEXT_MUTED);
+        header.add(title, BorderLayout.WEST);
+        header.add(date_text, BorderLayout.EAST);
+        content.add(header, BorderLayout.NORTH);
 
-    private void closeXMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_closeXMouseClicked
-        int choice = JOptionPane.showConfirmDialog(this, "Exit application?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
-        if (choice == JOptionPane.YES_OPTION) System.exit(0);
-    }//GEN-LAST:event_closeXMouseClicked
+        // Body: split left (stock table) | right (billing form + invoice)
+        JPanel body = new JPanel(new BorderLayout(12, 0));
+        body.setBackground(CONTENT_BG);
+        body.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-    private void btnClearMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnClearMouseClicked
-        b_id.setText("");
-        b_medName.setText("");
-        b_quantity.setText("");
-    }//GEN-LAST:event_btnClearMouseClicked
+        body.add(buildStockPanel(), BorderLayout.CENTER);
+        body.add(buildBillingPanel(), BorderLayout.EAST);
 
-    private void companyBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_companyBtnMouseClicked
+        content.add(body, BorderLayout.CENTER);
+        return content;
+    }
 
-        try{
-            new CompanyFrame().setVisible(true);
-            this.dispose();
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(this, "Internal Server Error!");
+    // ── Left: stock table ─────────────────────────────────────────────────────
+    private JPanel buildStockPanel() {
+        medicine_table = new JTable();
+        styleTable(medicine_table);
+        medicine_table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { medicine_tableMouseClicked(e); }
+        });
+        JScrollPane scroll = new JScrollPane(medicine_table);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
 
-            e.printStackTrace();
-        }
-        
-    }//GEN-LAST:event_companyBtnMouseClicked
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        JLabel hdr = new JLabel("  Available Stock  (click a row to select)");
+        hdr.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        hdr.setForeground(TEXT_MUTED);
+        hdr.setPreferredSize(new Dimension(0, 34));
+        hdr.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
+        panel.add(hdr, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        return panel;
+    }
 
-    private void agentBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_agentBtnMouseClicked
-        try{
-            new AgentsFrame().setVisible(true);
-            this.dispose();
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(this, "Internal Server Error!");
+    // ── Right: billing form + invoice ─────────────────────────────────────────
+    private JPanel buildBillingPanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBackground(CONTENT_BG);
+        panel.setPreferredSize(new Dimension(400, 0));
 
-            e.printStackTrace();
-        }
+        // Form card
+        b_id       = field(); b_medName  = field(); b_quantity = field();
+        btnAddToBill = actionBtn("＋ Add to Bill", ACCENT, ACCENT_DARK);
+        btnClear     = actionBtn("⟳ Clear",        new Color(100,116,139), new Color(71,85,105));
+        btnPrint     = actionBtn("🖨 Print",        new Color(59,130,246),  new Color(37,99,235));
 
-    }//GEN-LAST:event_agentBtnMouseClicked
+        btnAddToBill.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnAddToBillMouseClicked(e); } });
+        btnClear.addMouseListener(new MouseAdapter()     { public void mouseClicked(MouseEvent e) { btnClearMouseClicked(e); } });
+        btnPrint.addMouseListener(new MouseAdapter()     { public void mouseClicked(MouseEvent e) { btnPrintMouseClicked(e); } });
 
-    private void medicineBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_medicineBtnMouseClicked
-        
-        try{
-            new MedicineFrame().setVisible(true);
-            this.dispose();
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(this, "Internal Server Error!");
+        JPanel formCard = new JPanel(new GridBagLayout());
+        formCard.setBackground(Color.WHITE);
+        formCard.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(14, 16, 10, 16)));
 
-            e.printStackTrace();
-        }
-        
-    }//GEN-LAST:event_medicineBtnMouseClicked
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(4, 4, 4, 4); g.fill = GridBagConstraints.HORIZONTAL;
+        g.gridy = 0; g.gridx = 0; g.weightx = 0; formCard.add(fLabel("Bill #"), g);
+        g.gridx = 1; g.weightx = 1; formCard.add(b_id, g);
+        g.gridy = 1; g.gridx = 0; g.weightx = 0; formCard.add(fLabel("Medicine"), g);
+        g.gridx = 1; g.weightx = 1; formCard.add(b_medName, g);
+        g.gridy = 2; g.gridx = 0; g.weightx = 0; formCard.add(fLabel("Quantity"), g);
+        g.gridx = 1; g.weightx = 1; formCard.add(b_quantity, g);
+        g.gridy = 3; g.gridx = 0; g.gridwidth = 2;
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        btns.setBackground(Color.WHITE);
+        btns.add(btnAddToBill); btns.add(btnClear);
+        formCard.add(btns, g);
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SellingFrame().setVisible(true);
+        // Invoice area
+        b_textArea = new JTextArea();
+        b_textArea.setFont(new Font("Courier New", Font.PLAIN, 12));
+        b_textArea.setBackground(INVOICE_BG);
+        b_textArea.setForeground(ACCENT);
+        b_textArea.setCaretColor(ACCENT);
+        b_textArea.setText("*** PHARMA-EASY ***\n ID  Medicine      Price   Qty   Net");
+        b_textArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JScrollPane invoiceScroll = new JScrollPane(b_textArea);
+        invoiceScroll.setBorder(BorderFactory.createLineBorder(new Color(51, 65, 85)));
+
+        totalLabel = new JLabel("TOTAL: $0.00");
+        totalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        totalLabel.setForeground(ACCENT);
+        totalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        totalLabel.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 4));
+
+        JPanel invoiceWrapper = new JPanel(new BorderLayout());
+        invoiceWrapper.setBackground(Color.WHITE);
+        invoiceWrapper.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        JLabel invHdr = new JLabel("  Invoice");
+        invHdr.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        invHdr.setForeground(TEXT_MUTED);
+        invHdr.setPreferredSize(new Dimension(0, 34));
+        invHdr.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
+        invoiceWrapper.add(invHdr, BorderLayout.NORTH);
+        invoiceWrapper.add(invoiceScroll, BorderLayout.CENTER);
+        JPanel invoiceSouth = new JPanel(new BorderLayout());
+        invoiceSouth.setBackground(Color.WHITE);
+        invoiceSouth.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)));
+        invoiceSouth.add(totalLabel, BorderLayout.CENTER);
+        invoiceSouth.add(btnPrint, BorderLayout.EAST);
+        invoiceWrapper.add(invoiceSouth, BorderLayout.SOUTH);
+
+        panel.add(formCard, BorderLayout.NORTH);
+        panel.add(invoiceWrapper, BorderLayout.CENTER);
+        return panel;
+    }
+
+    // ── Styling helpers ───────────────────────────────────────────────────────
+    private JTextField field() {
+        JTextField f = new JTextField();
+        f.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        f.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_CLR),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        f.setPreferredSize(new Dimension(200, 28));
+        return f;
+    }
+    private JLabel fLabel(String t) {
+        JLabel l = new JLabel(t);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        l.setForeground(TEXT_MUTED);
+        l.setPreferredSize(new Dimension(72, 28));
+        return l;
+    }
+    private JButton actionBtn(String text, Color bg, Color hover) {
+        JButton b = new JButton(text);
+        b.setBackground(bg); b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        b.setFocusPainted(false); b.setBorderPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(130, 32));
+        b.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { b.setBackground(hover); }
+            public void mouseExited(MouseEvent e)  { b.setBackground(bg); }
+        });
+        return b;
+    }
+    private void styleTable(JTable t) {
+        t.setRowHeight(28);
+        t.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        t.setGridColor(new Color(226, 232, 240));
+        t.setShowVerticalLines(false);
+        t.setSelectionBackground(new Color(209, 250, 229));
+        t.setSelectionForeground(TEXT_DARK);
+        t.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        t.getTableHeader().setBackground(new Color(241, 245, 249));
+        t.getTableHeader().setForeground(TEXT_MUTED);
+        t.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(226, 232, 240)));
+        t.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable tbl, Object val, boolean sel, boolean foc, int row, int col) {
+                Component c = super.getTableCellRendererComponent(tbl, val, sel, foc, row, col);
+                if (!sel) c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 250, 252));
+                setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                return c;
             }
         });
     }
+    private JLabel navLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        l.setForeground(new Color(203, 213, 225));
+        l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        l.setBorder(BorderFactory.createEmptyBorder(11, 18, 11, 8));
+        l.setOpaque(true); l.setBackground(SIDEBAR_BG);
+        l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        l.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { l.setBackground(SIDEBAR_HOVER); }
+            public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG); }
+        });
+        return l;
+    }
+    private JSeparator sep() {
+        JSeparator s = new JSeparator();
+        s.setForeground(new Color(51,65,85)); s.setBackground(new Color(51,65,85));
+        s.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        return s;
+    }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel Title11;
-    private javax.swing.JLabel Title12;
-    private javax.swing.JLabel Title3;
-    private javax.swing.JLabel Title4;
-    private javax.swing.JLabel Title5;
-    private javax.swing.JLabel Title6;
-    private javax.swing.JLabel Title9;
-    private javax.swing.JLabel agentBtn;
-    private javax.swing.JTextField b_id;
-    private javax.swing.JTextField b_medName;
-    private javax.swing.JTextField b_quantity;
-    private javax.swing.JTextArea b_textArea;
-    private javax.swing.JButton btnAddToBill;
-    private javax.swing.JButton btnClear;
-    private javax.swing.JButton btnPrint;
-    private javax.swing.JLabel closeX;
-    private javax.swing.JLabel companyBtn;
-    private javax.swing.JLabel date_text;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JLabel medicineBtn;
-    private javax.swing.JTable medicine_table;
-    // End of variables declaration//GEN-END:variables
+    // ── Database operations ───────────────────────────────────────────────────
+    public void loadMedicines() {
+        try {
+            Con = DatabaseHelper.getConnection();
+            St  = Con.createStatement();
+            Rs  = St.executeQuery("SELECT * FROM MEDICINE");
+            medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "SQL Error: " + e.getMessage());
+        }
+    }
+    @Deprecated public void SelectMed() { loadMedicines(); }
+
+    public boolean updateQty() {
+        int orderQty = Integer.parseInt(b_quantity.getText());
+        if (mQty >= orderQty) {
+            try {
+                int newQty = mQty - orderQty;
+                mQty = newQty;
+                Con = DatabaseHelper.getConnection();
+                try (PreparedStatement upd = Con.prepareStatement(
+                        "UPDATE MEDICINE SET M_QUANTITY=? WHERE M_ID=?")) {
+                    upd.setInt(1, newQty); upd.setInt(2, medId); upd.executeUpdate();
+                }
+                recordSale(medId, b_medName.getText(), orderQty, price * orderQty);
+                loadMedicines(); Con.close();
+                return true;
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(this,
+                "Insufficient stock!\n  Available: " + mQty + "\n  Ordered: " + b_quantity.getText());
+        }
+        return false;
+    }
+
+    public void recordSale(int mId, String medName, int qty, double total) {
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                 "INSERT INTO SALES (S_MED_NAME, S_DATE, S_QTY, S_TOTAL) VALUES (?,?,?,?)")) {
+            ps.setString(1, medName);
+            ps.setDate(2, new java.sql.Date(System.currentTimeMillis()));
+            ps.setInt(3, qty); ps.setDouble(4, total);
+            ps.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // ── Event handlers ────────────────────────────────────────────────────────
+    private void medicine_tableMouseClicked(MouseEvent evt) {
+        DefaultTableModel model = (DefaultTableModel) medicine_table.getModel();
+        int i = medicine_table.getSelectedRow(); if (i < 0) return;
+        b_medName.setText(model.getValueAt(i, 1).toString());
+        medId = Integer.parseInt(model.getValueAt(i, 0).toString());
+        mQty  = Integer.parseInt(model.getValueAt(i, 2).toString());
+        price = Double.parseDouble(model.getValueAt(i, 3).toString());
+    }
+
+    private void btnAddToBillMouseClicked(MouseEvent evt) {
+        if (b_medName.getText().isEmpty()) { JOptionPane.showMessageDialog(this, "Select a medicine first."); return; }
+        boolean ok = updateQty();
+        if (ok) {
+            billID++;
+            b_id.setText(String.valueOf(billID));
+            try {
+                double lineTotal = Integer.parseInt(b_quantity.getText()) * price;
+                billTotal += lineTotal;
+                String line = String.format("\n %-3d  %-16s $%-8.2f %-5s $%.2f",
+                    billID, b_medName.getText(), price, b_quantity.getText(), lineTotal);
+                if (billID == 1) {
+                    b_textArea.setText("*** PHARMA-EASY ***\n ID  Medicine         Price    Qty   Net" + line);
+                } else {
+                    b_textArea.append(line);
+                }
+                totalLabel.setText("TOTAL: $" + String.format("%.2f", billTotal));
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid quantity."); billID--;
+            }
+        }
+    }
+
+    private void btnPrintMouseClicked(MouseEvent evt) {
+        try { b_textArea.print(); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void btnClearMouseClicked(MouseEvent evt) {
+        b_id.setText(""); b_medName.setText(""); b_quantity.setText("");
+        billID = 0; billTotal = 0.0;
+        b_textArea.setText("*** PHARMA-EASY ***\n ID  Medicine         Price    Qty   Net");
+        totalLabel.setText("TOTAL: $0.00");
+    }
+
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(() -> new SellingFrame().setVisible(true));
+    }
 }
