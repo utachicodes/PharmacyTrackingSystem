@@ -152,6 +152,10 @@ public class DashboardFrame extends javax.swing.JFrame {
         alertList.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         alertList.setCellRenderer(new AlertCellRenderer());
         alertList.setBackground(Color.WHITE);
+        alertList.setSelectionModel(new javax.swing.DefaultListSelectionModel() {
+            public void setSelectionInterval(int i0, int i1) {} // read-only
+            public void addSelectionInterval(int i0, int i1) {}
+        });
 
         JScrollPane scroll = new JScrollPane(alertList);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
