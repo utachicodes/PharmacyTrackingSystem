@@ -324,6 +324,7 @@ public class MedicineFrame extends javax.swing.JFrame {
     private void updateRowCount() {
         if (rowCountLabel != null)
             rowCountLabel.setText("  " + medicine_table.getRowCount() + " items  ");
+    }
 
     // ── Styling helpers ───────────────────────────────────────────────────────
     private JTextField field(String... def) {
