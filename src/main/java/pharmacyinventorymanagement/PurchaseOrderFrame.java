@@ -84,6 +84,10 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         int    qty     = (int)    poTable.getValueAt(row, 3);
         String status  = (String) poTable.getValueAt(row, 4);
         if ("Received".equals(status)) { JOptionPane.showMessageDialog(this, "Already received."); return; }
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Receive " + qty + " units of \"" + medName + "\" from this PO?\nThis will update inventory stock.",
+            "Confirm Stock Receipt", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (confirm != JOptionPane.YES_OPTION) return;
         try (Connection conn = DatabaseHelper.getConnection()) {
             conn.setAutoCommit(false);
             try {
