@@ -375,9 +375,32 @@ public class AgentsFrame extends javax.swing.JFrame {
             AgentTable.setModel(DatabaseHelper.resultSetToTableModel(Rs));
             if (agentRowCount != null) agentRowCount.setText("  " + AgentTable.getRowCount() + " agents  ");
             setAgentColumnWidths();
+            applyRoleRenderer();
         } catch (SQLException e) { e.printStackTrace(); }
     }
     @Deprecated public void SelectMed() { loadAgents(); }
+
+    private void applyRoleRenderer() {
+        int roleCol = -1;
+        for (int i = 0; i < AgentTable.getColumnCount(); i++)
+            if ("A_ROLE".equalsIgnoreCase(AgentTable.getColumnName(i))) { roleCol = i; break; }
+        if (roleCol < 0) return;
+        final int rc = roleCol;
+        AgentTable.getColumnModel().getColumn(rc).setCellRenderer(new javax.swing.table.DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int row, int col) {
+                JLabel c = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, row, col);
+                String role = v == null ? "" : v.toString();
+                if (!sel) {
+                    if ("Admin".equalsIgnoreCase(role))       { c.setBackground(new Color(254,242,242)); c.setForeground(new Color(185,28,28)); }
+                    else if ("Pharmacist".equalsIgnoreCase(role)) { c.setBackground(new Color(239,246,255)); c.setForeground(new Color(29,78,216)); }
+                    else                                       { c.setBackground(new Color(240,253,244)); c.setForeground(new Color(21,128,61)); }
+                }
+                c.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                c.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                return c;
+            }
+        });
+    }
 
     private void setAgentColumnWidths() {
         if (AgentTable.getColumnCount() < 4) return;
