@@ -171,6 +171,7 @@ public class SellingFrame extends javax.swing.JFrame {
     // ── Left: stock table ─────────────────────────────────────────────────────
     private JPanel buildStockPanel() {
         medicine_table = new JTable();
+        medicine_table.setAutoCreateRowSorter(true);
         styleTable(medicine_table);
         medicine_table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { medicine_tableMouseClicked(e); }
