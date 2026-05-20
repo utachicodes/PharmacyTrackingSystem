@@ -223,6 +223,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
     private JPanel buildFormCard() {
         txtMedName = field(); txtSupplier = field(); txtQty = field();
         btnCreatePO = actionBtn("＋ Create PO", ACCENT, ACCENT_DARK);
+        btnCreatePO.setToolTipText("Create a new purchase order for the specified medicine and supplier");
         btnCreatePO.addActionListener(e -> createPO());
 
         JPanel card = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10));
@@ -287,6 +288,8 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
     private JPanel buildActionBar() {
         btnReceive = actionBtn("✓ Receive Stock", ACCENT, ACCENT_DARK);
         btnBack    = actionBtn("← Dashboard",     new Color(100,116,139), new Color(71,85,105));
+        btnReceive.setToolTipText("Mark selected PO as received and add quantity to inventory");
+        btnBack.setToolTipText("Return to the main dashboard");
         btnReceive.addActionListener(e -> receiveStock());
         btnBack.addActionListener(e -> { new DashboardFrame(userRole).setVisible(true); dispose(); });
 
