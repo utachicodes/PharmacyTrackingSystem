@@ -196,7 +196,7 @@ function Slide01() {
         </Anim>
         <Anim>
           <div className="flex gap-2 flex-wrap">
-            {['Java 17', 'Java Swing (FlatLaf)', 'MySQL', 'JDBC', 'Maven'].map((t) => (
+            {['Java 17', 'FlatIntelliJ Theme', 'MySQL 8', 'JDBC', 'Maven', 'Dark UI'].map((t) => (
               <span key={t} className="border border-gray-200 bg-white text-gray-500 text-[11px] px-3 py-1 rounded-full font-mono">
                 {t}
               </span>
@@ -879,11 +879,11 @@ function Slide12() {
 
 function Slide13() {
   const items = [
-    { sev: 'Critical', sc: 'bg-red-100 text-red-700', icon: <Lock size={13} className="text-red-500" />,            title: 'Fix SQL injection in LoginFrame',         desc: 'The login query uses string concatenation. Replace it with a PreparedStatement.' },
-    { sev: 'Critical', sc: 'bg-red-100 text-red-700', icon: <ShieldCheck size={13} className="text-red-500" />,     title: 'Hash stored passwords',                  desc: 'A_PASSWORD is plain text VARCHAR(50). BCrypt with a per-user salt is the correct fix.' },
-    { sev: 'Medium',   sc: 'bg-amber-100 text-amber-700', icon: <Database size={13} className="text-amber-500" />,  title: 'Add foreign key constraints',             desc: 'SALES and PURCHASE_ORDERS reference MEDICINE by name. An FK on M_ID removes that brittleness.' },
-    { sev: 'Medium',   sc: 'bg-amber-100 text-amber-700', icon: <Layers size={13} className="text-amber-500" />,    title: 'Separate business logic from UI',         desc: 'updateQty() mixes stock rules with dialogs. A service layer makes it independently testable.' },
-    { sev: 'Low',      sc: 'bg-sky-100 text-sky-700', icon: <CheckCircle2 size={13} className="text-sky-500" />,    title: 'Unit tests for ForecastingHelper',        desc: 'predictDemand() has no automated coverage. JUnit tests would catch regressions in the SMA.' },
+    { sev: 'Done ✓',   sc: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={13} className="text-green-500" />, title: 'SQL injection fully fixed',              desc: 'All 7 queries converted to PreparedStatements. Login, medicine, agent, and supplier updates are safe.' },
+    { sev: 'Done ✓',   sc: 'bg-green-100 text-green-700', icon: <ShieldCheck size={13} className="text-green-500" />, title: 'Modern UI redesign complete',             desc: 'FlatIntelliJLaf, dark sidebar nav, live search, row counts, active highlights, and tooltips across all 8 frames.' },
+    { sev: 'Next',     sc: 'bg-amber-100 text-amber-700', icon: <Lock size={13} className="text-amber-500" />,      title: 'Hash stored passwords',                  desc: 'A_PASSWORD is plain text VARCHAR(50). BCrypt with a per-user salt is the correct next security step.' },
+    { sev: 'Next',     sc: 'bg-amber-100 text-amber-700', icon: <Layers size={13} className="text-amber-500" />,    title: 'Separate business logic from UI',         desc: 'updateQty() mixes stock rules with dialogs. A service layer makes it independently testable.' },
+    { sev: 'Future',   sc: 'bg-sky-100 text-sky-700', icon: <CheckCircle2 size={13} className="text-sky-500" />,    title: 'Unit tests for ForecastingHelper',        desc: 'predictDemand() has no automated coverage. JUnit tests would catch regressions in the SMA.' },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-4xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
