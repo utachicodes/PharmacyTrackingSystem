@@ -142,10 +142,12 @@ public class LoginFrame extends javax.swing.JFrame {
 
         btnLogin = new JButton("Sign In");
         styleButton(btnLogin, ACCENT, ACCENT_DARK);
+        btnLogin.setToolTipText("Sign in with your username and password");
 
         btnClear = new JButton("Clear");
         styleButton(btnClear, new Color(226, 232, 240), new Color(203, 213, 225));
         btnClear.setForeground(TEXT_DARK);
+        btnClear.setToolTipText("Clear both fields");
 
         btnLogin.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) { btnLoginMouseClicked(evt); }
