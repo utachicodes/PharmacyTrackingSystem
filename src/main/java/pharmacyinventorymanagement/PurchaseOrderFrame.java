@@ -44,7 +44,15 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
             poTable.setModel(DatabaseHelper.resultSetToTableModel(rs));
             applyStatusRenderer();
             if (poRowCount != null) poRowCount.setText("  " + poTable.getRowCount() + " orders  ");
+            setPoColumnWidths();
         } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    private void setPoColumnWidths() {
+        if (poTable.getColumnCount() < 5) return;
+        int[] widths = {60, 180, 160, 70, 90, 100};
+        for (int i = 0; i < Math.min(widths.length, poTable.getColumnCount()); i++)
+            poTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
     }
 
     private void createPO() {
