@@ -40,6 +40,7 @@ public class AgentsFrame extends javax.swing.JFrame {
     // ── Table & buttons ───────────────────────────────────────────────────────
     private JTable AgentTable;
     private JButton btnAdd, btnDelete, btnUpdate, btnClear;
+    private JLabel headerSubtitle;
 
     public AgentsFrame() {
         initComponents();
@@ -138,9 +139,10 @@ public class AgentsFrame extends javax.swing.JFrame {
         JLabel title = new JLabel("👤  Manage Agents");
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(TEXT_DARK);
-        JLabel sub = new JLabel("Add and manage staff accounts");
-        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        sub.setForeground(TEXT_MUTED);
+        headerSubtitle = new JLabel("Add and manage staff accounts");
+        headerSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        headerSubtitle.setForeground(TEXT_MUTED);
+        JLabel sub = headerSubtitle;
         JPanel titleBox = new JPanel(new GridLayout(2, 1));
         titleBox.setBackground(Color.WHITE);
         titleBox.add(title); titleBox.add(sub);
@@ -376,6 +378,7 @@ public class AgentsFrame extends javax.swing.JFrame {
             if (agentRowCount != null) agentRowCount.setText("  " + AgentTable.getRowCount() + " agents  ");
             setAgentColumnWidths();
             applyRoleRenderer();
+            if (headerSubtitle != null) headerSubtitle.setText(AgentTable.getRowCount() + " staff accounts");
         } catch (SQLException e) { e.printStackTrace(); }
     }
     @Deprecated public void SelectMed() { loadAgents(); }
