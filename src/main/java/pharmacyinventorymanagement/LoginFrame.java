@@ -44,6 +44,22 @@ public class LoginFrame extends javax.swing.JFrame {
         root.setBorder(BorderFactory.createLineBorder(ACCENT, 2));
         setContentPane(root);
 
+        // Drag-to-move for undecorated window
+        final Point[] dragStart = {null};
+        root.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) { dragStart[0] = e.getLocationOnScreen(); }
+        });
+        root.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                if (dragStart[0] != null) {
+                    Point loc = getLocation();
+                    Point cur = e.getLocationOnScreen();
+                    setLocation(loc.x + cur.x - dragStart[0].x, loc.y + cur.y - dragStart[0].y);
+                    dragStart[0] = cur;
+                }
+            }
+        });
+
         // ── LEFT branding panel ───────────────────────────────────────────────
         JPanel left = new JPanel();
         left.setBackground(SIDEBAR_BG);
