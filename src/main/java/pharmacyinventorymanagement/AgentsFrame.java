@@ -50,6 +50,7 @@ public class AgentsFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("Manage Agents – Pharmacy System");
         setSize(1050, 680);
+        setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
 
         JPanel root = new JPanel(new BorderLayout());
