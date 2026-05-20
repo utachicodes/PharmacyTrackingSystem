@@ -196,7 +196,7 @@ function Slide01() {
         </Anim>
         <Anim>
           <div className="flex gap-2 flex-wrap">
-            {['Java 17', 'FlatIntelliJ Theme', 'MySQL 8', 'JDBC', 'Maven', 'Dark UI'].map((t) => (
+            {['Java 17 LTS', 'Swing + FlatLaf IntelliJ', 'MySQL 8.3', 'JDBC', 'JCalendar 1.4', 'Maven'].map((t) => (
               <span key={t} className="border border-gray-200 bg-white text-gray-500 text-[11px] px-3 py-1 rounded-full font-mono">
                 {t}
               </span>
@@ -298,7 +298,7 @@ function Slide03() {
       </motion.div>
       <Anim>
         <div className="flex gap-2 flex-wrap">
-          {['Java 17', 'Java Swing (FlatLaf)', 'MySQL', 'JDBC', 'JCalendar', 'Maven'].map((t) => (
+          {['Java 17 LTS', 'Swing + FlatLaf IntelliJ', 'MySQL 8.3', 'JDBC', 'JCalendar 1.4', 'Commons DBUtils', 'Maven'].map((t) => (
             <span key={t} className="border border-gray-200 bg-white text-gray-400 text-[10px] font-mono px-2.5 py-1 rounded-full">
               {t}
             </span>
@@ -312,83 +312,109 @@ function Slide03() {
 // ── SLIDE 04 — TECH RATIONALE ───────────────────────────────────────────────
 
 function Slide04() {
-  const choices = [
+  const techs = [
     {
-      tech: 'MySQL',
-      icon: <Database size={22} className="text-[#00758f]" />,
-      color: 'border-[#00758f]/30 bg-[#e8f6f8]',
-      badge: 'bg-[#00758f] text-white',
+      name: 'Java 17 LTS',
+      version: 'LTS until Sept 2029',
+      icon: <Cpu size={18} className="text-[#5382a1]" />,
+      color: 'border-[#5382a1]/30 bg-[#eef2f7]',
+      badge: 'bg-[#5382a1] text-white',
+      role: 'Language',
       reasons: [
-        {
-          title: 'ACID transactions',
-          desc: 'Stock receiving must update two tables atomically. MySQL InnoDB guarantees that if either write fails, both roll back — something a flat file or embedded database cannot reliably provide.',
-        },
-        {
-          title: 'Industry-standard relational model',
-          desc: 'Pharmacy data is inherently relational: medicines link to sales, suppliers link to purchase orders. MySQL's foreign-key model maps directly to this domain without workarounds.',
-        },
-        {
-          title: 'JDBC ecosystem',
-          desc: 'MySQL Connector/J is a mature, officially maintained driver. Every SQL query in the codebase is portable to any JDBC-compatible database with zero business-logic changes.',
-        },
-        {
-          title: 'Free and production-ready',
-          desc: 'MySQL Community Edition is free for use in academic projects and small clinics. It runs on any operating system, scales to millions of rows, and has decades of documentation.',
-        },
+        { title: 'Long-term support', desc: 'Security patches guaranteed until 2029 — safe for a pharmacy running in production without frequent upgrades.' },
+        { title: 'Swing is fully supported', desc: 'Java 17 is the baseline recommended for desktop Swing apps; modern syntax (records, sealed classes) keeps helper code concise.' },
       ],
     },
     {
-      tech: 'Java Swing',
-      icon: <Cpu size={22} className="text-[#5382a1]" />,
-      color: 'border-[#5382a1]/30 bg-[#eef2f7]',
-      badge: 'bg-[#5382a1] text-white',
+      name: 'Swing + FlatLaf IntelliJ',
+      version: 'FlatLaf 3.4.1',
+      icon: <Layers size={18} className="text-violet-600" />,
+      color: 'border-violet-300/30 bg-violet-50',
+      badge: 'bg-violet-600 text-white',
+      role: 'UI Framework',
       reasons: [
-        {
-          title: 'Bundled with the JDK — zero extra dependencies',
-          desc: 'Swing ships inside the Java runtime. There is no framework to install, no build plugin to configure, and no runtime licensing fee. The JAR runs on any machine with Java 17.',
-        },
-        {
-          title: 'Rich native widget set',
-          desc: 'JTable, JDatePicker, and JComboBox provide the exact controls a pharmacy clerk needs — tabular data, calendar pickers, and constrained dropdowns — all backed by the Swing MVC model.',
-        },
-        {
-          title: 'FlatLaf modernises the look without changing the API',
-          desc: 'FlatLaf is a single-JAR look-and-feel that replaces the dated Metal theme with a clean, flat UI. Dropping it in required four lines of code and no changes to any existing component.',
-        },
-        {
-          title: 'Offline desktop requirement',
-          desc: 'The target environment is a small pharmacy without guaranteed internet access. A desktop Swing app runs entirely locally — no server, no browser, no network dependency.',
-        },
+        { title: 'Ships inside the JDK — zero install', desc: 'No framework to install or license. The JAR runs on any machine with Java 17, entirely offline — no server, no browser, no network.' },
+        { title: 'FlatLaf modernises with four lines of code', desc: 'FlatIntelliJLaf.setup() replaces the dated Metal theme with a clean IntelliJ-style look. No changes to any existing component.' },
+      ],
+    },
+    {
+      name: 'MySQL 8.x',
+      version: 'Connector/J 8.3.0',
+      icon: <Database size={18} className="text-[#00758f]" />,
+      color: 'border-[#00758f]/30 bg-[#e8f6f8]',
+      badge: 'bg-[#00758f] text-white',
+      role: 'Database',
+      reasons: [
+        { title: 'ACID transactions (InnoDB)', desc: 'Receiving a PO must update two tables atomically. If either write fails, both roll back — preventing partial stock state.' },
+        { title: 'Relational model fits the domain', desc: 'Medicines, suppliers, sales, and orders are naturally linked. MySQL Community Edition is free, runs anywhere, and needs no licensing.' },
+      ],
+    },
+    {
+      name: 'Maven',
+      version: '3.x — pom.xml',
+      icon: <Server size={18} className="text-rose-500" />,
+      color: 'border-rose-200 bg-rose-50',
+      badge: 'bg-rose-500 text-white',
+      role: 'Build System',
+      reasons: [
+        { title: 'Declarative dependency management', desc: 'All four libraries (FlatLaf, Connector/J, JCalendar, DBUtils) are resolved automatically from Maven Central — no manual JAR copying.' },
+        { title: 'Native IDE support', desc: 'NetBeans, IntelliJ, and Eclipse all understand Maven projects out of the box. No classpath configuration needed on any machine.' },
+      ],
+    },
+    {
+      name: 'JCalendar 1.4',
+      version: 'com.toedter',
+      icon: <Bell size={18} className="text-amber-500" />,
+      color: 'border-amber-200 bg-amber-50',
+      badge: 'bg-amber-600 text-white',
+      role: 'Date Picker',
+      reasons: [
+        { title: 'Swing-native calendar widget', desc: 'JDateChooser slots directly into any Swing layout. No custom rendering, no third-party event loop — it behaves like any other JComponent.' },
+        { title: 'Direct java.util.Date output', desc: 'One line — java.sql.Date.valueOf() — converts the picker value into a PreparedStatement parameter for expiry and order dates.' },
+      ],
+    },
+    {
+      name: 'JDBC + Apache Commons DBUtils',
+      version: 'DBUtils 1.7',
+      icon: <CheckCircle2 size={18} className="text-[#15803d]" />,
+      color: 'border-[#15803d]/30 bg-green-50',
+      badge: 'bg-[#15803d] text-white',
+      role: 'Persistence',
+      reasons: [
+        { title: 'PreparedStatements prevent SQL injection', desc: 'Every query uses PreparedStatement. User input is never concatenated into SQL — all seven frame queries are injection-safe.' },
+        { title: 'DBUtils included for safe resource cleanup', desc: 'Apache Commons DBUtils is bundled as a dependency. Its DbUtils.closeQuietly() pattern ensures connections and statements are always released, even on exception.' },
       ],
     },
   ]
 
   return (
-    <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
+    <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.07)} initial="hidden" animate="show">
       <Label n="04" text="Technology Choices" />
       <Anim>
-        <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-6 leading-[1.05]">
-          Why MySQL and Java Swing?
+        <h2 className="text-[2.6rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
+          Six tools. Each chosen for a reason.
         </h2>
       </Anim>
-      <motion.div className="grid grid-cols-2 gap-5" variants={stagger(0.1)}>
-        {choices.map((c) => (
-          <Anim key={c.tech} variants={fadeUp}>
-            <div className={`border rounded-2xl p-5 h-full ${c.color}`}>
-              <div className="flex items-center gap-3 mb-4">
-                {c.icon}
-                <span className={`text-[11px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full ${c.badge}`}>
-                  {c.tech}
+      <motion.div className="grid grid-cols-3 gap-3" variants={stagger(0.07)}>
+        {techs.map((t) => (
+          <Anim key={t.name} variants={fadeUp}>
+            <div className={`border rounded-2xl p-4 h-full ${t.color}`}>
+              <div className="flex items-center gap-2 mb-2">
+                {t.icon}
+                <span className={`text-[8.5px] font-black uppercase tracking-[0.2em] px-2.5 py-0.5 rounded-full ${t.badge}`}>
+                  {t.role}
                 </span>
               </div>
-              <motion.div className="space-y-3" variants={stagger(0.07)}>
-                {c.reasons.map((r) => (
+              <p className="font-black text-[#0a0a0a] text-[12.5px] mb-0.5">{t.name}</p>
+              <p className="text-[9px] font-mono text-gray-400 mb-3">{t.version}</p>
+              <motion.div className="space-y-2" variants={stagger(0.07)}>
+                {t.reasons.map((r) => (
                   <Anim key={r.title} variants={slideLeft}>
-                    <div className="flex gap-3">
-                      <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                    <div className="flex gap-2">
+                      <CheckCircle2 size={11} className="mt-0.5 shrink-0 text-gray-400" />
                       <div>
-                        <span className="font-semibold text-[#0a0a0a] text-[12px]">{r.title} — </span>
-                        <span className="text-gray-600 text-[12px] leading-relaxed">{r.desc}</span>
+                        <span className="font-semibold text-[#0a0a0a] text-[11px]">{r.title} — </span>
+                        <span className="text-gray-600 text-[11px] leading-relaxed">{r.desc}</span>
                       </div>
                     </div>
                   </Anim>
@@ -572,7 +598,7 @@ function Slide07() {
   const db = [
     { name: 'getConnection()',         desc: 'Connects to a local MySQL instance with error handling for driver loading.' },
     { name: 'initializeDatabase()',    desc: 'Creates 5 tables and seeds a default admin on first launch.' },
-    { name: 'resultSetToTableModel()', desc: 'Converts any ResultSet to a DefaultTableModel in one call.' },
+    { name: 'resultSetToTableModel()', desc: 'Walks ResultSetMetaData to map any query result into a Swing DefaultTableModel — every frame loads its JTable through this single method.' },
   ]
   const fc = [
     { name: 'predictDemand(name)',      desc: 'SMA: total 30-day sales divided by 30, multiplied by 7.' },
@@ -648,11 +674,11 @@ function Slide08() {
   const rows = [
     { icon: <Activity size={13} className="text-gray-400" />,     name: 'LoginFrame',          role: 'Drag-to-move undecorated window, PreparedStatement auth, auto-focuses username field',  tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
     { icon: <Layers size={13} className="text-gray-400" />,       name: 'DashboardFrame',      role: 'Dark sidebar nav, RBAC role badge, live alert renderer, refresh button',               tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
-    { icon: <Package size={13} className="text-gray-400" />,      name: 'MedicineFrame',       role: 'Live search, row count, column sort, red/yellow stock highlights, validation borders', tag: 'Polymorphism',  tc: 'bg-amber-100 text-amber-800' },
-    { icon: <ShoppingCart size={13} className="text-gray-400" />, name: 'SellingFrame',        role: 'POS billing, dark invoice panel, stock row count, Enter-to-add keyboard shortcut',     tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
-    { icon: <ClipboardList size={13} className="text-gray-400" />,name: 'PurchaseOrderFrame',  role: 'PO search filter, status badge renderer (green/orange), atomic receiving',            tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
-    { icon: <Users size={13} className="text-gray-400" />,        name: 'AgentsFrame',         role: 'Role column color-coded (red/blue/green), Enter-to-add, live staff count',            tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
-    { icon: <Building2 size={13} className="text-gray-400" />,    name: 'CompanyFrame',        role: 'Preferred supplier green highlight, live supplier count, F5 refresh',                 tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Package size={13} className="text-gray-400" />,      name: 'MedicineFrame',       role: 'Live search, row count, column sort, red/yellow highlights, validation borders, status bar (CRUD feedback)', tag: 'Polymorphism',  tc: 'bg-amber-100 text-amber-800' },
+    { icon: <ShoppingCart size={13} className="text-gray-400" />, name: 'SellingFrame',        role: 'POS billing, dark invoice panel, running total, Enter-to-add, status bar (item count + total)',              tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <ClipboardList size={13} className="text-gray-400" />,name: 'PurchaseOrderFrame',  role: 'PO search filter, status badge renderer (green/orange), confirmation dialog, atomic receiving via JDBC',     tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <Users size={13} className="text-gray-400" />,        name: 'AgentsFrame',         role: 'Role column color-coded (red/blue/green), Enter-to-add, live staff count, status bar (delete/update feedback)', tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Building2 size={13} className="text-gray-400" />,    name: 'CompanyFrame',        role: 'Preferred supplier green highlight, live supplier count, F5 refresh, status bar (last CRUD action)',        tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
     { icon: <Server size={13} className="text-gray-400" />,       name: 'SplashFrame',         role: 'SwingWorker progress animation, DAUST branding, version label, dark theme',           tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
   ]
   return (
