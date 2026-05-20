@@ -170,6 +170,10 @@ public class AgentsFrame extends javax.swing.JFrame {
         btnUpdate = actionBtn("↻ UPDATE",  new Color(59,130,246), new Color(37,99,235));
         btnDelete = actionBtn("✕ DELETE",  DANGER,    DANGER_DARK);
         btnClear  = actionBtn("⟳ CLEAR",   new Color(100,116,139), new Color(71,85,105));
+        btnAdd.setToolTipText("Create a new staff account");
+        btnUpdate.setToolTipText("Update the selected agent's information");
+        btnDelete.setToolTipText("Permanently delete this agent account");
+        btnClear.setToolTipText("Clear all form fields");
 
         btnAdd.addMouseListener(new MouseAdapter()    { public void mouseClicked(MouseEvent e) { btnAddMouseClicked(e); } });
         btnUpdate.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnUpdateMouseClicked(e); } });
