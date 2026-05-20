@@ -268,6 +268,12 @@ public class MedicineFrame extends javax.swing.JFrame {
         btnUpdate.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnUpdateMouseClicked(e); } });
         btnDelete.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnDeleteMouseClicked(e); } });
         btnClear.addMouseListener(new MouseAdapter()  { public void mouseClicked(MouseEvent e) { btnClearMouseClicked(e); } });
+        // Escape clears the form; Enter on m_batch (last field) triggers ADD
+        m_batch.addActionListener(e -> btnAddMouseClicked(null));
+        m_batch.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "clr");
+        m_batch.getActionMap().put("clr", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { btnClearMouseClicked(null); }
+        });
 
         g.gridy = 7; g.gridx = 0; g.gridwidth = 4; g.weighty = 0;
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
