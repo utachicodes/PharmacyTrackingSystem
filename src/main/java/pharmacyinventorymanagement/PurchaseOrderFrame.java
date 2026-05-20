@@ -261,6 +261,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
 
     private JPanel buildTablePanel() {
         poTable = new JTable();
+        poTable.setAutoCreateRowSorter(true);
         poTable.setRowHeight(30);
         poTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         poTable.setGridColor(new Color(226, 232, 240));
