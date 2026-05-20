@@ -41,6 +41,7 @@ public class CompanyFrame extends javax.swing.JFrame {
     // ── Table & buttons ───────────────────────────────────────────────────────
     private JTable company_table;
     private JButton btnAdd, btnDelete, btnUpdate, btnClear;
+    private JLabel headerSubtitle;
 
     public CompanyFrame() {
         initComponents();
@@ -137,9 +138,10 @@ public class CompanyFrame extends javax.swing.JFrame {
         JLabel title = new JLabel("🏢  Supplier Management");
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(TEXT_DARK);
-        JLabel sub = new JLabel("Manage supplier contacts and lead times");
-        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        sub.setForeground(TEXT_MUTED);
+        headerSubtitle = new JLabel("Manage supplier contacts and lead times");
+        headerSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        headerSubtitle.setForeground(TEXT_MUTED);
+        JLabel sub = headerSubtitle;
         JPanel titleBox = new JPanel(new GridLayout(2, 1));
         titleBox.setBackground(Color.WHITE);
         titleBox.add(title); titleBox.add(sub);
@@ -373,6 +375,7 @@ public class CompanyFrame extends javax.swing.JFrame {
             company_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
             if (companyRowCount != null) companyRowCount.setText("  " + company_table.getRowCount() + " suppliers  ");
             setCompanyColumnWidths();
+            if (headerSubtitle != null) headerSubtitle.setText(company_table.getRowCount() + " suppliers on record");
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "SQL Error: " + e.getMessage());
         }
