@@ -1,209 +1,348 @@
 package pharmacyinventorymanagement;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.sql.*;
-import java.util.Vector;
 
 /**
  * PurchaseOrderFrame manages the procurement workflow for the pharmacy.
- * It allows creation of purchase orders for medicines from suppliers, displays
- * the full PO list, and supports atomic stock receiving via a two-phase
- * database transaction: updating the PO status to 'Received' and incrementing
- * the corresponding medicine's quantity in a single committed transaction.
+ * It supports creating purchase orders and atomic stock receiving via a
+ * two-phase database transaction: updating the PO status to 'Received' and
+ * incrementing the corresponding medicine quantity in a single committed unit.
+ *
+ * @author Abdoullah Ndao
  */
 public class PurchaseOrderFrame extends javax.swing.JFrame {
 
-    private String userRole = "Admin";
+    // ── Design constants ──────────────────────────────────────────────────────
+    private static final Color SIDEBAR_BG    = new Color(30, 41, 59);
+    private static final Color SIDEBAR_HOVER = new Color(51, 65, 85);
+    private static final Color ACCENT        = new Color(16, 185, 129);
+    private static final Color ACCENT_DARK   = new Color(5, 150, 105);
+    private static final Color CONTENT_BG    = new Color(241, 245, 249);
+    private static final Color TEXT_DARK     = new Color(30, 41, 59);
+    private static final Color TEXT_MUTED    = new Color(100, 116, 139);
+    private static final Color BORDER_CLR    = new Color(203, 213, 225);
 
-    public PurchaseOrderFrame() {
-        this("Admin");
-    }
+    private String userRole;
 
-    public PurchaseOrderFrame(String role) {
-        this.userRole = role;
-        initComponents();
-        loadPOs();
-    }
+    // ── UI fields ─────────────────────────────────────────────────────────────
+    private JTextField txtMedName, txtSupplier, txtQty;
+    private JTable     poTable;
+    private JButton    btnCreatePO, btnReceive, btnBack;
 
+    public PurchaseOrderFrame()            { this("Admin"); }
+    public PurchaseOrderFrame(String role) { this.userRole = role; initComponents(); loadPOs(); }
+
+    // ── Business logic (unchanged) ────────────────────────────────────────────
     private void loadPOs() {
         try (Connection conn = DatabaseHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM PURCHASE_ORDERS")) {
             poTable.setModel(DatabaseHelper.resultSetToTableModel(rs));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+            applyStatusRenderer();
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
     private void createPO() {
-        String medName = txtMedName.getText();
-        String supplier = txtSupplier.getText();
-        String qtyStr = txtQty.getText();
-
-        // Validate all required fields before attempting DB insert
-        if (medName.isEmpty() || supplier.isEmpty() || qtyStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill all fields");
-            return;
+        if (txtMedName.getText().isEmpty() || txtSupplier.getText().isEmpty() || txtQty.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill all fields."); return;
         }
-
         try (Connection conn = DatabaseHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO PURCHASE_ORDERS (PO_MED_NAME, PO_SUPPLIER, PO_QTY, PO_DATE) VALUES (?, ?, ?, ?)")) {
-
-            pstmt.setString(1, medName);
-            pstmt.setString(2, supplier);
-            pstmt.setInt(3, Integer.parseInt(qtyStr));
-            // Record today's date as the order date for audit purposes
-            pstmt.setDate(4, new java.sql.Date(System.currentTimeMillis()));
-            pstmt.executeUpdate();
-
+             PreparedStatement ps = conn.prepareStatement(
+                 "INSERT INTO PURCHASE_ORDERS (PO_MED_NAME, PO_SUPPLIER, PO_QTY, PO_DATE) VALUES (?,?,?,?)")) {
+            ps.setString(1, txtMedName.getText());
+            ps.setString(2, txtSupplier.getText());
+            ps.setInt(3, Integer.parseInt(txtQty.getText()));
+            ps.setDate(4, new java.sql.Date(System.currentTimeMillis()));
+            ps.executeUpdate();
             loadPOs();
-            JOptionPane.showMessageDialog(this, "Purchase Order Created");
+            txtMedName.setText(""); txtSupplier.setText(""); txtQty.setText("");
+            JOptionPane.showMessageDialog(this, "Purchase Order created.");
         } catch (SQLException | NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
         }
     }
 
     private void receiveStock() {
-        int selectedRow = poTable.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Select a PO to receive");
-            return;
-        }
-
-        int poId = (int) poTable.getValueAt(selectedRow, 0);
-        String medName = (String) poTable.getValueAt(selectedRow, 1);
-        int qty = (int) poTable.getValueAt(selectedRow, 3);
-        String status = (String) poTable.getValueAt(selectedRow, 4);
-
-        // Guard against double-receiving the same order
-        if ("Received".equals(status)) {
-            JOptionPane.showMessageDialog(this, "This order is already received");
-            return;
-        }
-
+        int row = poTable.getSelectedRow();
+        if (row == -1) { JOptionPane.showMessageDialog(this, "Select a PO row first."); return; }
+        int    poId    = (int)    poTable.getValueAt(row, 0);
+        String medName = (String) poTable.getValueAt(row, 1);
+        int    qty     = (int)    poTable.getValueAt(row, 3);
+        String status  = (String) poTable.getValueAt(row, 4);
+        if ("Received".equals(status)) { JOptionPane.showMessageDialog(this, "Already received."); return; }
         try (Connection conn = DatabaseHelper.getConnection()) {
-            // Disable auto-commit to wrap both updates in a single atomic transaction
             conn.setAutoCommit(false);
             try {
-                // Step 1: Mark the purchase order as received
-                PreparedStatement updatePO = conn.prepareStatement(
-                    "UPDATE PURCHASE_ORDERS SET PO_STATUS = 'Received' WHERE PO_ID = ?");
-                updatePO.setInt(1, poId);
-                updatePO.executeUpdate();
-
-                // Step 2: Add the received quantity to the medicine's current stock
-                PreparedStatement updateMed = conn.prepareStatement(
-                    "UPDATE MEDICINE SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?");
-                updateMed.setInt(1, qty);
-                updateMed.setString(2, medName);
-                int updatedRows = updateMed.executeUpdate();
-
-                if (updatedRows == 0) {
-                    // Medicine not found in inventory; warn but still commit PO status update
-                    JOptionPane.showMessageDialog(this, "Warning: Medicine not found in inventory. Stock not updated.");
+                try (PreparedStatement upPO = conn.prepareStatement(
+                        "UPDATE PURCHASE_ORDERS SET PO_STATUS='Received' WHERE PO_ID=?")) {
+                    upPO.setInt(1, poId); upPO.executeUpdate();
                 }
-
-                // Commit both changes together — all-or-nothing
-                conn.commit();
-                loadPOs();
-                JOptionPane.showMessageDialog(this, "Stock received and inventory updated!");
-            } catch (SQLException e) {
-                // Roll back both changes if either step fails
-                conn.rollback();
-                throw e;
-            }
+                try (PreparedStatement upMed = conn.prepareStatement(
+                        "UPDATE MEDICINE SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?")) {
+                    upMed.setInt(1, qty); upMed.setString(2, medName);
+                    if (upMed.executeUpdate() == 0)
+                        JOptionPane.showMessageDialog(this, "Warning: medicine not found in inventory.");
+                }
+                conn.commit(); loadPOs();
+                JOptionPane.showMessageDialog(this, "Stock received and inventory updated.");
+            } catch (SQLException e) { conn.rollback(); throw e; }
         } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error processing receipt: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
         }
     }
 
-    private void initComponents() {
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        txtMedName = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        txtSupplier = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        txtQty = new javax.swing.JTextField();
-        btnCreatePO = new javax.swing.JButton();
-        btnReceive = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        poTable = new javax.swing.JTable();
-        btnBack = new javax.swing.JButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Purchase Orders & Receiving");
-
-        // Match the system-wide green theme used in all other frames
-        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); 
-        jLabel1.setForeground(Color.WHITE);
-        jLabel1.setText("PURCHASE ORDERS");
-
-        jPanel2.setBackground(new java.awt.Color(255, 255, 204));
-        jLabel2.setText("Medicine Name:");
-        jLabel3.setText("Supplier:");
-        jLabel4.setText("Quantity:");
-
-        btnCreatePO.setText("Create PO");
-        btnCreatePO.addActionListener(e -> createPO());
-
-        btnReceive.setText("Receive Selected Stock");
-        btnReceive.addActionListener(e -> receiveStock());
-
-        btnBack.setText("Back to Dashboard");
-        // Pass the stored role so Dashboard applies correct RBAC permissions
-        btnBack.addActionListener(e -> {
-            new DashboardFrame(userRole).setVisible(true);
-            this.dispose();
+    // ── Status badge renderer ─────────────────────────────────────────────────
+    private void applyStatusRenderer() {
+        int statusCol = -1;
+        for (int i = 0; i < poTable.getColumnCount(); i++)
+            if ("PO_STATUS".equalsIgnoreCase(poTable.getColumnName(i))) { statusCol = i; break; }
+        if (statusCol < 0) return;
+        final int sc = statusCol;
+        poTable.getColumnModel().getColumn(sc).setCellRenderer(new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(
+                    JTable t, Object v, boolean sel, boolean foc, int row, int col) {
+                JLabel c = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, row, col);
+                String s = v == null ? "" : v.toString();
+                if (!sel) {
+                    if ("Received".equalsIgnoreCase(s)) {
+                        c.setBackground(new Color(209, 250, 229)); c.setForeground(new Color(6, 95, 70));
+                    } else {
+                        c.setBackground(new Color(255, 237, 213)); c.setForeground(new Color(154, 52, 18));
+                    }
+                }
+                c.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                c.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                return c;
+            }
         });
-
-        // Layout code...
-        setLayout(new BorderLayout());
-        add(jPanel1, BorderLayout.NORTH);
-        jPanel1.add(jLabel1);
-        
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(jPanel2, BorderLayout.NORTH);
-        
-        jPanel2.setLayout(new FlowLayout());
-        jPanel2.add(jLabel2); jPanel2.add(txtMedName);
-        jPanel2.add(jLabel3); jPanel2.add(txtSupplier);
-        jPanel2.add(jLabel4); jPanel2.add(txtQty);
-        jPanel2.add(btnCreatePO);
-        
-        centerPanel.add(jScrollPane1, BorderLayout.CENTER);
-        poTable.setFillsViewportHeight(true);
-        jScrollPane1.setViewportView(poTable);
-        
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.add(btnReceive);
-        bottomPanel.add(btnBack);
-        add(centerPanel, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
-
-        setSize(800, 600);
-        setLocationRelativeTo(null);
     }
 
-    private javax.swing.JButton btnBack;
-    private javax.swing.JButton btnCreatePO;
-    private javax.swing.JButton btnReceive;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable poTable;
-    private javax.swing.JTextField txtMedName;
-    private javax.swing.JTextField txtQty;
-    private javax.swing.JTextField txtSupplier;
+    // ── UI construction ───────────────────────────────────────────────────────
+    private void initComponents() {
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Purchase Orders – Pharmacy System");
+        setSize(1050, 680);
+        setLocationRelativeTo(null);
+
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(CONTENT_BG);
+        setContentPane(root);
+        root.add(buildSidebar(), BorderLayout.WEST);
+        root.add(buildContent(), BorderLayout.CENTER);
+    }
+
+    private JPanel buildSidebar() {
+        JPanel sidebar = new JPanel();
+        sidebar.setBackground(SIDEBAR_BG);
+        sidebar.setPreferredSize(new Dimension(185, 0));
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+
+        JPanel logoArea = new JPanel(new BorderLayout());
+        logoArea.setBackground(new Color(15, 23, 42));
+        logoArea.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
+        logoArea.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 8));
+        JLabel logo = new JLabel("⚕ PHARMA");
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        logo.setForeground(ACCENT);
+        logoArea.add(logo, BorderLayout.CENTER);
+        sidebar.add(logoArea);
+        sidebar.add(sep());
+
+        String[][] items = {
+            {"🏠  Dashboard",  "dash"}, {"💊  Medicines", "med"},
+            {"👤  Agents",     "agents"}, {"🏢  Suppliers", "comp"},
+            {"💳  Billing",    "sell"}
+        };
+        for (String[] item : items) {
+            JLabel nav = navLabel(item[0]);
+            final String key = item[1];
+            nav.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    switch (key) {
+                        case "dash":   new DashboardFrame(userRole).setVisible(true); dispose(); break;
+                        case "med":    new MedicineFrame().setVisible(true);          dispose(); break;
+                        case "agents": new AgentsFrame().setVisible(true);            dispose(); break;
+                        case "comp":   new CompanyFrame().setVisible(true);           dispose(); break;
+                        case "sell":   new SellingFrame().setVisible(true);           dispose(); break;
+                    }
+                }
+            });
+            sidebar.add(nav);
+        }
+        sidebar.add(Box.createVerticalGlue());
+        sidebar.add(sep());
+        JLabel exit = navLabel("✕  Exit");
+        exit.setForeground(new Color(252, 165, 165));
+        exit.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int c = JOptionPane.showConfirmDialog(PurchaseOrderFrame.this, "Exit?", "Confirm", JOptionPane.YES_NO_OPTION);
+                if (c == JOptionPane.YES_OPTION) System.exit(0);
+            }
+        });
+        sidebar.add(exit);
+        sidebar.add(Box.createVerticalStrut(8));
+        return sidebar;
+    }
+
+    private JPanel buildContent() {
+        JPanel content = new JPanel(new BorderLayout());
+        content.setBackground(CONTENT_BG);
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 60));
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(0, 24, 0, 24)));
+        JLabel title = new JLabel("📦  Purchase Orders & Receiving");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setForeground(TEXT_DARK);
+        JLabel sub = new JLabel("Create orders and receive stock atomically");
+        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        sub.setForeground(TEXT_MUTED);
+        JPanel titleBox = new JPanel(new GridLayout(2, 1));
+        titleBox.setBackground(Color.WHITE);
+        titleBox.add(title); titleBox.add(sub);
+        header.add(titleBox, BorderLayout.CENTER);
+        content.add(header, BorderLayout.NORTH);
+
+        JPanel body = new JPanel(new BorderLayout(0, 12));
+        body.setBackground(CONTENT_BG);
+        body.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        body.add(buildFormCard(), BorderLayout.NORTH);
+        body.add(buildTablePanel(), BorderLayout.CENTER);
+        body.add(buildActionBar(), BorderLayout.SOUTH);
+        content.add(body, BorderLayout.CENTER);
+        return content;
+    }
+
+    private JPanel buildFormCard() {
+        txtMedName = field(); txtSupplier = field(); txtQty = field();
+        btnCreatePO = actionBtn("＋ Create PO", ACCENT, ACCENT_DARK);
+        btnCreatePO.addActionListener(e -> createPO());
+
+        JPanel card = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        card.add(fLabel("Medicine:")); card.add(txtMedName);
+        card.add(fLabel("Supplier:")); card.add(txtSupplier);
+        card.add(fLabel("Quantity:")); card.add(txtQty);
+        card.add(btnCreatePO);
+
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(CONTENT_BG);
+        JLabel formTitle = new JLabel("New Purchase Order");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        formTitle.setForeground(TEXT_MUTED);
+        formTitle.setBorder(BorderFactory.createEmptyBorder(0, 2, 6, 0));
+        wrapper.add(formTitle, BorderLayout.NORTH);
+        wrapper.add(card, BorderLayout.CENTER);
+        return wrapper;
+    }
+
+    private JPanel buildTablePanel() {
+        poTable = new JTable();
+        poTable.setRowHeight(30);
+        poTable.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        poTable.setGridColor(new Color(226, 232, 240));
+        poTable.setShowVerticalLines(false);
+        poTable.setSelectionBackground(new Color(209, 250, 229));
+        poTable.setSelectionForeground(TEXT_DARK);
+        poTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        poTable.getTableHeader().setBackground(new Color(241, 245, 249));
+        poTable.getTableHeader().setForeground(TEXT_MUTED);
+        poTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(226, 232, 240)));
+        poTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int row, int col) {
+                Component c = super.getTableCellRendererComponent(t, v, sel, foc, row, col);
+                if (!sel) c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 250, 252));
+                setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                return c;
+            }
+        });
+        poTable.setFillsViewportHeight(true);
+
+        JScrollPane scroll = new JScrollPane(poTable);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        JLabel hdr = new JLabel("  Purchase Order List  (select a row to receive)");
+        hdr.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        hdr.setForeground(TEXT_MUTED);
+        hdr.setPreferredSize(new Dimension(0, 34));
+        hdr.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
+        panel.add(hdr, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel buildActionBar() {
+        btnReceive = actionBtn("✓ Receive Stock", ACCENT, ACCENT_DARK);
+        btnBack    = actionBtn("← Dashboard",     new Color(100,116,139), new Color(71,85,105));
+        btnReceive.addActionListener(e -> receiveStock());
+        btnBack.addActionListener(e -> { new DashboardFrame(userRole).setVisible(true); dispose(); });
+
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        bar.setBackground(CONTENT_BG);
+        bar.add(btnReceive); bar.add(btnBack);
+        return bar;
+    }
+
+    // ── Styling helpers ───────────────────────────────────────────────────────
+    private JTextField field() {
+        JTextField f = new JTextField();
+        f.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        f.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_CLR),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        f.setPreferredSize(new Dimension(160, 28));
+        return f;
+    }
+    private JLabel fLabel(String t) {
+        JLabel l = new JLabel(t);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        l.setForeground(TEXT_MUTED);
+        return l;
+    }
+    private JButton actionBtn(String text, Color bg, Color hover) {
+        JButton b = new JButton(text);
+        b.setBackground(bg); b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        b.setFocusPainted(false); b.setBorderPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(150, 32));
+        b.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { b.setBackground(hover); }
+            public void mouseExited(MouseEvent e)  { b.setBackground(bg); }
+        });
+        return b;
+    }
+    private JLabel navLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        l.setForeground(new Color(203, 213, 225));
+        l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        l.setBorder(BorderFactory.createEmptyBorder(11, 18, 11, 8));
+        l.setOpaque(true); l.setBackground(SIDEBAR_BG);
+        l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        l.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { l.setBackground(SIDEBAR_HOVER); }
+            public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG); }
+        });
+        return l;
+    }
+    private JSeparator sep() {
+        JSeparator s = new JSeparator();
+        s.setForeground(new Color(51,65,85)); s.setBackground(new Color(51,65,85));
+        s.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        return s;
+    }
 }
