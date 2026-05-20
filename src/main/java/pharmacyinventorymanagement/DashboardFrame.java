@@ -186,10 +186,17 @@ public class DashboardFrame extends javax.swing.JFrame {
         logoPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 72));
         logoPanel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
 
+        JPanel logoContent = new JPanel(new java.awt.GridLayout(2, 1, 0, 0));
+        logoContent.setBackground(new Color(15, 23, 42));
         JLabel logo = new JLabel("⚕ PHARMA");
         logo.setFont(new Font("Segoe UI", Font.BOLD, 16));
         logo.setForeground(ACCENT);
-        logoPanel.add(logo, BorderLayout.CENTER);
+        JLabel logoSub = new JLabel("Tracking System v1.0");
+        logoSub.setFont(new Font("Segoe UI", Font.PLAIN, 9));
+        logoSub.setForeground(new Color(71, 85, 105));
+        logoContent.add(logo);
+        logoContent.add(logoSub);
+        logoPanel.add(logoContent, BorderLayout.CENTER);
         sidebar.add(logoPanel);
 
         // Divider
