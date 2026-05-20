@@ -256,29 +256,74 @@ public class MedicineFrame extends javax.swing.JFrame {
     }
 
     // ── Table panel ───────────────────────────────────────────────────────────
+    private JLabel rowCountLabel;
+
     private JPanel buildTablePanel() {
         medicine_table = new JTable();
         styleTable(medicine_table);
+        medicine_table.setAutoCreateRowSorter(true);
         medicine_table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { medicine_tableMouseClicked(e); }
         });
         JScrollPane scroll = new JScrollPane(medicine_table);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
 
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(226, 232, 240)),
-            BorderFactory.createEmptyBorder(0, 0, 0, 0)));
+        // Live search field
+        JTextField searchField = new JTextField();
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(203, 213, 225)),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        searchField.putClientProperty("JTextField.placeholderText", "🔍  Search medicines...");
+        searchField.setToolTipText("Filter the medicine list by any column");
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filterTable(); }
+            private void filterTable() {
+                javax.swing.table.TableRowSorter<javax.swing.table.TableModel> sorter =
+                    new javax.swing.table.TableRowSorter<>(medicine_table.getModel());
+                medicine_table.setRowSorter(sorter);
+                String text = searchField.getText().trim();
+                sorter.setRowFilter(text.isEmpty() ? null : javax.swing.RowFilter.regexFilter("(?i)" + text));
+                updateRowCount();
+            }
+        });
+
+        rowCountLabel = new JLabel("  0 items");
+        rowCountLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        rowCountLabel.setForeground(TEXT_MUTED);
+
+        JPanel topBar = new JPanel(new BorderLayout(8, 0));
+        topBar.setBackground(Color.WHITE);
+        topBar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(6, 10, 6, 10)));
+
         JLabel tblHeader = new JLabel("  Medicine List");
         tblHeader.setFont(new Font("Segoe UI", Font.BOLD, 13));
         tblHeader.setForeground(TEXT_MUTED);
-        tblHeader.setPreferredSize(new Dimension(0, 34));
-        tblHeader.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
-        panel.add(tblHeader, BorderLayout.NORTH);
+        topBar.add(tblHeader, BorderLayout.WEST);
+        topBar.add(searchField, BorderLayout.CENTER);
+        topBar.add(rowCountLabel, BorderLayout.EAST);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        panel.add(topBar, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
+
+        // F5 to refresh
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F5"), "refresh");
+        panel.getActionMap().put("refresh", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { loadMedicines(); }
+        });
         return panel;
     }
+
+    private void updateRowCount() {
+        if (rowCountLabel != null)
+            rowCountLabel.setText("  " + medicine_table.getRowCount() + " items  ");
 
     // ── Styling helpers ───────────────────────────────────────────────────────
     private JTextField field(String... def) {
@@ -379,6 +424,7 @@ public class MedicineFrame extends javax.swing.JFrame {
             Rs  = St.executeQuery("SELECT * FROM MEDICINE");
             medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
             applyTableHighlighters();
+            updateRowCount();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "SQL Error loading medicines: " + e.getMessage());
         }
