@@ -446,7 +446,11 @@ public class SellingFrame extends javax.swing.JFrame {
     private void btnClearMouseClicked(MouseEvent evt) {
         b_id.setText(""); b_medName.setText(""); b_quantity.setText("");
         billID = 0; billTotal = 0.0;
-        b_textArea.setText("*** PHARMA-EASY ***\n ID  Medicine         Price    Qty   Net");
+        b_textArea.setText("*** PHARMA-EASY ***\n" +
+            "Pharmacy Tracking System\n" +
+            "Date: " + new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm").format(new java.util.Date()) + "\n" +
+            "─────────────────────────────────────\n" +
+            " ID  Medicine         Price    Qty   Net");
         totalLabel.setText("TOTAL: $0.00");
     }
 
