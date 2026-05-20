@@ -152,8 +152,26 @@ public class CompanyFrame extends javax.swing.JFrame {
         body.add(buildFormCard(), BorderLayout.NORTH);
         body.add(buildTablePanel(), BorderLayout.CENTER);
         content.add(body, BorderLayout.CENTER);
+        content.add(buildStatusBar(), BorderLayout.SOUTH);
         return content;
     }
+
+    private JLabel statusBar;
+
+    private JPanel buildStatusBar() {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setBackground(new Color(248, 250, 252));
+        bar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(4, 16, 4, 16)));
+        statusBar = new JLabel("Ready");
+        statusBar.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        statusBar.setForeground(TEXT_MUTED);
+        bar.add(statusBar, BorderLayout.WEST);
+        return bar;
+    }
+
+    private void setStatus(String msg) { if (statusBar != null) statusBar.setText(msg); }
 
     private JPanel buildFormCard() {
         c_id       = field(); c_name    = field(); c_address = field();
@@ -384,6 +402,7 @@ public class CompanyFrame extends javax.swing.JFrame {
                 add.executeUpdate();
             }
             Con.close(); loadCompanies();
+            setStatus("Supplier added: " + c_name.getText());
             JOptionPane.showMessageDialog(this, "Supplier added successfully.");
         } catch (SQLIntegrityConstraintViolationException e) {
             JOptionPane.showMessageDialog(this, "Error: ID or name already exists.");
