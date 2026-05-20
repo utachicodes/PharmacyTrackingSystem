@@ -165,7 +165,23 @@ public class SellingFrame extends javax.swing.JFrame {
         body.add(buildBillingPanel(), BorderLayout.EAST);
 
         content.add(body, BorderLayout.CENTER);
+        content.add(buildStatusBar(), BorderLayout.SOUTH);
         return content;
+    }
+
+    private JLabel sellStatusBar;
+
+    private JPanel buildStatusBar() {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setBackground(new Color(248, 250, 252));
+        bar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(4, 16, 4, 16)));
+        sellStatusBar = new JLabel("Select a medicine from the stock table to begin billing");
+        sellStatusBar.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        sellStatusBar.setForeground(TEXT_MUTED);
+        bar.add(sellStatusBar, BorderLayout.WEST);
+        return bar;
     }
 
     // ── Left: stock table ─────────────────────────────────────────────────────
@@ -414,6 +430,8 @@ public class SellingFrame extends javax.swing.JFrame {
         medId = Integer.parseInt(model.getValueAt(i, 0).toString());
         mQty  = Integer.parseInt(model.getValueAt(i, 2).toString());
         price = Double.parseDouble(model.getValueAt(i, 3).toString());
+        if (sellStatusBar != null)
+            sellStatusBar.setText("Selected: " + b_medName.getText() + "  |  In stock: " + mQty + "  |  Price: $" + price);
     }
 
     private void btnAddToBillMouseClicked(MouseEvent evt) {
