@@ -43,6 +43,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
              ResultSet rs = stmt.executeQuery("SELECT * FROM PURCHASE_ORDERS")) {
             poTable.setModel(DatabaseHelper.resultSetToTableModel(rs));
             applyStatusRenderer();
+            if (poRowCount != null) poRowCount.setText("  " + poTable.getRowCount() + " orders  ");
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
@@ -282,18 +283,35 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         JScrollPane scroll = new JScrollPane(poTable);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
 
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        poRowCount = new JLabel("  0 orders");
+        poRowCount.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        poRowCount.setForeground(TEXT_MUTED);
+
+        JPanel topBar = new JPanel(new BorderLayout(8, 0));
+        topBar.setBackground(Color.WHITE);
+        topBar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(6, 10, 6, 10)));
         JLabel hdr = new JLabel("  Purchase Order List  (select a row to receive)");
         hdr.setFont(new Font("Segoe UI", Font.BOLD, 13));
         hdr.setForeground(TEXT_MUTED);
-        hdr.setPreferredSize(new Dimension(0, 34));
-        hdr.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
-        panel.add(hdr, BorderLayout.NORTH);
+        topBar.add(hdr, BorderLayout.WEST);
+        topBar.add(poRowCount, BorderLayout.EAST);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+        panel.add(topBar, BorderLayout.NORTH);
         panel.add(scroll, BorderLayout.CENTER);
+
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F5"), "refresh");
+        panel.getActionMap().put("refresh", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { loadPOs(); }
+        });
         return panel;
     }
+
+    private JLabel poRowCount;
 
     private JPanel buildActionBar() {
         btnReceive = actionBtn("✓ Receive Stock", ACCENT, ACCENT_DARK);
