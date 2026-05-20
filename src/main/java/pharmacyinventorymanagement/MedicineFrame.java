@@ -544,7 +544,7 @@ public class MedicineFrame extends javax.swing.JFrame {
             try (PreparedStatement del = Con.prepareStatement("DELETE FROM MEDICINE WHERE M_ID=?")) {
                 del.setInt(1, Integer.parseInt(m_id.getText())); del.executeUpdate();
             }
-            loadMedicines(); JOptionPane.showMessageDialog(this, "Medicine deleted.");
+            loadMedicines(); setStatus("Deleted medicine ID " + m_id.getText()); JOptionPane.showMessageDialog(this, "Medicine deleted.");
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error: " + e.getMessage()); }
     }
 
@@ -575,7 +575,7 @@ public class MedicineFrame extends javax.swing.JFrame {
                 upd.setString(13, m_batch.getText()); upd.setInt(14, id);
                 upd.executeUpdate();
             }
-            loadMedicines(); JOptionPane.showMessageDialog(this, "Medicine updated.");
+            loadMedicines(); setStatus("Updated medicine: " + m_name.getText()); JOptionPane.showMessageDialog(this, "Medicine updated.");
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error: " + e.getMessage()); }
     }
 
