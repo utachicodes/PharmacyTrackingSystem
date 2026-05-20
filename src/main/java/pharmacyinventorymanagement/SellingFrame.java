@@ -249,7 +249,11 @@ public class SellingFrame extends javax.swing.JFrame {
         b_textArea.setBackground(INVOICE_BG);
         b_textArea.setForeground(ACCENT);
         b_textArea.setCaretColor(ACCENT);
-        b_textArea.setText("*** PHARMA-EASY ***\n ID  Medicine      Price   Qty   Net");
+        b_textArea.setText("*** PHARMA-EASY ***\n" +
+            "Pharmacy Tracking System\n" +
+            "Date: " + new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm").format(new java.util.Date()) + "\n" +
+            "─────────────────────────────────────\n" +
+            " ID  Medicine         Price    Qty   Net");
         b_textArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JScrollPane invoiceScroll = new JScrollPane(b_textArea);
         invoiceScroll.setBorder(BorderFactory.createLineBorder(new Color(51, 65, 85)));
