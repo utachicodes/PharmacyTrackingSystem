@@ -191,6 +191,9 @@ public class SellingFrame extends javax.swing.JFrame {
         btnAddToBill = actionBtn("＋ Add to Bill", ACCENT, ACCENT_DARK);
         btnClear     = actionBtn("⟳ Clear",        new Color(100,116,139), new Color(71,85,105));
         btnPrint     = actionBtn("🖨 Print",        new Color(59,130,246),  new Color(37,99,235));
+        btnAddToBill.setToolTipText("Deduct selected quantity from stock and add to invoice");
+        btnClear.setToolTipText("Clear invoice and reset bill total");
+        btnPrint.setToolTipText("Print the current invoice");
 
         btnAddToBill.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnAddToBillMouseClicked(e); } });
         btnClear.addMouseListener(new MouseAdapter()     { public void mouseClicked(MouseEvent e) { btnClearMouseClicked(e); } });
