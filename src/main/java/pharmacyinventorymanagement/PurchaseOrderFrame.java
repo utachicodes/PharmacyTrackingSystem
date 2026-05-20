@@ -127,6 +127,7 @@ public class PurchaseOrderFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("Purchase Orders – Pharmacy System");
         setSize(1050, 680);
+        setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
 
         JPanel root = new JPanel(new BorderLayout());
