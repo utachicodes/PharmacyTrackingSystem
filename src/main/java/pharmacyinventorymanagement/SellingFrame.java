@@ -456,6 +456,8 @@ public class SellingFrame extends javax.swing.JFrame {
                     b_textArea.append(line);
                 }
                 totalLabel.setText("TOTAL: $" + String.format("%.2f", billTotal));
+                if (sellStatusBar != null)
+                    sellStatusBar.setText(billID + " item(s) billed  |  Total: $" + String.format("%.2f", billTotal));
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Please enter a valid quantity."); billID--;
             }
