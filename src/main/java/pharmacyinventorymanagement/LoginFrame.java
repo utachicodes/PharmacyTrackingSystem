@@ -155,6 +155,13 @@ public class LoginFrame extends javax.swing.JFrame {
         btnClear.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) { btnClearMouseClicked(evt); }
         });
+        // Enter on password field triggers login
+        l_password.addActionListener(e -> btnLoginMouseClicked(null));
+        // Escape clears both fields
+        l_password.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "clear");
+        l_password.getActionMap().put("clear", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { btnClearMouseClicked(null); }
+        });
 
         formCard.add(welcome);
         formCard.add(Box.createVerticalStrut(4));
