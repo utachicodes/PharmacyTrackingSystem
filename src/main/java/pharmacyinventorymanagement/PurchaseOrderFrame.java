@@ -1,19 +1,13 @@
 package pharmacyinventorymanagement;
 
+// Purchase order screen — create POs and receive stock atomically via a two-step JDBC transaction.
+
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 
-/**
- * PurchaseOrderFrame manages the procurement workflow for the pharmacy.
- * It supports creating purchase orders and atomic stock receiving via a
- * two-phase database transaction: updating the PO status to 'Received' and
- * incrementing the corresponding medicine quantity in a single committed unit.
- *
- * @author Abdoullah Ndao
- */
 public class PurchaseOrderFrame extends javax.swing.JFrame {
 
     // ── Design constants ──────────────────────────────────────────────────────

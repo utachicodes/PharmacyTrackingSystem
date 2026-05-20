@@ -1,16 +1,10 @@
 package pharmacyinventorymanagement;
 
+// Splash screen — animates a progress bar via SwingWorker then transitions to LoginFrame.
+
 import java.awt.*;
 import javax.swing.*;
 
-/**
- * SplashFrame displays the application loading screen with an animated progress
- * bar while the system initialises. It uses a {@link javax.swing.SwingWorker} to
- * drive the animation off the Event Dispatch Thread, then transitions to
- * {@link LoginFrame} once loading is complete.
- *
- * @author Abdoullah Ndao
- */
 public class SplashFrame extends javax.swing.JFrame {
 
     // Design system colours

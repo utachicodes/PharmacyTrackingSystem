@@ -1,13 +1,6 @@
 package pharmacyinventorymanagement;
 
-/**
- * SellingFrame provides the Point-of-Sale billing interface for the Pharmacy
- * Tracking System. It deducts stock from the MEDICINE table on each sale,
- * records every transaction to the SALES audit table for forecasting, and
- * generates a printable invoice with running totals.
- *
- * @author Abdoullah Ndao
- */
+// Point-of-sale screen — deducts stock, records sales for forecasting, and shows a running invoice.
 
 import java.awt.*;
 import java.awt.event.*;

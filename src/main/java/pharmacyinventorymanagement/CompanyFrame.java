@@ -1,13 +1,6 @@
 package pharmacyinventorymanagement;
 
-/**
- * CompanyFrame provides the supplier management interface for the Pharmacy Tracking
- * System. It stores contact details, lead times, and preferred-supplier flags for
- * all medicine suppliers, which are used to populate the Supplier dropdown in the
- * Medicine and Purchase Order modules.
- *
- * @author Abdoullah Ndao
- */
+// Supplier management screen — store contact details, lead times, and preferred-supplier flags.
 
 import java.awt.*;
 import java.awt.event.*;

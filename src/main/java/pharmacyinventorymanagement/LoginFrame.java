@@ -1,13 +1,6 @@
 package pharmacyinventorymanagement;
 
-/**
- * LoginFrame provides role-based authentication for the Pharmacy Tracking System.
- * It queries the AGENTS table using a parameterised PreparedStatement to prevent
- * SQL injection, retrieves the user's role (Admin / Pharmacist / Technician),
- * and routes them to the appropriate DashboardFrame with the correct permissions.
- *
- * @author Abdoullah Ndao
- */
+// Login screen — authenticates staff and routes to DashboardFrame based on their role.
 
 import java.awt.*;
 import java.awt.event.*;

@@ -1,14 +1,6 @@
 package pharmacyinventorymanagement;
 
-/**
- * MedicineFrame provides the full inventory management interface for the
- * Pharmacy Tracking System. It supports adding, updating, deleting, and
- * viewing medicine records across 14 fields including batch, category, and
- * per-medicine reorder thresholds. Rows are highlighted red (low stock) or
- * yellow (near expiry) using a custom cell renderer.
- *
- * @author Abdoullah Ndao
- */
+// Medicine inventory screen — add, update, delete stock records with red/yellow row highlights.
 
 import com.toedter.calendar.JDateChooser;
 import java.awt.*;
@@ -230,7 +222,6 @@ public class MedicineFrame extends javax.swing.JFrame {
 
     // ── Form card ─────────────────────────────────────────────────────────────
     private JPanel buildFormCard() {
-        // Initialise all form fields
         m_id        = field(); m_name     = field(); m_quantity  = field();
         m_price     = field(); m_owner    = field(); m_strength  = field();
         m_dosage    = field(); m_unitcost = field();
@@ -251,7 +242,6 @@ public class MedicineFrame extends javax.swing.JFrame {
         g.insets = new Insets(5, 6, 5, 6);
         g.fill   = GridBagConstraints.HORIZONTAL;
 
-        // Row 0
         addRow(card, g, 0, "ID",           m_id,       "EXP. DATE",  m_expdate);
         addRow(card, g, 1, "Name",         m_name,     "MFT. DATE",  m_mftdate);
         addRow(card, g, 2, "Quantity",     m_quantity, "Supplier",   m_company);
@@ -260,7 +250,6 @@ public class MedicineFrame extends javax.swing.JFrame {
         addRow(card, g, 5, "Dosage",       m_dosage,   "Unit Cost",  m_unitcost);
         addRow(card, g, 6, "Min. Stock",   m_threshold,"Batch No.",  m_batch);
 
-        // Buttons row
         btnAdd    = actionBtn("＋ ADD",    ACCENT,    ACCENT_DARK);
         btnUpdate = actionBtn("↻ UPDATE",  new Color(59, 130, 246), new Color(37, 99, 235));
         btnDelete = actionBtn("✕ DELETE",  DANGER,    new Color(185, 28, 28));

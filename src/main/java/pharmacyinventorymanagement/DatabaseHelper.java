@@ -1,5 +1,7 @@
 package pharmacyinventorymanagement;
 
+// Provides MySQL connection, schema auto-creation on first launch, and ResultSet-to-table conversion.
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -10,21 +12,11 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.ResultSetMetaData;
 import java.util.Vector;
 
-/**
- * DatabaseHelper provides centralised MySQL connectivity and schema initialisation
- * for the Pharmacy Tracking System. It exposes a static {@code getConnection()} factory
- * used by every frame/helper, and an {@code initializeDatabase()} method that
- * auto-creates all required tables and seeds the default admin account on first launch.
- * Connection credentials are stored as named constants at the top of this class.
- */
 public class DatabaseHelper {
-    /** JDBC URL — auto-creates the PharmaDb database on first connection. */
     private static final String DB_URL = "jdbc:mysql://localhost:3306/PharmaDb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true";
 
-    /** MySQL username. Change to match your local MySQL installation. */
+    // Change USER and PASS to match your local MySQL installation.
     private static final String USER = "root";
-
-    /** MySQL password. Update this with your MySQL password (empty by default). */
     private static final String PASS = "";
 
     public static Connection getConnection() throws SQLException {
@@ -36,23 +28,17 @@ public class DatabaseHelper {
         }
     }
 
-    /**
-     * Converts a {@link ResultSet} into a Swing {@link DefaultTableModel} for display
-     * in a JTable. Note: this method does NOT close the ResultSet; callers are
-     * responsible for closing the ResultSet and its parent Statement/Connection.
-     */
+    // Converts a ResultSet into a Swing DefaultTableModel for display in a JTable.
     public static DefaultTableModel resultSetToTableModel(ResultSet rs) {
         try {
             ResultSetMetaData metaData = rs.getMetaData();
             int numberOfColumns = metaData.getColumnCount();
             Vector<String> columnNames = new Vector<>();
 
-            // Get the column names
             for (int column = 1; column <= numberOfColumns; column++) {
                 columnNames.add(metaData.getColumnLabel(column));
             }
 
-            // Get all rows
             Vector<Vector<Object>> rows = new Vector<>();
             while (rs.next()) {
                 Vector<Object> newRow = new Vector<>();
@@ -69,15 +55,9 @@ public class DatabaseHelper {
         }
     }
 
-    /**
-     * Auto-creates all required database tables and seeds the default admin account
-     * if the AGENTS table is empty. Designed to be called once on application startup
-     * so the app works out-of-the-box with no manual SQL setup. Uses IF NOT EXISTS
-     * DDL to make each statement idempotent across repeated launches.
-     */
+    // Creates all 5 tables on first run and seeds a default admin if AGENTS is empty.
     public static void initializeDatabase() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
-            // Create MEDICINE table if it doesn't exist
             stmt.execute("CREATE TABLE IF NOT EXISTS MEDICINE (" +
                     "M_ID INT PRIMARY KEY, " +
                     "M_NAME VARCHAR(50), " +
@@ -94,7 +74,6 @@ public class DatabaseHelper {
                     "M_THRESHOLD INT DEFAULT 10, " +
                     "M_BATCH VARCHAR(50))");
 
-            // Create AGENTS table
             stmt.execute("CREATE TABLE IF NOT EXISTS AGENTS (" +
                     "A_ID INT PRIMARY KEY, " +
                     "A_NAME VARCHAR(50), " +
@@ -105,7 +84,6 @@ public class DatabaseHelper {
                     "A_EMAIL VARCHAR(50), " +
                     "A_ROLE VARCHAR(20) DEFAULT 'Technician')");
 
-            // Create SALES table
             stmt.execute("CREATE TABLE IF NOT EXISTS SALES (" +
                     "S_ID INT PRIMARY KEY AUTO_INCREMENT, " +
                     "S_MED_NAME VARCHAR(100), " +
@@ -113,7 +91,6 @@ public class DatabaseHelper {
                     "S_QTY INT, " +
                     "S_TOTAL DOUBLE)");
 
-            // Create PURCHASE_ORDERS table
             stmt.execute("CREATE TABLE IF NOT EXISTS PURCHASE_ORDERS (" +
                     "PO_ID INT PRIMARY KEY AUTO_INCREMENT, " +
                     "PO_MED_NAME VARCHAR(100), " +
@@ -122,7 +99,6 @@ public class DatabaseHelper {
                     "PO_STATUS VARCHAR(20) DEFAULT 'Pending', " +
                     "PO_DATE DATE)");
 
-            // Create COMPANY table
             stmt.execute("CREATE TABLE IF NOT EXISTS COMPANY (" +
                     "C_ID INT PRIMARY KEY, " +
                     "C_NAME VARCHAR(50), " +
@@ -133,7 +109,6 @@ public class DatabaseHelper {
                     "C_LEADTIME INT DEFAULT 7, " +
                     "C_PREFERRED VARCHAR(10) DEFAULT 'No')");
 
-            // Insert default admin if AGENTS table is empty
             try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM AGENTS")) {
                 if (rs.next() && rs.getInt(1) == 0) {
                     stmt.execute("INSERT INTO AGENTS (A_ID, A_NAME, A_AGE, A_PASSWORD, A_PHONE, A_GENDER, A_EMAIL, A_ROLE) " +

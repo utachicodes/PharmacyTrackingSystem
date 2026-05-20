@@ -1,19 +1,12 @@
 package pharmacyinventorymanagement;
 
+// Main navigation hub — shows live inventory alerts and routes to all modules by role.
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 
-/**
- * DashboardFrame is the central navigation hub of the Pharmacy Tracking System.
- * It displays live inventory alerts (low-stock and near-expiry) sourced from
- * {@link ForecastingHelper}, applies role-based button permissions via
- * {@link #applyRolePermissions()}, and provides sidebar navigation to all
- * functional modules: Medicines, Agents, Suppliers, Billing, and Purchase Orders.
- *
- * @author Abdoullah Ndao
- */
 public class DashboardFrame extends javax.swing.JFrame {
 
     // ── Design constants ──────────────────────────────────────────────────────

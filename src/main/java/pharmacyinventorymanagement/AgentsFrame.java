@@ -1,12 +1,6 @@
 package pharmacyinventorymanagement;
 
-/**
- * AgentsFrame provides the user management interface for the Pharmacy Tracking System.
- * Admins can create, update, and delete staff accounts and assign roles
- * (Admin / Pharmacist / Technician) which control access throughout the system.
- *
- * @author Abdoullah Ndao
- */
+// Staff management screen — create, update, and delete agent accounts with role assignment.
 
 import java.awt.*;
 import java.awt.event.*;
