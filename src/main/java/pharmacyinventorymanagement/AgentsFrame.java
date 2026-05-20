@@ -494,10 +494,18 @@ public class AgentsFrame extends javax.swing.JFrame {
         a_role.setSelectedItem(model.getValueAt(i, 7) == null ? "Technician" : model.getValueAt(i, 7).toString());
     }
 
+    private void resetFieldBorder(JTextField... fields) {
+        for (JTextField f : fields)
+            f.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4,8,4,8)));
+    }
+
     private void btnClearMouseClicked(MouseEvent evt) {
         a_id.setText(""); a_name.setText(""); a_age.setText("");
         a_phone.setText(""); a_password.setText(""); a_email.setText("");
         a_gender.setSelectedIndex(0); a_role.setSelectedIndex(2);
+        resetFieldBorder(a_id, a_name, a_age, a_password, a_phone, a_email);
+        setStatus("Form cleared");
     }
 
     public static void main(String args[]) {
