@@ -207,6 +207,11 @@ public class CompanyFrame extends javax.swing.JFrame {
         btnUpdate.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnUpdateMouseClicked(e); } });
         btnDelete.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnDeleteMouseClicked(e); } });
         btnClear.addMouseListener(new MouseAdapter()  { public void mouseClicked(MouseEvent e) { btnClearMouseClicked(e); } });
+        c_email.addActionListener(e -> btnAddMouseClicked(null));
+        c_email.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "clr");
+        c_email.getActionMap().put("clr", new javax.swing.AbstractAction() {
+            public void actionPerformed(java.awt.event.ActionEvent e) { btnClearMouseClicked(null); }
+        });
 
         g.gridy = 4; g.gridx = 0; g.gridwidth = 4;
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
