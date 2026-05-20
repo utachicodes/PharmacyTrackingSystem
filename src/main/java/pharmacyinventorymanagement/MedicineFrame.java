@@ -1,886 +1,501 @@
 package pharmacyinventorymanagement;
 
 /**
+ * MedicineFrame provides the full inventory management interface for the
+ * Pharmacy Tracking System. It supports adding, updating, deleting, and
+ * viewing medicine records across 14 fields including batch, category, and
+ * per-medicine reorder thresholds. Rows are highlighted red (low stock) or
+ * yellow (near expiry) using a custom cell renderer.
  *
  * @author Abdoullah Ndao
- *
- *
  */
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import javax.swing.*;
 
-/**
- * MedicineFrame provides full CRUD management of the pharmacy medicine inventory.
- * It supports 14 fields per medicine record including batch number, therapeutic
- * category, unit cost, and per-medicine reorder threshold. Table rows are
- * colour-highlighted: red for low stock, yellow for near-expiry items.
- * Supplier names are loaded dynamically from the COMPANY table.
- */
-/**
- * MedicineFrame provides full CRUD management of the pharmacy medicine inventory.
- * It supports 14 fields per medicine record including batch number, therapeutic
- * category, unit cost, and per-medicine reorder threshold. Table rows are
- * colour-highlighted: red for low stock, yellow for near-expiry items.
- * Supplier names are loaded dynamically from the COMPANY table.
- */
+import com.toedter.calendar.JDateChooser;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+
 public class MedicineFrame extends javax.swing.JFrame {
 
-    /**
-     * Creates new form MedicineFrame
-     */
-    public MedicineFrame() {
-        initComponents();
-        setTitle("Manage Medicines - Pharmacy System");
-        SelectMed();
-        applyTableHighlighters();
-    }
-    
-    private void applyTableHighlighters() {
-        // Custom renderer: highlights rows based on stock level and expiry proximity
-        medicine_table.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+    // ── Design constants ──────────────────────────────────────────────────────
+    private static final Color SIDEBAR_BG    = new Color(30, 41, 59);
+    private static final Color SIDEBAR_HOVER = new Color(51, 65, 85);
+    private static final Color ACCENT        = new Color(16, 185, 129);
+    private static final Color ACCENT_DARK   = new Color(5, 150, 105);
+    private static final Color CONTENT_BG    = new Color(241, 245, 249);
+    private static final Color TEXT_DARK     = new Color(30, 41, 59);
+    private static final Color TEXT_MUTED    = new Color(100, 116, 139);
+    private static final Color BORDER_CLR    = new Color(203, 213, 225);
+    private static final Color DANGER        = new Color(239, 68, 68);
+    private static final Color DANGER_BG     = new Color(255, 220, 220);
+    private static final Color WARNING_BG    = new Color(255, 255, 204);
 
-                try {
-                    int qty = Integer.parseInt(table.getValueAt(row, 2).toString()); // Column 2 = M_QUANTITY
-                    // Try to read per-row threshold (col 12 = M_THRESHOLD); fall back to 10
-                    int threshold = 10;
-                    try { threshold = Integer.parseInt(table.getValueAt(row, 12).toString()); } catch(Exception e) {}
-
-                    java.sql.Date expDate = (java.sql.Date) table.getValueAt(row, 4);
-                    long daysToExpiry = (expDate.getTime() - System.currentTimeMillis()) / (1000 * 60 * 60 * 24);
-
-                    if (qty <= threshold) {
-                        c.setBackground(new Color(255, 204, 204)); // Light Red = low stock
-                    } else if (daysToExpiry < 30) {
-                        c.setBackground(new Color(255, 255, 204)); // Light Yellow = near expiry
-                    } else {
-                        c.setBackground(Color.WHITE); // Normal stock
-                    }
-
-                    // Selection colour always overrides row highlighting
-                    if (isSelected) {
-                        c.setBackground(table.getSelectionBackground());
-                    }
-                } catch (Exception e) {}
-
-                return c;
-            }
-        });
-    }
-    
-    
+    // ── JDBC state ────────────────────────────────────────────────────────────
     Connection Con = null;
     Statement St = null;
     ResultSet Rs = null;
     java.util.Date FDate, EDate;
     java.sql.Date MyFabdate, MyExpDate;
-    
-    // New fields
-    private javax.swing.JComboBox<String> m_category;
-    private javax.swing.JTextField m_strength;
-    private javax.swing.JTextField m_dosage;
-    private javax.swing.JTextField m_unitcost;
-    private javax.swing.JTextField m_threshold;
-    private javax.swing.JTextField m_batch;
-    private javax.swing.JLabel TitleCat, TitleStr, TitleDos, TitleUC, TitleThr, TitleBat;
-    
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+
+    // ── Form fields ───────────────────────────────────────────────────────────
+    private JTextField m_id, m_name, m_quantity, m_price, m_owner;
+    private JTextField m_strength, m_dosage, m_unitcost, m_threshold, m_batch;
+    private JComboBox<String> m_company, m_category;
+    private JDateChooser m_expdate, m_mftdate;
+
+    // ── Table & action buttons ────────────────────────────────────────────────
+    private JTable medicine_table;
+    private JButton btnAdd, btnDelete, btnUpdate, btnClear;
+
+    public MedicineFrame() {
+        initComponents();
+        loadMedicines();
+        applyTableHighlighters();
+    }
+
+    // ── Table row highlighter (low-stock = red, near-expiry = yellow) ─────────
+    private void applyTableHighlighters() {
+        medicine_table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+                try {
+                    int qty       = Integer.parseInt(table.getValueAt(row, 2).toString());
+                    int threshold = 10;
+                    try { threshold = Integer.parseInt(table.getValueAt(row, 12).toString()); } catch (Exception ignored) {}
+                    java.sql.Date expDate    = (java.sql.Date) table.getValueAt(row, 4);
+                    long          daysToExp  = (expDate.getTime() - System.currentTimeMillis()) / 86_400_000L;
+
+                    if (!isSelected) {
+                        if (qty <= threshold)  c.setBackground(DANGER_BG);
+                        else if (daysToExp < 30) c.setBackground(WARNING_BG);
+                        else                   c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 250, 252));
+                    }
+                    setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                } catch (Exception ignored) {}
+                return c;
+            }
+        });
+    }
+
+    // ── UI construction ───────────────────────────────────────────────────────
     private void initComponents() {
-
-        jPanel1 = new javax.swing.JPanel();
-        companyBtn = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        Title4 = new javax.swing.JLabel();
-        Title5 = new javax.swing.JLabel();
-        Title6 = new javax.swing.JLabel();
-        Title7 = new javax.swing.JLabel();
-        Title8 = new javax.swing.JLabel();
-        Title9 = new javax.swing.JLabel();
-        Title10 = new javax.swing.JLabel();
-        m_id = new javax.swing.JTextField();
-        m_name = new javax.swing.JTextField();
-        m_quantity = new javax.swing.JTextField();
-        m_price = new javax.swing.JTextField();
-        m_company = new javax.swing.JComboBox<>();
-        m_expdate = new com.toedter.calendar.JDateChooser();
-        m_mftdate = new com.toedter.calendar.JDateChooser();
-        btnAdd = new javax.swing.JButton();
-        btnDelete = new javax.swing.JButton();
-        btnUpdate = new javax.swing.JButton();
-        btnClear = new javax.swing.JButton();
-        sellBtn = new javax.swing.JLabel();
-        agentBtn = new javax.swing.JLabel();
-        Title3 = new javax.swing.JLabel();
-        jPanel3 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        medicine_table = new javax.swing.JTable();
-        Title11 = new javax.swing.JLabel();
-        closeX = new javax.swing.JLabel();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setUndecorated(true);
-
-        jPanel1.setBackground(new java.awt.Color(16, 185, 129));
-
-        companyBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
-        companyBtn.setForeground(new java.awt.Color(255, 255, 255));
-        companyBtn.setText("Company");
-        companyBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                companyBtnMouseClicked(evt);
-            }
-        });
-
-        jPanel2.setBackground(new java.awt.Color(248, 250, 252));
-
-        Title4.setBackground(new java.awt.Color(255, 255, 255));
-        Title4.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title4.setForeground(new java.awt.Color(16, 185, 129));
-        Title4.setText("ID");
-
-        Title5.setBackground(new java.awt.Color(255, 255, 255));
-        Title5.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title5.setForeground(new java.awt.Color(16, 185, 129));
-        Title5.setText("NAME");
-
-        Title6.setBackground(new java.awt.Color(255, 255, 255));
-        Title6.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title6.setForeground(new java.awt.Color(16, 185, 129));
-        Title6.setText("QUANTITY");
-
-        Title7.setBackground(new java.awt.Color(255, 255, 255));
-        Title7.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title7.setForeground(new java.awt.Color(16, 185, 129));
-        Title7.setText("PRICE");
-
-        Title8.setBackground(new java.awt.Color(255, 255, 255));
-        Title8.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title8.setForeground(new java.awt.Color(16, 185, 129));
-        Title8.setText("EXP.DATE");
-
-        Title9.setBackground(new java.awt.Color(255, 255, 255));
-        Title9.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title9.setForeground(new java.awt.Color(16, 185, 129));
-        Title9.setText("BRANCH");
-
-        Title10.setBackground(new java.awt.Color(255, 255, 255));
-        Title10.setFont(new java.awt.Font("High Tower Text", 1, 17)); // NOI18N
-        Title10.setForeground(new java.awt.Color(16, 185, 129));
-        Title10.setText("MFT.DATE");
-
-        m_id.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                m_idActionPerformed(evt);
-            }
-        });
-
-        m_name.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                m_nameActionPerformed(evt);
-            }
-        });
-
-        m_quantity.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                m_quantityActionPerformed(evt);
-            }
-        });
-
-        m_price.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                m_priceActionPerformed(evt);
-            }
-        });
-
-        m_owner = new javax.swing.JTextField();
-        Title12 = new javax.swing.JLabel();
-        Title12.setFont(new java.awt.Font("High Tower Text", 1, 17));
-        Title12.setForeground(new java.awt.Color(16, 185, 129));
-        Title12.setText("OWNER");
-
-        m_company.setBackground(new java.awt.Color(51, 204, 0));
-        m_company.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        m_company.setForeground(new java.awt.Color(255, 255, 255));
-        m_company.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Bangalore south", "Chennai", "China", "Kolkata", "Delhi" }));
-
-        btnAdd.setBackground(new java.awt.Color(16, 185, 129));
-        btnAdd.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
-        btnAdd.setForeground(new java.awt.Color(255, 255, 255));
-        btnAdd.setText("ADD");
-        btnAdd.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnAddMouseClicked(evt);
-            }
-        });
-
-        btnDelete.setBackground(new java.awt.Color(16, 185, 129));
-        btnDelete.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
-        btnDelete.setForeground(new java.awt.Color(255, 255, 255));
-        btnDelete.setText("DELETE");
-        btnDelete.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnDeleteMouseClicked(evt);
-            }
-        });
-        btnDelete.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDeleteActionPerformed(evt);
-            }
-        });
-
-        btnUpdate.setBackground(new java.awt.Color(16, 185, 129));
-        btnUpdate.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
-        btnUpdate.setForeground(new java.awt.Color(255, 255, 255));
-        btnUpdate.setText("UPDATE");
-        btnUpdate.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnUpdateMouseClicked(evt);
-            }
-        });
-        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUpdateActionPerformed(evt);
-            }
-        });
-
-        btnClear.setBackground(new java.awt.Color(16, 185, 129));
-        btnClear.setFont(new java.awt.Font("Berlin Sans FB", 0, 16)); // NOI18N
-        btnClear.setForeground(new java.awt.Color(255, 255, 255));
-        btnClear.setText("CLEAR");
-        btnClear.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnClearMouseClicked(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(14, 14, 14)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(Title4)
-                            .addComponent(Title5))
-                        .addGap(64, 64, 64)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(m_id, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(m_name, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(Title6)
-                            .addComponent(Title7)
-                            .addComponent(Title12))
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(m_price, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(m_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(m_owner, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(27, 27, 27)
-                                .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(Title9)
-                        .addComponent(Title8)
-                        .addComponent(Title10))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(m_company, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(m_expdate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(m_mftdate, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(78, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(Title4)
-                        .addComponent(m_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(Title8))
-                    .addComponent(m_expdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(25, 25, 25)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(Title5)
-                        .addComponent(m_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(Title10))
-                    .addComponent(m_mftdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(25, 25, 25)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Title6)
-                            .addComponent(m_quantity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(Title9))
-                        .addGap(29, 29, 29)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Title7)
-                            .addComponent(m_price, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(25, 25, 25)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Title12)
-                            .addComponent(m_owner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(m_company, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(65, 65, 65)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(26, Short.MAX_VALUE))
-        );
-
-        sellBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
-        sellBtn.setForeground(new java.awt.Color(255, 255, 255));
-        sellBtn.setText("Seller");
-        sellBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                sellBtnMouseClicked(evt);
-            }
-        });
-
-        agentBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22)); // NOI18N
-        agentBtn.setForeground(new java.awt.Color(255, 255, 255));
-        agentBtn.setText("Agent");
-        agentBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                agentBtnMouseClicked(evt);
-            }
-        });
-
-        Title3.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
-        Title3.setForeground(new java.awt.Color(255, 255, 255));
-        Title3.setText("MANAGE MEDICINE");
-
-        jPanel3.setBackground(new java.awt.Color(255, 255, 153));
-
-        medicine_table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
-            },
-            new String [] {
-                "ID", "Name", "Unit Price", "Quantity", "MFT.Date", "EXP.Date", "Company"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        medicine_table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                medicine_tableMouseClicked(evt);
-            }
-        });
-        jScrollPane1.setViewportView(medicine_table);
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 711, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(248, 248, 248))
-        );
-
-        Title11.setFont(new java.awt.Font("High Tower Text", 1, 26)); // NOI18N
-        Title11.setForeground(new java.awt.Color(255, 255, 255));
-        Title11.setText("MEDICINE LIST");
-
-        closeX.setFont(new java.awt.Font("Arial Black", 1, 32)); // NOI18N
-        closeX.setForeground(new java.awt.Color(255, 153, 153));
-        closeX.setText("x");
-        closeX.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                closeXMouseClicked(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(companyBtn)
-                    .addComponent(sellBtn)
-                    .addComponent(agentBtn))
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(closeX)
-                        .addGap(23, 23, 23))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(81, Short.MAX_VALUE))))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(167, 167, 167)
-                        .addComponent(Title3))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(169, 169, 169)
-                        .addComponent(Title11)))
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(89, 89, 89)
-                .addComponent(companyBtn)
-                .addGap(18, 18, 18)
-                .addComponent(agentBtn)
-                .addGap(18, 18, 18)
-                .addComponent(sellBtn)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addComponent(closeX)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(Title3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(Title11)
-                .addGap(2, 2, 2)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(17, 17, 17))
-        );
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-
-        pack();
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Manage Medicines – Pharmacy System");
+        setSize(1120, 720);
         setLocationRelativeTo(null);
-        customInit();
-    }// </editor-fold>
 
-    /** Reload company names from COMPANY table into the m_company combobox. */
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(CONTENT_BG);
+        setContentPane(root);
+
+        root.add(buildSidebar(), BorderLayout.WEST);
+        root.add(buildContent(), BorderLayout.CENTER);
+    }
+
+    // ── Sidebar ───────────────────────────────────────────────────────────────
+    private JPanel buildSidebar() {
+        JPanel sidebar = new JPanel();
+        sidebar.setBackground(SIDEBAR_BG);
+        sidebar.setPreferredSize(new Dimension(185, 0));
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+
+        JPanel logoArea = new JPanel(new BorderLayout());
+        logoArea.setBackground(new Color(15, 23, 42));
+        logoArea.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
+        logoArea.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 8));
+        JLabel logo = new JLabel("⚕ PHARMA");
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        logo.setForeground(ACCENT);
+        logoArea.add(logo, BorderLayout.CENTER);
+        sidebar.add(logoArea);
+        sidebar.add(sep());
+
+        String[][] navItems = {
+            {"🏠  Dashboard",  "dashboard"},
+            {"👤  Agents",     "agents"},
+            {"🏢  Suppliers",  "company"},
+            {"💳  Billing",    "sell"},
+            {"📦  Purchase Orders", "po"}
+        };
+        for (String[] item : navItems) {
+            JLabel nav = navLabel(item[0]);
+            final String key = item[1];
+            nav.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    switch (key) {
+                        case "dashboard": new DashboardFrame().setVisible(true); dispose(); break;
+                        case "agents":    new AgentsFrame().setVisible(true);    dispose(); break;
+                        case "company":   new CompanyFrame().setVisible(true);   dispose(); break;
+                        case "sell":      new SellingFrame().setVisible(true);   dispose(); break;
+                        case "po":        new PurchaseOrderFrame().setVisible(true); dispose(); break;
+                    }
+                }
+            });
+            sidebar.add(nav);
+        }
+
+        sidebar.add(Box.createVerticalGlue());
+        sidebar.add(sep());
+        JLabel exit = navLabel("✕  Exit");
+        exit.setForeground(new Color(252, 165, 165));
+        exit.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int c = JOptionPane.showConfirmDialog(MedicineFrame.this, "Exit application?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
+                if (c == JOptionPane.YES_OPTION) System.exit(0);
+            }
+        });
+        sidebar.add(exit);
+        sidebar.add(Box.createVerticalStrut(8));
+        return sidebar;
+    }
+
+    // ── Content area (header + form card + table) ─────────────────────────────
+    private JPanel buildContent() {
+        JPanel content = new JPanel(new BorderLayout(0, 0));
+        content.setBackground(CONTENT_BG);
+
+        // Header
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 60));
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(0, 24, 0, 24)));
+        JLabel title = new JLabel("💊  Medicine Inventory");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setForeground(TEXT_DARK);
+        JLabel sub = new JLabel("Manage stock records");
+        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        sub.setForeground(TEXT_MUTED);
+        JPanel titleBox = new JPanel(new GridLayout(2, 1));
+        titleBox.setBackground(Color.WHITE);
+        titleBox.add(title); titleBox.add(sub);
+        header.add(titleBox, BorderLayout.CENTER);
+        content.add(header, BorderLayout.NORTH);
+
+        // Body (form + table in scroll area)
+        JPanel body = new JPanel(new BorderLayout(0, 12));
+        body.setBackground(CONTENT_BG);
+        body.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+
+        body.add(buildFormCard(), BorderLayout.NORTH);
+        body.add(buildTablePanel(), BorderLayout.CENTER);
+
+        content.add(body, BorderLayout.CENTER);
+        return content;
+    }
+
+    // ── Form card ─────────────────────────────────────────────────────────────
+    private JPanel buildFormCard() {
+        // Initialise all form fields
+        m_id        = field(); m_name     = field(); m_quantity  = field();
+        m_price     = field(); m_owner    = field(); m_strength  = field();
+        m_dosage    = field(); m_unitcost = field();
+        m_threshold = field("10"); m_batch = field();
+        m_company   = new JComboBox<>(); styleCombo(m_company);
+        m_category  = new JComboBox<>(new String[]{"Tablet","Syrup","Injection","Capsule","Ointment","Other"}); styleCombo(m_category);
+        m_expdate   = new JDateChooser(); m_mftdate = new JDateChooser();
+        styleDate(m_expdate); styleDate(m_mftdate);
+        loadCompanyComboBox();
+
+        JPanel card = new JPanel(new GridBagLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
+            BorderFactory.createEmptyBorder(16, 20, 12, 20)));
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(5, 6, 5, 6);
+        g.fill   = GridBagConstraints.HORIZONTAL;
+
+        // Row 0
+        addRow(card, g, 0, "ID",           m_id,       "EXP. DATE",  m_expdate);
+        addRow(card, g, 1, "Name",         m_name,     "MFT. DATE",  m_mftdate);
+        addRow(card, g, 2, "Quantity",     m_quantity, "Supplier",   m_company);
+        addRow(card, g, 3, "Unit Price",   m_price,    "Owner",      m_owner);
+        addRow(card, g, 4, "Category",     m_category, "Strength",   m_strength);
+        addRow(card, g, 5, "Dosage",       m_dosage,   "Unit Cost",  m_unitcost);
+        addRow(card, g, 6, "Min. Stock",   m_threshold,"Batch No.",  m_batch);
+
+        // Buttons row
+        btnAdd    = actionBtn("＋ ADD",    ACCENT,    ACCENT_DARK);
+        btnUpdate = actionBtn("↻ UPDATE",  new Color(59, 130, 246), new Color(37, 99, 235));
+        btnDelete = actionBtn("✕ DELETE",  DANGER,    new Color(185, 28, 28));
+        btnClear  = actionBtn("⟳ CLEAR",   new Color(100,116,139),  new Color(71,85,105));
+
+        btnAdd.addMouseListener(new MouseAdapter()    { public void mouseClicked(MouseEvent e) { btnAddMouseClicked(e); } });
+        btnUpdate.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnUpdateMouseClicked(e); } });
+        btnDelete.addMouseListener(new MouseAdapter() { public void mouseClicked(MouseEvent e) { btnDeleteMouseClicked(e); } });
+        btnClear.addMouseListener(new MouseAdapter()  { public void mouseClicked(MouseEvent e) { btnClearMouseClicked(e); } });
+
+        g.gridy = 7; g.gridx = 0; g.gridwidth = 4; g.weighty = 0;
+        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        btnRow.setBackground(Color.WHITE);
+        btnRow.add(btnAdd); btnRow.add(btnUpdate); btnRow.add(btnDelete); btnRow.add(btnClear);
+        card.add(btnRow, g);
+        g.gridwidth = 1;
+
+        return card;
+    }
+
+    private void addRow(JPanel card, GridBagConstraints g, int row, String lbl1, Component f1, String lbl2, Component f2) {
+        g.gridy = row; g.weightx = 0;
+        g.gridx = 0; card.add(fLabel(lbl1), g);
+        g.gridx = 1; g.weightx = 1; card.add(f1, g);
+        g.gridx = 2; g.weightx = 0; card.add(fLabel(lbl2), g);
+        g.gridx = 3; g.weightx = 1; card.add(f2, g);
+    }
+
+    // ── Table panel ───────────────────────────────────────────────────────────
+    private JPanel buildTablePanel() {
+        medicine_table = new JTable();
+        styleTable(medicine_table);
+        medicine_table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { medicine_tableMouseClicked(e); }
+        });
+        JScrollPane scroll = new JScrollPane(medicine_table);
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)));
+        JLabel tblHeader = new JLabel("  Medicine List");
+        tblHeader.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tblHeader.setForeground(TEXT_MUTED);
+        tblHeader.setPreferredSize(new Dimension(0, 34));
+        tblHeader.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
+        panel.add(tblHeader, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        return panel;
+    }
+
+    // ── Styling helpers ───────────────────────────────────────────────────────
+    private JTextField field(String... def) {
+        JTextField f = new JTextField(def.length > 0 ? def[0] : "");
+        f.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        f.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_CLR),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        f.setPreferredSize(new Dimension(160, 28));
+        return f;
+    }
+
+    private JLabel fLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        l.setForeground(TEXT_MUTED);
+        l.setPreferredSize(new Dimension(90, 28));
+        return l;
+    }
+
+    private JButton actionBtn(String text, Color bg, Color hover) {
+        JButton b = new JButton(text);
+        b.setBackground(bg); b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        b.setFocusPainted(false); b.setBorderPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(110, 32));
+        b.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { b.setBackground(hover); }
+            public void mouseExited(MouseEvent e)  { b.setBackground(bg);    }
+        });
+        return b;
+    }
+
+    private void styleCombo(JComboBox<String> cb) {
+        cb.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        cb.setPreferredSize(new Dimension(160, 28));
+    }
+
+    private void styleDate(JDateChooser dc) {
+        dc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        dc.setPreferredSize(new Dimension(160, 28));
+    }
+
+    private void styleTable(JTable t) {
+        t.setRowHeight(30);
+        t.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        t.setGridColor(new Color(226, 232, 240));
+        t.setShowVerticalLines(false);
+        t.setSelectionBackground(new Color(209, 250, 229));
+        t.setSelectionForeground(TEXT_DARK);
+        t.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        t.getTableHeader().setBackground(new Color(241, 245, 249));
+        t.getTableHeader().setForeground(TEXT_MUTED);
+        t.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(226, 232, 240)));
+    }
+
+    private JLabel navLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        l.setForeground(new Color(203, 213, 225));
+        l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        l.setBorder(BorderFactory.createEmptyBorder(11, 18, 11, 8));
+        l.setOpaque(true); l.setBackground(SIDEBAR_BG);
+        l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        l.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { l.setBackground(SIDEBAR_HOVER); }
+            public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG);    }
+        });
+        return l;
+    }
+
+    private JSeparator sep() {
+        JSeparator s = new JSeparator();
+        s.setForeground(new Color(51, 65, 85)); s.setBackground(new Color(51, 65, 85));
+        s.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        return s;
+    }
+
+    // ── Company combobox loader ────────────────────────────────────────────────
     public void loadCompanyComboBox() {
         m_company.removeAllItems();
-        try (java.sql.Connection conn = DatabaseHelper.getConnection();
-             java.sql.Statement stmt = conn.createStatement();
-             java.sql.ResultSet rs = stmt.executeQuery("SELECT C_NAME FROM COMPANY ORDER BY C_NAME")) {
-            while (rs.next()) {
-                m_company.addItem(rs.getString("C_NAME"));
-            }
-        } catch (java.sql.SQLException e) {
-            // Fallback: keep default items if DB unavailable
-        }
-        if (m_company.getItemCount() == 0) {
-            for (String s : new String[]{"Bangalore south","Chennai","China","Kolkata","Delhi"}) {
-                m_company.addItem(s);
-            }
-        }
+        try (Connection c = DatabaseHelper.getConnection();
+             Statement s  = c.createStatement();
+             ResultSet r  = s.executeQuery("SELECT C_NAME FROM COMPANY ORDER BY C_NAME")) {
+            while (r.next()) m_company.addItem(r.getString("C_NAME"));
+        } catch (SQLException ignored) {}
+        if (m_company.getItemCount() == 0)
+            for (String s : new String[]{"Dakar Pharma","MedSupply","HealthCo","Pfizer","Novartis"}) m_company.addItem(s);
     }
 
-    private void customInit() {
-        m_category = new javax.swing.JComboBox<>(new String[] { "Tablet", "Syrup", "Injection", "Capsule", "Ointment", "Other" });
-        m_strength = new javax.swing.JTextField(10);
-        m_dosage = new javax.swing.JTextField(10);
-        m_unitcost = new javax.swing.JTextField(5);
-        m_threshold = new javax.swing.JTextField("10", 5);
-        m_batch = new javax.swing.JTextField(10);
-        
-        JPanel extraPanel = new JPanel(new FlowLayout());
-        extraPanel.setBackground(new Color(255, 255, 204));
-        extraPanel.add(new JLabel("Cat:")); extraPanel.add(m_category);
-        extraPanel.add(new JLabel("Str:")); extraPanel.add(m_strength);
-        extraPanel.add(new JLabel("Dos:")); extraPanel.add(m_dosage);
-        extraPanel.add(new JLabel("Cost:")); extraPanel.add(m_unitcost);
-        extraPanel.add(new JLabel("Min:")); extraPanel.add(m_threshold);
-        extraPanel.add(new JLabel("Batch:")); extraPanel.add(m_batch);
-        
-        getContentPane().add(extraPanel, BorderLayout.SOUTH);
+    // ── Database operations ───────────────────────────────────────────────────
 
-        // Add Dashboard navigation button to sidebar
-        dashboardBtn = new javax.swing.JLabel("Dashboard");
-        dashboardBtn.setFont(new java.awt.Font("Perpetua Titling MT", 1, 22));
-        dashboardBtn.setForeground(new java.awt.Color(255, 255, 255));
-        dashboardBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        dashboardBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                new DashboardFrame().setVisible(true);
-                dispose();
-            }
-        });
-        jPanel1.add(dashboardBtn);
-
-        pack();
-        loadCompanyComboBox();
-    }
-    private javax.swing.JLabel dashboardBtn;
-
-    private void m_idActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_idActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_m_idActionPerformed
-
-    private void m_nameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_nameActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_m_nameActionPerformed
-
-    private void m_quantityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_quantityActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_m_quantityActionPerformed
-
-    private void m_priceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_m_priceActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_m_priceActionPerformed
-
-    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnUpdateActionPerformed
-
-    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnDeleteActionPerformed
-
-    /** Loads (or reloads) the full medicine list from the database into the table. */
-    public void loadMedicines()
-    {
-        try{
+    public void loadMedicines() {
+        try {
             Con = DatabaseHelper.getConnection();
-            St = Con.createStatement();
-            Rs = St.executeQuery("Select * from MEDICINE");
+            St  = Con.createStatement();
+            Rs  = St.executeQuery("SELECT * FROM MEDICINE");
             medicine_table.setModel(DatabaseHelper.resultSetToTableModel(Rs));
+            applyTableHighlighters();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "SQL Error loading medicines: " + e.getMessage());
         }
-        catch(SQLException e)
-        {
-            JOptionPane.showMessageDialog(this, "Error: A SQL exception occured");
-            e.printStackTrace();
-        }catch(Exception e){
-                JOptionPane.showMessageDialog(this, "Error 500: Internal Server Error. Please try later...");
-
-            }
     }
 
-    /** @deprecated Use {@link #loadMedicines()} instead. */
-    @Deprecated
-    public void SelectMed() { loadMedicines(); }
+    @Deprecated public void SelectMed() { loadMedicines(); }
 
-    //Add button
-    private void btnAddMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddMouseClicked
-
-        try{
+    private void btnAddMouseClicked(MouseEvent evt) {
+        try {
             Con = DatabaseHelper.getConnection();
             String Id = m_id.getText();
-
-            // Check for duplicate ID before inserting
-            String retriveId = "select * from MEDICINE where M_ID="+Id;
-            Statement select = Con.createStatement();
-            ResultSet rowSet = select.executeQuery(retriveId);
-
-            if(rowSet.next()){
-                JOptionPane.showMessageDialog(this, "Medicine "+Id+" already exists! Please try another valid ID");
-            }else{
-            
-                FDate = m_mftdate.getDate();
-                MyFabdate = new java.sql.Date(FDate.getTime());
-                EDate = m_expdate.getDate();
-                MyExpDate = new java.sql.Date(EDate.getTime());
-                PreparedStatement add = Con.prepareStatement("insert into MEDICINE values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-                add.setInt(1, Integer.valueOf( m_id.getText() ));
+            try (PreparedStatement chk = Con.prepareStatement("SELECT M_ID FROM MEDICINE WHERE M_ID=?")) {
+                chk.setInt(1, Integer.parseInt(Id));
+                if (chk.executeQuery().next()) {
+                    JOptionPane.showMessageDialog(this, "Medicine ID " + Id + " already exists."); return;
+                }
+            }
+            FDate = m_mftdate.getDate(); MyFabdate = new java.sql.Date(FDate.getTime());
+            EDate = m_expdate.getDate(); MyExpDate  = new java.sql.Date(EDate.getTime());
+            try (PreparedStatement add = Con.prepareStatement(
+                    "INSERT INTO MEDICINE VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
+                add.setInt(1, Integer.parseInt(m_id.getText()));
                 add.setString(2, m_name.getText());
-                add.setInt(3, Integer.valueOf(m_quantity.getText()));
-                add.setDouble(4, Double.valueOf(m_price.getText()));
-                add.setDate(5, MyExpDate);
-                add.setDate(6, MyFabdate);
+                add.setInt(3, Integer.parseInt(m_quantity.getText()));
+                add.setDouble(4, Double.parseDouble(m_price.getText()));
+                add.setDate(5, MyExpDate); add.setDate(6, MyFabdate);
                 add.setString(7, m_company.getSelectedItem().toString());
                 add.setString(8, m_owner.getText().isEmpty() ? "Main" : m_owner.getText());
                 add.setString(9, m_category.getSelectedItem().toString());
-                add.setString(10, m_strength.getText());
-                add.setString(11, m_dosage.getText());
-                add.setDouble(12, m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()));
-                add.setInt(13, m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()));
+                add.setString(10, m_strength.getText()); add.setString(11, m_dosage.getText());
+                add.setDouble(12, m_unitcost.getText().isEmpty() ? 0.0 : Double.parseDouble(m_unitcost.getText()));
+                add.setInt(13, m_threshold.getText().isEmpty() ? 10 : Integer.parseInt(m_threshold.getText()));
                 add.setString(14, m_batch.getText());
-
-                int rowAdd = add.executeUpdate();
-
-                Con.close(); 
-                SelectMed();
-
-                JOptionPane.showMessageDialog(this, "Medicine Added Successfully!");
+                add.executeUpdate();
             }
-        
-        }catch(Exception e){
+            Con.close(); loadMedicines();
+            JOptionPane.showMessageDialog(this, "Medicine added successfully.");
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
         }
-    }//GEN-LAST:event_btnAddMouseClicked
-
-    private void btnDeleteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnDeleteMouseClicked
-        if(m_id.getText().isEmpty())
-        {
-            JOptionPane.showMessageDialog(this, "Enter correct ID of Medicine To be Deleted");
-        }
-        else{
-            try{
-                
-                Con = DatabaseHelper.getConnection();
-                String Id = m_id.getText();
-                
-                String retriveId = "Select M_ID from MEDICINE where M_ID="+Id; 
-                Statement select = Con.createStatement();
-                ResultSet row = select.executeQuery(retriveId);
-                
-                if(!row.next()){
-                    JOptionPane.showMessageDialog(this, "Medicine "+Id+" Unavailable! Please enter valid ID");
-                }else{
-                    PreparedStatement del = Con.prepareStatement("DELETE FROM MEDICINE WHERE M_ID=?");
-                    del.setInt(1, Integer.parseInt(Id));
-                    del.executeUpdate();
-                    SelectMed();
-                    JOptionPane.showMessageDialog(this, "Medicine "+Id+" Deleted Successfully");
-                }
-
-            }catch(SQLException e)
-            {
-                JOptionPane.showMessageDialog(this, "Error: A SQL exception occured");
-                e.printStackTrace();
-            }catch(Exception e){
-                JOptionPane.showMessageDialog(this, "Error: please fill all details correctly!");
-
-            }
-
-        }
-    }//GEN-LAST:event_btnDeleteMouseClicked
-
-    private void btnUpdateMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnUpdateMouseClicked
-        if (m_id.getText().isEmpty() || m_name.getText().isEmpty() || m_price.getText().isEmpty() || m_quantity.getText().isEmpty())
-        {
-            JOptionPane.showMessageDialog(this, "Missing Information: fill all the fiedls correctly to update");
-        }
-        else
-        {
-     
-            try{
-                
-                Con = DatabaseHelper.getConnection();
-
-                int Id = Integer.valueOf(m_id.getText());
-                String retriveId = "Select M_ID from MEDICINE where M_ID="+Id; 
-                Statement select = Con.createStatement();
-                ResultSet row = select.executeQuery(retriveId);
-
-                if(!row.next()){
-                    JOptionPane.showMessageDialog(this, "Medicine "+Id+" Unavailable! Please enter valid ID to update");
-                }else{
-                    FDate = m_mftdate.getDate();
-                    MyFabdate = new java.sql.Date(FDate.getTime());
-                    EDate = m_expdate.getDate();
-                    MyExpDate = new java.sql.Date(EDate.getTime());
-                    PreparedStatement upd = Con.prepareStatement(
-                        "UPDATE MEDICINE SET M_NAME=?,M_PRICE=?,M_QUANTITY=?,M_MFTDATE=?,M_EXPDATE=?,M_COMPANY=?,M_OWNER=?,M_CATEGORY=?,M_STRENGTH=?,M_DOSAGE=?,M_UNIT_COST=?,M_THRESHOLD=?,M_BATCH=? WHERE M_ID=?");
-                    upd.setString(1, m_name.getText());
-                    upd.setDouble(2, Double.valueOf(m_price.getText()));
-                    upd.setInt(3, Integer.valueOf(m_quantity.getText()));
-                    upd.setDate(4, MyFabdate);
-                    upd.setDate(5, MyExpDate);
-                    upd.setString(6, m_company.getSelectedItem().toString());
-                    upd.setString(7, m_owner.getText().isEmpty() ? "Main" : m_owner.getText());
-                    upd.setString(8, m_category.getSelectedItem().toString());
-                    upd.setString(9, m_strength.getText());
-                    upd.setString(10, m_dosage.getText());
-                    upd.setDouble(11, m_unitcost.getText().isEmpty() ? 0.0 : Double.valueOf(m_unitcost.getText()));
-                    upd.setInt(12, m_threshold.getText().isEmpty() ? 10 : Integer.valueOf(m_threshold.getText()));
-                    upd.setString(13, m_batch.getText());
-                    upd.setInt(14, Id);
-                    upd.executeUpdate();
-
-                    SelectMed();
-                    JOptionPane.showMessageDialog(this, "Medicine "+m_id.getText()+" Updated Successfully");
-                }
-            }catch(java.sql.SQLIntegrityConstraintViolationException e){
-                JOptionPane.showMessageDialog(this, "Error: Expiry date must not be lesser than manufacture date!");
-            }catch(SQLException e)
-            {
-                JOptionPane.showMessageDialog(this, "Error: A SQL exception occured");
-                e.printStackTrace();
-            }catch(Exception e){
-                JOptionPane.showMessageDialog(this, "Error: please fill all details correctly!");
-
-            }
-
-        }
-    }//GEN-LAST:event_btnUpdateMouseClicked
-
-    private void medicine_tableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_medicine_tableMouseClicked
-        DefaultTableModel model = (DefaultTableModel)medicine_table.getModel();
-        int Myindex = medicine_table.getSelectedRow();
-        m_id.setText(model.getValueAt(Myindex, 0).toString());
-        m_name.setText(model.getValueAt(Myindex, 1).toString());
-        m_quantity.setText(model.getValueAt(Myindex, 2).toString());
-        m_price.setText(model.getValueAt(Myindex, 3).toString());
-        m_expdate.setDate((java.sql.Date) model.getValueAt(Myindex, 4));
-        m_mftdate.setDate((java.sql.Date) model.getValueAt(Myindex, 5));
-
-        m_company.setSelectedItem(model.getValueAt(Myindex, 6).toString());
-        m_owner.setText(model.getValueAt(Myindex, 7) == null ? "" : model.getValueAt(Myindex, 7).toString());
-        m_category.setSelectedItem(model.getValueAt(Myindex, 8) == null ? "Tablet" : model.getValueAt(Myindex, 8).toString());
-        m_strength.setText(model.getValueAt(Myindex, 9) == null ? "" : model.getValueAt(Myindex, 9).toString());
-        m_dosage.setText(model.getValueAt(Myindex, 10) == null ? "" : model.getValueAt(Myindex, 10).toString());
-        m_unitcost.setText(model.getValueAt(Myindex, 11) == null ? "" : model.getValueAt(Myindex, 11).toString());
-        m_threshold.setText(model.getValueAt(Myindex, 12) == null ? "10" : model.getValueAt(Myindex, 12).toString());
-        m_batch.setText(model.getValueAt(Myindex, 13) == null ? "" : model.getValueAt(Myindex, 13).toString());
-    }//GEN-LAST:event_medicine_tableMouseClicked
-
-    private void btnClearMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnClearMouseClicked
-        m_id.setText("");
-        m_name.setText("");
-        m_quantity.setText("");
-        m_price.setText("");
-        m_owner.setText("");
-        m_strength.setText("");
-        m_dosage.setText("");
-        m_unitcost.setText("");
-        m_threshold.setText("10");
-        m_batch.setText("");
-        m_category.setSelectedIndex(0);
-        m_company.setSelectedIndex(0);
-        m_expdate.setDate(null);
-        m_mftdate.setDate(null);
-    }//GEN-LAST:event_btnClearMouseClicked
-
-    private void closeXMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_closeXMouseClicked
-        int choice = JOptionPane.showConfirmDialog(this, "Exit application?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
-        if (choice == JOptionPane.YES_OPTION) System.exit(0);
-    }//GEN-LAST:event_closeXMouseClicked
-
-    private void companyBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_companyBtnMouseClicked
-
-        try{
-            new CompanyFrame().setVisible(true);
-            this.dispose();
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(this, "Internal Server Error!");
-
-            e.printStackTrace();
-        }
-
-    }//GEN-LAST:event_companyBtnMouseClicked
-
-    private void agentBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_agentBtnMouseClicked
-
-        try{
-            new AgentsFrame().setVisible(true);
-            this.dispose();
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(this, "Internal Server Error!");
-
-            e.printStackTrace();
-        }
-
-    }//GEN-LAST:event_agentBtnMouseClicked
-
-    private void sellBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sellBtnMouseClicked
-
-        try{
-            new SellingFrame().setVisible(true);
-            this.dispose();
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(this, "Internal Server Error!");
-
-            e.printStackTrace();
-        }
-
-    }//GEN-LAST:event_sellBtnMouseClicked
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MedicineFrame().setVisible(true);
-            }
-        });
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel Title10;
-    private javax.swing.JLabel Title11;
-    private javax.swing.JLabel Title3;
-    private javax.swing.JLabel Title4;
-    private javax.swing.JLabel Title5;
-    private javax.swing.JLabel Title6;
-    private javax.swing.JLabel Title7;
-    private javax.swing.JLabel Title8;
-    private javax.swing.JLabel Title9;
-    private javax.swing.JLabel agentBtn;
-    private javax.swing.JButton btnAdd;
-    private javax.swing.JButton btnClear;
-    private javax.swing.JButton btnDelete;
-    private javax.swing.JButton btnUpdate;
-    private javax.swing.JLabel closeX;
-    private javax.swing.JLabel companyBtn;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JComboBox<String> m_company;
-    private com.toedter.calendar.JDateChooser m_expdate;
-    private javax.swing.JTextField m_id;
-    private com.toedter.calendar.JDateChooser m_mftdate;
-    private javax.swing.JTextField m_name;
-    private javax.swing.JTextField m_price;
-    private javax.swing.JTextField m_quantity;
-    private javax.swing.JTable medicine_table;
-    private javax.swing.JLabel sellBtn;
-    private javax.swing.JTextField m_owner;
-    private javax.swing.JLabel Title12;
-    // End of variables declaration//GEN-END:variables
-}
+    private void btnDeleteMouseClicked(MouseEvent evt) {
+        if (m_id.getText().isEmpty()) { JOptionPane.showMessageDialog(this, "Enter the ID to delete."); return; }
+        int confirm = JOptionPane.showConfirmDialog(this, "Delete medicine " + m_id.getText() + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+        try {
+            Con = DatabaseHelper.getConnection();
+            try (PreparedStatement chk = Con.prepareStatement("SELECT M_ID FROM MEDICINE WHERE M_ID=?")) {
+                chk.setInt(1, Integer.parseInt(m_id.getText()));
+                if (!chk.executeQuery().next()) { JOptionPane.showMessageDialog(this, "ID not found."); return; }
+            }
+            try (PreparedStatement del = Con.prepareStatement("DELETE FROM MEDICINE WHERE M_ID=?")) {
+                del.setInt(1, Integer.parseInt(m_id.getText())); del.executeUpdate();
+            }
+            loadMedicines(); JOptionPane.showMessageDialog(this, "Medicine deleted.");
+        } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error: " + e.getMessage()); }
+    }
 
+    private void btnUpdateMouseClicked(MouseEvent evt) {
+        if (m_id.getText().isEmpty() || m_name.getText().isEmpty() || m_price.getText().isEmpty() || m_quantity.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill ID, Name, Quantity and Price."); return;
+        }
+        try {
+            Con = DatabaseHelper.getConnection();
+            int id = Integer.parseInt(m_id.getText());
+            try (PreparedStatement chk = Con.prepareStatement("SELECT M_ID FROM MEDICINE WHERE M_ID=?")) {
+                chk.setInt(1, id);
+                if (!chk.executeQuery().next()) { JOptionPane.showMessageDialog(this, "Medicine ID " + id + " not found."); return; }
+            }
+            FDate = m_mftdate.getDate(); MyFabdate = new java.sql.Date(FDate.getTime());
+            EDate = m_expdate.getDate(); MyExpDate  = new java.sql.Date(EDate.getTime());
+            try (PreparedStatement upd = Con.prepareStatement(
+                    "UPDATE MEDICINE SET M_NAME=?,M_PRICE=?,M_QUANTITY=?,M_MFTDATE=?,M_EXPDATE=?,M_COMPANY=?,M_OWNER=?,M_CATEGORY=?,M_STRENGTH=?,M_DOSAGE=?,M_UNIT_COST=?,M_THRESHOLD=?,M_BATCH=? WHERE M_ID=?")) {
+                upd.setString(1, m_name.getText()); upd.setDouble(2, Double.parseDouble(m_price.getText()));
+                upd.setInt(3, Integer.parseInt(m_quantity.getText()));
+                upd.setDate(4, MyFabdate); upd.setDate(5, MyExpDate);
+                upd.setString(6, m_company.getSelectedItem().toString());
+                upd.setString(7, m_owner.getText().isEmpty() ? "Main" : m_owner.getText());
+                upd.setString(8, m_category.getSelectedItem().toString());
+                upd.setString(9, m_strength.getText()); upd.setString(10, m_dosage.getText());
+                upd.setDouble(11, m_unitcost.getText().isEmpty() ? 0.0 : Double.parseDouble(m_unitcost.getText()));
+                upd.setInt(12, m_threshold.getText().isEmpty() ? 10 : Integer.parseInt(m_threshold.getText()));
+                upd.setString(13, m_batch.getText()); upd.setInt(14, id);
+                upd.executeUpdate();
+            }
+            loadMedicines(); JOptionPane.showMessageDialog(this, "Medicine updated.");
+        } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error: " + e.getMessage()); }
+    }
+
+    private void medicine_tableMouseClicked(MouseEvent evt) {
+        DefaultTableModel model = (DefaultTableModel) medicine_table.getModel();
+        int i = medicine_table.getSelectedRow();
+        if (i < 0) return;
+        m_id.setText(model.getValueAt(i, 0).toString());
+        m_name.setText(model.getValueAt(i, 1).toString());
+        m_quantity.setText(model.getValueAt(i, 2).toString());
+        m_price.setText(model.getValueAt(i, 3).toString());
+        m_expdate.setDate((java.sql.Date) model.getValueAt(i, 4));
+        m_mftdate.setDate((java.sql.Date) model.getValueAt(i, 5));
+        m_company.setSelectedItem(model.getValueAt(i, 6).toString());
+        m_owner.setText(nullSafe(model.getValueAt(i, 7), ""));
+        m_category.setSelectedItem(nullSafe(model.getValueAt(i, 8), "Tablet"));
+        m_strength.setText(nullSafe(model.getValueAt(i, 9), ""));
+        m_dosage.setText(nullSafe(model.getValueAt(i, 10), ""));
+        m_unitcost.setText(nullSafe(model.getValueAt(i, 11), ""));
+        m_threshold.setText(nullSafe(model.getValueAt(i, 12), "10"));
+        m_batch.setText(nullSafe(model.getValueAt(i, 13), ""));
+    }
+
+    private void btnClearMouseClicked(MouseEvent evt) {
+        m_id.setText(""); m_name.setText(""); m_quantity.setText(""); m_price.setText("");
+        m_owner.setText(""); m_strength.setText(""); m_dosage.setText("");
+        m_unitcost.setText(""); m_threshold.setText("10"); m_batch.setText("");
+        m_category.setSelectedIndex(0); m_company.setSelectedIndex(0);
+        m_expdate.setDate(null); m_mftdate.setDate(null);
+    }
+
+    private String nullSafe(Object v, String def) { return v == null ? def : v.toString(); }
+
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(() -> new MedicineFrame().setVisible(true));
+    }
+}
