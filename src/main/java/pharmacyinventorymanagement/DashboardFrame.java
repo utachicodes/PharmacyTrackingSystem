@@ -76,10 +76,10 @@ public class DashboardFrame extends javax.swing.JFrame {
     // ── UI construction ───────────────────────────────────────────────────────
     private void initComponents() {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Pharmacy System — Dashboard");
-        setSize(880, 580);
+        setTitle("PharmTrack — Dashboard");
+        setSize(920, 600);
+        setMinimumSize(new Dimension(780, 500));
         setLocationRelativeTo(null);
-        setResizable(false);
 
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(CONTENT_BG);
