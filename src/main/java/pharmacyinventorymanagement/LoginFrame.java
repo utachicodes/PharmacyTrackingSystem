@@ -89,6 +89,11 @@ public class LoginFrame extends javax.swing.JFrame {
         author.setForeground(ACCENT);
         author.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        JLabel version = new JLabel("v1.0  ·  Junior II");
+        version.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        version.setForeground(new Color(71, 85, 105));
+        version.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         left.add(Box.createVerticalGlue());
         left.add(iconLbl);
         left.add(Box.createVerticalStrut(12));
@@ -97,6 +102,8 @@ public class LoginFrame extends javax.swing.JFrame {
         left.add(tagline);
         left.add(Box.createVerticalGlue());
         left.add(author);
+        left.add(Box.createVerticalStrut(4));
+        left.add(version);
 
         root.add(left, BorderLayout.WEST);
 
