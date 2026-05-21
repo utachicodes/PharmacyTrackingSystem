@@ -17,7 +17,6 @@ import {
   Lock,
   Users,
   Building2,
-  ArrowRight,
   Activity,
   ClipboardList,
   Boxes,
@@ -25,25 +24,33 @@ import {
   FileCode2,
   Cpu,
   CheckCircle2,
-  Circle,
+  ArrowDown,
+  ArrowRight,
+  Zap,
+  Eye,
+  GitBranch,
 } from 'lucide-react'
 import Image from 'next/image'
 
 // ── animation presets ────────────────────────────────────────────────────────
 
-const fadeUp = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fadeUp: any = {
   hidden: { opacity: 0, y: 18 },
   show:   { opacity: 1, y: 0,  transition: { duration: 0.38, ease: 'easeOut' } },
 }
-const fadeIn = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fadeIn: any = {
   hidden: { opacity: 0 },
   show:   { opacity: 1, transition: { duration: 0.35 } },
 }
-const stagger = (delay = 0.07) => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const stagger = (delay = 0.07): any => ({
   hidden: {},
   show:   { transition: { staggerChildren: delay, delayChildren: 0.05 } },
 })
-const slideLeft = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const slideLeft: any = {
   hidden: { opacity: 0, x: -20 },
   show:   { opacity: 1, x: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 }
@@ -99,49 +106,112 @@ function CodeWindow({ filename, code }: { filename: string; code: string }) {
 
 // ── code snippets ────────────────────────────────────────────────────────────
 
-const CODE_CONN = `public static Connection getConnection()
-    throws SQLException {
-  // Connect to local MySQL instance
-  String url = "jdbc:mysql://localhost:3306/PharmaDb";
-  try {
-    Class.forName("com.mysql.cj.jdbc.Driver");
-    return DriverManager.getConnection(url, USER, PASS);
-  } catch (ClassNotFoundException e) {
-    throw new SQLException("MySQL Driver not found", e);
-  }
-}`
+const CODE_LOGIN = `// LoginFrame.java — authentication on a background thread
+// Keeps the UI responsive; never blocks the Event Dispatch Thread
 
-const CODE_RBAC = `private void applyRolePermissions() {
+new Thread(() -> {
+  try (Connection conn = DatabaseHelper.getConnection();
+       PreparedStatement ps = conn.prepareStatement(
+         "SELECT A_ROLE FROM AGENTS WHERE A_NAME = ? AND A_PASSWORD = ?")) {
+
+    ps.setString(1, user); // parameterised — never concatenated
+    ps.setString(2, pwd);  // SQL injection impossible
+
+    try (ResultSet rs = ps.executeQuery()) {
+      if (rs.next()) {
+        String role = rs.getString("A_ROLE");
+        SwingUtilities.invokeLater(() -> {  // post back to EDT
+          new DashboardFrame(role).setVisible(true);
+          dispose();
+        });
+      }
+    }
+  }
+}).start();`
+
+const CODE_RBAC = `// DashboardFrame.java — called once after the sidebar is built
+private void applyRolePermissions() {
   if ("Technician".equalsIgnoreCase(userRole)) {
-    btnAgents.setEnabled(false);
-    btnCompany.setEnabled(false);
-    btnPO.setEnabled(false);
+    btnAgents.setEnabled(false);    // no staff management
+    btnCompany.setEnabled(false);   // no suppliers
+    btnPO.setEnabled(false);        // no procurement
+    btnReports.setEnabled(false);   // no analytics
   } else if ("Pharmacist".equalsIgnoreCase(userRole)) {
-    btnAgents.setEnabled(false);
+    btnAgents.setEnabled(false);    // no staff management
   }
   // Admin: all buttons remain enabled
 }`
 
-const CODE_FORECAST = `public static int predictDemand(String name) {
-  // SMA: sum of last 30 days / 30 * 7
+const CODE_FORECAST = `// ForecastingHelper.java — 30-day Simple Moving Average
+public static int predictDemand(String name) {
+  int totalQty = 0, count = 0;
   LocalDate ago = LocalDate.now().minusDays(30);
+
+  // Query all sales for this medicine in the last 30 days
   pstmt.setString(1, name);
   pstmt.setDate(2, java.sql.Date.valueOf(ago));
-  // ... accumulate totalQty from SALES
+  while (rs.next()) { totalQty += rs.getInt("S_QTY"); count++; }
+
+  if (count == 0) return 0;            // no history → no forecast
+
+  // avgDaily = total units / 30 days
+  // forecast  = avgDaily × 7-day horizon
   double avgDaily = (double) totalQty / 30.0;
-  return (int) Math.ceil(avgDaily * 7);
+  return (int) Math.ceil(avgDaily * 7); // round up — never under-order
 }`
 
-const CODE_TXN = `conn.setAutoCommit(false);
+const CODE_TXN = `// PurchaseOrderFrame.java — atomic stock receive
+// Both writes succeed together, or both are rolled back
+
+conn.setAutoCommit(false);
 try {
-  // 1. Mark PO as Received
-  updatePO.executeUpdate();
-  // 2. Increment medicine stock
-  updateMed.executeUpdate();
-  conn.commit();         // both succeed
+  // Step 1: mark PO as Received
+  PreparedStatement updPO = conn.prepareStatement(
+    "UPDATE PURCHASE_ORDERS SET PO_STATUS='Received' WHERE PO_ID=?");
+  updPO.setInt(1, poId);
+  updPO.executeUpdate();
+
+  // Step 2: add received qty to medicine stock
+  PreparedStatement updMed = conn.prepareStatement(
+    "UPDATE MEDICINE SET M_QUANTITY = M_QUANTITY + ? WHERE M_NAME = ?");
+  updMed.setInt(1, qty); updMed.setString(2, medName);
+  updMed.executeUpdate();
+
+  conn.commit();       // both succeed — atomically visible
 } catch (SQLException e) {
-  conn.rollback();       // or both roll back
-  throw e;
+  conn.rollback();     // either fails → neither persists
+}`
+
+const CODE_INJECT = `// ✗ VULNERABLE — string concatenation (never do this)
+String sql = "SELECT * FROM AGENTS WHERE A_NAME = '" + user + "'";
+// Attacker enters:  user = "' OR '1'='1' --"
+// Resulting SQL:  SELECT * FROM AGENTS WHERE A_NAME = '' OR '1'='1' --'
+//                 → logs in as the first row in the table, no password needed
+
+// ✓ SAFE — PreparedStatement (used in all 8 frames)
+PreparedStatement ps = conn.prepareStatement(
+  "SELECT A_ROLE FROM AGENTS WHERE A_NAME = ? AND A_PASSWORD = ?");
+ps.setString(1, user); // JDBC escapes the value — it is never SQL
+ps.setString(2, pwd);
+// Attacker's input becomes a literal string value, not SQL syntax`
+
+const CODE_SCHEMA = `// DatabaseHelper.java — schema auto-created on first launch
+stmt.execute("CREATE TABLE IF NOT EXISTS AGENTS (" +
+  "A_ID INT PRIMARY KEY, " +
+  "A_NAME VARCHAR(50), " +
+  "A_AGE INT, " +
+  "A_PASSWORD VARCHAR(50), " +
+  "A_PHONE VARCHAR(20), " +
+  "A_GENDER VARCHAR(10), " +
+  "A_EMAIL VARCHAR(50), " +
+  "A_ROLE VARCHAR(20) DEFAULT 'Technician')");
+
+// Seed a default admin if the table is empty (first run)
+try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM AGENTS")) {
+  if (rs.next() && rs.getInt(1) == 0) {
+    stmt.execute("INSERT INTO AGENTS VALUES " +
+      "(1,'Admin',30,'admin123','0000000000','Other','admin@pharma.com','Admin')");
+  }
 }`
 
 // ── SLIDE 01 — TITLE ────────────────────────────────────────────────────────
@@ -266,42 +336,51 @@ function Slide02() {
 
 function Slide03() {
   const features = [
-    { icon: <Boxes size={20} className="text-[#15803d]" />,       label: 'Inventory',      desc: 'Full CRUD with batch numbers, categories, and per-medicine reorder thresholds' },
-    { icon: <TrendingUp size={20} className="text-sky-600" />,    label: 'Forecasting',    desc: '30-day Simple Moving Average predicts seven-day demand per medicine' },
-    { icon: <Bell size={20} className="text-amber-500" />,        label: 'Alerts',         desc: 'Low-stock and near-expiry warnings shown every time the dashboard loads' },
-    { icon: <ShieldCheck size={20} className="text-violet-600" />,label: 'Access Control', desc: 'Three roles: Admin, Pharmacist, Technician, each with distinct permissions' },
-    { icon: <ShoppingCart size={20} className="text-rose-500" />, label: 'Procurement',    desc: 'Purchase orders with transactional stock receiving via JDBC transactions' },
-    { icon: <BarChart3 size={20} className="text-teal-500" />,    label: 'Valuation',      desc: 'Live total inventory value calculated as quantity times unit cost per medicine' },
+    { icon: <Boxes size={20} className="text-[#15803d]" />,       label: 'Inventory',       desc: 'Full CRUD with batch numbers, categories, and per-medicine reorder thresholds' },
+    { icon: <TrendingUp size={20} className="text-sky-600" />,    label: 'Forecasting',     desc: '30-day Simple Moving Average predicts seven-day demand; one-click reorder from alerts' },
+    { icon: <Bell size={20} className="text-amber-500" />,        label: 'Alerts',          desc: 'Low-stock and near-expiry warnings on dashboard; double-click to pre-fill a PO instantly' },
+    { icon: <ShieldCheck size={20} className="text-violet-600" />,label: 'Access Control',  desc: 'Three roles — Admin, Pharmacist, Technician — each with distinct module-level permissions' },
+    { icon: <ShoppingCart size={20} className="text-rose-500" />, label: 'Billing & POS',   desc: 'Live stock search, prescription reference field, running invoice, and print support' },
+    { icon: <ClipboardList size={20} className="text-orange-500" />, label: 'Procurement',  desc: 'Purchase orders with atomic two-step receiving: status update + stock increment in one transaction' },
+    { icon: <Activity size={20} className="text-teal-500" />,     label: 'Sales History',   desc: 'Full transaction log filterable by date range and medicine name, with live revenue totals' },
+    { icon: <BarChart3 size={20} className="text-indigo-500" />,  label: 'Reports',         desc: 'Top sellers, daily revenue (14-day window), expiry overview, and four live stat cards' },
+  ]
+  const stats = [
+    { n: '14', label: 'Java source files' },
+    { n: '5',  label: 'Database tables' },
+    { n: '3',  label: 'User roles' },
+    { n: '8',  label: 'Access-controlled modules' },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-5xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
       <Label n="03" text="System Overview" />
       <Anim>
-        <h2 className="text-[3rem] font-black text-[#0a0a0a] mb-7 leading-[1.05]">
-          Six core features.
+        <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
+          Eight features. One system.
         </h2>
       </Anim>
-      <motion.div className="grid grid-cols-3 gap-3 mb-6" variants={stagger(0.08)}>
+      <motion.div className="grid grid-cols-4 gap-3 mb-4" variants={stagger(0.08)}>
         {features.map((f) => (
           <Anim key={f.label} variants={fadeUp}>
             <motion.div
-              className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm h-full"
+              className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm h-full"
               whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
               transition={{ duration: 0.2 }}
             >
-              <div className="mb-3">{f.icon}</div>
-              <p className="font-bold text-[#0a0a0a] text-sm mb-1.5">{f.label}</p>
-              <p className="text-gray-500 text-xs leading-relaxed">{f.desc}</p>
+              <div className="mb-2.5">{f.icon}</div>
+              <p className="font-bold text-[#0a0a0a] text-sm mb-1">{f.label}</p>
+              <p className="text-gray-500 text-[11px] leading-relaxed">{f.desc}</p>
             </motion.div>
           </Anim>
         ))}
       </motion.div>
       <Anim>
-        <div className="flex gap-2 flex-wrap">
-          {['Java 17 LTS', 'Swing + FlatLaf IntelliJ', 'MySQL 8.3', 'JDBC', 'JCalendar 1.4', 'Commons DBUtils', 'Maven'].map((t) => (
-            <span key={t} className="border border-gray-200 bg-white text-gray-400 text-[10px] font-mono px-2.5 py-1 rounded-full">
-              {t}
-            </span>
+        <div className="grid grid-cols-4 gap-3">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-[#0d2818] rounded-xl px-4 py-3 flex items-center gap-3">
+              <span className="text-[#15803d] font-black text-2xl tabular-nums">{s.n}</span>
+              <span className="text-white/50 text-[11px] leading-tight">{s.label}</span>
+            </div>
           ))}
         </div>
       </Anim>
@@ -321,8 +400,8 @@ function Slide04() {
       badge: 'bg-[#5382a1] text-white',
       role: 'Language',
       reasons: [
-        { title: 'Long-term support', desc: 'Security patches guaranteed until 2029 — safe for a pharmacy running in production without frequent upgrades.' },
-        { title: 'Swing is fully supported', desc: 'Java 17 is the baseline recommended for desktop Swing apps; modern syntax (records, sealed classes) keeps helper code concise.' },
+        { title: 'Long-term support', desc: 'Security patches until 2029 — safe for production without frequent runtime upgrades.' },
+        { title: 'Write once, run anywhere', desc: 'The compiled JAR runs on any OS with Java 17 installed — Windows, macOS, Linux — no recompilation.' },
       ],
     },
     {
@@ -333,8 +412,8 @@ function Slide04() {
       badge: 'bg-violet-600 text-white',
       role: 'UI Framework',
       reasons: [
-        { title: 'Ships inside the JDK — zero install', desc: 'No framework to install or license. The JAR runs on any machine with Java 17, entirely offline — no server, no browser, no network.' },
-        { title: 'FlatLaf modernises with four lines of code', desc: 'FlatIntelliJLaf.setup() replaces the dated Metal theme with a clean IntelliJ-style look. No changes to any existing component.' },
+        { title: 'Built into the JDK — zero install', desc: 'No framework to download or license. The app works entirely offline with no server or browser.' },
+        { title: 'FlatLaf modernises in one line', desc: 'FlatIntelliJLaf.setup() replaces the dated Metal theme with a clean IntelliJ-style look across every component.' },
       ],
     },
     {
@@ -345,8 +424,20 @@ function Slide04() {
       badge: 'bg-[#00758f] text-white',
       role: 'Database',
       reasons: [
-        { title: 'ACID transactions (InnoDB)', desc: 'Receiving a PO must update two tables atomically. If either write fails, both roll back — preventing partial stock state.' },
-        { title: 'Relational model fits the domain', desc: 'Medicines, suppliers, sales, and orders are naturally linked. MySQL Community Edition is free, runs anywhere, and needs no licensing.' },
+        { title: 'ACID transactions (InnoDB engine)', desc: 'Receiving a PO updates two tables atomically. If either write fails, both roll back — no partial stock state can persist.' },
+        { title: 'createDatabaseIfNotExist in URL', desc: 'The JDBC URL auto-creates PharmaDb on first connection. No manual SQL setup required on any machine.' },
+      ],
+    },
+    {
+      name: 'JDBC — no ORM',
+      version: 'PreparedStatement everywhere',
+      icon: <Lock size={18} className="text-[#15803d]" />,
+      color: 'border-[#15803d]/30 bg-green-50',
+      badge: 'bg-[#15803d] text-white',
+      role: 'Persistence',
+      reasons: [
+        { title: 'PreparedStatements prevent SQL injection', desc: 'Every query uses ? placeholders. User input is a value, never SQL — all 8 frames are injection-safe by construction.' },
+        { title: 'No ORM magic — every query is visible', desc: 'Hibernate or JPA would hide the SQL. With JDBC you see exactly what hits the database — simpler to debug and teach.' },
       ],
     },
     {
@@ -357,8 +448,8 @@ function Slide04() {
       badge: 'bg-rose-500 text-white',
       role: 'Build System',
       reasons: [
-        { title: 'Declarative dependency management', desc: 'All four libraries (FlatLaf, Connector/J, JCalendar, DBUtils) are resolved automatically from Maven Central — no manual JAR copying.' },
-        { title: 'Native IDE support', desc: 'NetBeans, IntelliJ, and Eclipse all understand Maven projects out of the box. No classpath configuration needed on any machine.' },
+        { title: 'Declarative dependency management', desc: 'FlatLaf, Connector/J, JCalendar resolved automatically from Maven Central — no manual JAR copying or classpath config.' },
+        { title: 'Universal IDE support', desc: 'NetBeans, IntelliJ, and Eclipse all open Maven projects natively. The project builds identically on any machine.' },
       ],
     },
     {
@@ -369,20 +460,8 @@ function Slide04() {
       badge: 'bg-amber-600 text-white',
       role: 'Date Picker',
       reasons: [
-        { title: 'Swing-native calendar widget', desc: 'JDateChooser slots directly into any Swing layout. No custom rendering, no third-party event loop — it behaves like any other JComponent.' },
-        { title: 'Direct java.util.Date output', desc: 'One line — java.sql.Date.valueOf() — converts the picker value into a PreparedStatement parameter for expiry and order dates.' },
-      ],
-    },
-    {
-      name: 'JDBC + Apache Commons DBUtils',
-      version: 'DBUtils 1.7',
-      icon: <CheckCircle2 size={18} className="text-[#15803d]" />,
-      color: 'border-[#15803d]/30 bg-green-50',
-      badge: 'bg-[#15803d] text-white',
-      role: 'Persistence',
-      reasons: [
-        { title: 'PreparedStatements prevent SQL injection', desc: 'Every query uses PreparedStatement. User input is never concatenated into SQL — all seven frame queries are injection-safe.' },
-        { title: 'DBUtils included for safe resource cleanup', desc: 'Apache Commons DBUtils is bundled as a dependency. Its DbUtils.closeQuietly() pattern ensures connections and statements are always released, even on exception.' },
+        { title: 'Swing-native calendar widget', desc: 'JDateChooser slots into any GridBagLayout or BoxLayout panel like any other JComponent — no custom rendering required.' },
+        { title: 'Direct java.sql.Date output', desc: 'java.sql.Date.valueOf(picker.getDate()) — one line converts the picker value into a PreparedStatement parameter.' },
       ],
     },
   ]
@@ -435,23 +514,23 @@ function Slide05() {
     {
       label: 'Presentation',
       color: 'bg-[#0d2818] text-white',
-      border: 'border-[#0d2818]',
-      items: ['SplashFrame', 'LoginFrame', 'DashboardFrame', 'MedicineFrame', 'AgentsFrame', 'CompanyFrame', 'SellingFrame', 'PurchaseOrderFrame'],
       icon: <Layers size={14} />,
+      items: ['SplashFrame', 'LoginFrame', 'DashboardFrame', 'MedicineFrame', 'AgentsFrame', 'CompanyFrame', 'SellingFrame', 'PurchaseOrderFrame', 'SalesHistoryFrame', 'ReportsFrame', 'UIHelper', 'PharmIcons'],
+      note: 'Each JFrame owns display and user input only. Navigation passes userRole to the next frame.',
     },
     {
       label: 'Business Logic',
       color: 'bg-[#1e3a5f] text-white',
-      border: 'border-[#1e3a5f]',
-      items: ['DatabaseHelper', 'ForecastingHelper'],
       icon: <Cpu size={14} />,
+      items: ['DatabaseHelper', 'ForecastingHelper'],
+      note: 'All SQL lives in DatabaseHelper. All SMA logic lives in ForecastingHelper. No frame class builds SQL.',
     },
     {
       label: 'Data',
       color: 'bg-[#4a1a6b] text-white',
-      border: 'border-[#4a1a6b]',
-      items: ['MEDICINE', 'AGENTS', 'SALES', 'PURCHASE_ORDERS', 'COMPANY'],
       icon: <Database size={14} />,
+      items: ['MEDICINE', 'AGENTS', 'SALES', 'PURCHASE_ORDERS', 'COMPANY'],
+      note: 'MySQL 8.x on localhost. Schema and seed data created automatically on first launch.',
     },
   ]
   return (
@@ -464,9 +543,24 @@ function Slide05() {
           </h2>
         </Anim>
         <Anim>
-          <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
-            Swing frames own display and input only. All SQL lives in DatabaseHelper. All forecasting logic lives in ForecastingHelper. No frame class touches the database directly.
+          <p className="text-gray-500 text-sm leading-relaxed max-w-sm mb-6">
+            The presentation layer handles display and events only. Business logic and SQL are fully separated into helper classes. No Swing frame builds a SQL string.
           </p>
+        </Anim>
+        <Anim>
+          <div className="flex flex-col gap-2">
+            {[
+              { from: 'User clicks', to: 'JFrame event handler', color: 'text-[#15803d]' },
+              { from: 'Event handler', to: 'DatabaseHelper / ForecastingHelper', color: 'text-sky-600' },
+              { from: 'Helper', to: 'MySQL via PreparedStatement', color: 'text-violet-600' },
+            ].map((f) => (
+              <div key={f.from} className="flex items-center gap-2 text-[11px]">
+                <span className="text-gray-500 font-mono">{f.from}</span>
+                <ArrowRight size={10} className="text-gray-300 shrink-0" />
+                <span className={`font-mono font-semibold ${f.color}`}>{f.to}</span>
+              </div>
+            ))}
+          </div>
         </Anim>
       </div>
 
@@ -485,6 +579,9 @@ function Slide05() {
                   </span>
                 ))}
               </div>
+              <div className="bg-gray-50 px-4 py-1.5 border-t border-gray-100">
+                <p className="text-[9.5px] text-gray-400">{l.note}</p>
+              </div>
             </div>
             {i < layers.length - 1 && (
               <div className="flex justify-center py-0.5">
@@ -498,7 +595,176 @@ function Slide05() {
   )
 }
 
-// ── SLIDE 05 — OOP DESIGN ────────────────────────────────────────────────────
+// ── SLIDE 06 — RBAC ─────────────────────────────────────────────────────────
+
+function SlideRBAC() {
+  const modules = [
+    'Dashboard', 'Medicines', 'Billing', 'Sales History',
+    'Suppliers', 'Purchase Orders', 'Reports', 'Agents (Staff)',
+  ]
+  const roles = [
+    {
+      name: 'Admin',
+      icon: <ShieldCheck size={14} className="text-red-600" />,
+      color: 'text-red-600',
+      bg: 'bg-red-50 border-red-200',
+      badge: 'bg-red-100 text-red-700',
+      desc: 'Full system access. Manages staff accounts, procurement, billing, inventory, and analytics.',
+      access: [true, true, true, true, true, true, true, true],
+    },
+    {
+      name: 'Pharmacist',
+      icon: <Activity size={14} className="text-blue-600" />,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50 border-blue-200',
+      badge: 'bg-blue-100 text-blue-700',
+      desc: 'Clinical and operational access. All modules except staff account management.',
+      access: [true, true, true, true, true, true, true, false],
+    },
+    {
+      name: 'Technician',
+      icon: <Boxes size={14} className="text-green-600" />,
+      color: 'text-green-600',
+      bg: 'bg-green-50 border-green-200',
+      badge: 'bg-green-100 text-green-700',
+      desc: 'Restricted to daily dispensing. Medicines and Billing only — no procurement or analytics.',
+      access: [true, true, true, true, false, false, false, false],
+    },
+  ]
+
+  return (
+    <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
+      <Label n="06" text="Role-Based Access Control" />
+      <Anim>
+        <h2 className="text-[2.6rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
+          Three roles. Three levels of trust.
+        </h2>
+      </Anim>
+
+      <div className="flex gap-4">
+        {/* Role cards */}
+        <motion.div className="flex flex-col gap-3 w-60 shrink-0" variants={stagger(0.1)}>
+          {roles.map((r) => (
+            <Anim key={r.name} variants={slideLeft}>
+              <div className={`border rounded-2xl p-4 ${r.bg}`}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  {r.icon}
+                  <span className={`font-black text-[15px] ${r.color}`}>{r.name}</span>
+                </div>
+                <p className="text-gray-500 text-[11px] leading-relaxed">{r.desc}</p>
+              </div>
+            </Anim>
+          ))}
+          <Anim variants={fadeUp}>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+              <p className="text-[9.5px] font-mono text-gray-400 leading-relaxed">
+                <span className="text-[#15803d] font-semibold">Enforced in 3 places:</span><br />
+                1. Login query reads A_ROLE<br />
+                2. Dashboard disables nav buttons<br />
+                3. Each frame re-checks in sidebar
+              </p>
+            </div>
+          </Anim>
+        </motion.div>
+
+        {/* Permission matrix */}
+        <Anim variants={fadeUp} className="flex-1 overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
+              <div className="px-4 py-3 text-[10px] font-black uppercase tracking-wider text-gray-400">Module</div>
+              {roles.map((r) => (
+                <div key={r.name} className="px-4 py-3 text-center flex items-center justify-center gap-1.5">
+                  {r.icon}
+                  <span className={`text-[10px] font-black uppercase tracking-wider ${r.color}`}>{r.name}</span>
+                </div>
+              ))}
+            </div>
+            {modules.map((mod, mi) => (
+              <div key={mod} className={`grid grid-cols-4 border-b border-gray-100 ${mi % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                <div className="px-4 py-2.5 text-[12px] font-medium text-gray-700">{mod}</div>
+                {roles.map((r) => (
+                  <div key={r.name} className="px-4 py-2.5 flex justify-center items-center">
+                    {r.access[mi] ? (
+                      <span className="text-[#15803d] text-[15px] font-black">✓</span>
+                    ) : (
+                      <span className="text-gray-300 text-[15px]">—</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </Anim>
+      </div>
+    </motion.div>
+  )
+}
+
+// ── SLIDE 07 — SECURITY ──────────────────────────────────────────────────────
+
+function SlideSecurity() {
+  const points = [
+    {
+      icon: <Lock size={15} className="text-red-500" />,
+      title: 'SQL Injection — PreparedStatements',
+      bg: 'bg-red-50 border-red-200',
+      desc: 'Every single database query in all 8 frames uses PreparedStatement with ? placeholders. User input is always a typed parameter value — never concatenated into the SQL string. String concatenation is used in zero queries.',
+    },
+    {
+      icon: <Eye size={15} className="text-sky-500" />,
+      title: 'Password protection',
+      bg: 'bg-sky-50 border-sky-200',
+      desc: 'Login uses JPasswordField (dots, not text). The password column in the AgentsFrame table is hidden (width = 0) — passwords never appear on screen. An UPDATE leaves the password unchanged if the admin leaves the field blank.',
+    },
+    {
+      icon: <ShieldCheck size={15} className="text-[#15803d]" />,
+      title: 'RBAC as defence-in-depth',
+      bg: 'bg-green-50 border-green-200',
+      desc: 'Even if someone navigated directly to a restricted frame, the sidebar re-applies role checks independently. Access is denied at the DB query layer (role read at login), the UI layer (buttons disabled), and the frame layer (sidebar re-enforced in every class).',
+    },
+    {
+      icon: <Zap size={15} className="text-amber-500" />,
+      title: 'Swing EDT — thread safety',
+      bg: 'bg-amber-50 border-amber-200',
+      desc: 'All database queries run on a background thread (new Thread()), never on the Event Dispatch Thread. Results are posted back via SwingUtilities.invokeLater(). This prevents the UI from freezing during slow queries and is the correct Swing concurrency pattern.',
+    },
+  ]
+
+  return (
+    <motion.div className="h-full flex gap-10 items-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
+      <div className="flex-1">
+        <Label n="07" text="Security & Thread Safety" />
+        <Anim>
+          <h2 className="text-[2.6rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
+            Safe by construction.
+          </h2>
+        </Anim>
+        <motion.div className="space-y-3" variants={stagger(0.1)}>
+          {points.map((p) => (
+            <Anim key={p.title} variants={slideLeft}>
+              <div className={`border rounded-2xl px-5 py-4 ${p.bg}`}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  {p.icon}
+                  <span className="font-bold text-[#0a0a0a] text-[13px]">{p.title}</span>
+                </div>
+                <p className="text-gray-600 text-[11.5px] leading-relaxed">{p.desc}</p>
+              </div>
+            </Anim>
+          ))}
+        </motion.div>
+      </div>
+
+      <Anim variants={fadeUp} className="w-[400px] shrink-0">
+        <p className="text-[10.5px] font-mono text-gray-400 mb-2">
+          LoginFrame.java &nbsp;<span className="text-red-500">SQL injection proof</span>
+        </p>
+        <CodeWindow filename="PreparedStatement vs string concat" code={CODE_INJECT} />
+      </Anim>
+    </motion.div>
+  )
+}
+
+// ── SLIDE 08 — OOP DESIGN ────────────────────────────────────────────────────
 
 function Slide06() {
   const pillars = [
@@ -507,37 +773,37 @@ function Slide06() {
       bg: 'bg-sky-50 border-sky-200',
       badge: 'bg-sky-100 text-sky-800',
       icon: <Layers size={14} className="text-sky-600" />,
-      desc: 'All eight UI frames extend javax.swing.JFrame, inheriting window management, layout engine, and event dispatch.',
+      desc: 'All ten UI frames extend javax.swing.JFrame, inheriting window management, layout engine, and event dispatch. No frame reimplements any of those behaviours.',
     },
     {
       name: 'Encapsulation',
       bg: 'bg-green-50 border-green-200',
       badge: 'bg-green-100 text-green-800',
       icon: <Lock size={14} className="text-green-600" />,
-      desc: 'DatabaseHelper hides all JDBC logic. ForecastingHelper hides the SMA algorithm. RBAC is one private method in DashboardFrame.',
+      desc: 'DatabaseHelper hides all JDBC logic behind three public methods. ForecastingHelper hides the SMA algorithm. RBAC enforcement is one private method in DashboardFrame — invisible to all other classes.',
     },
     {
       name: 'Polymorphism',
       bg: 'bg-amber-50 border-amber-200',
       badge: 'bg-amber-100 text-amber-800',
       icon: <Activity size={14} className="text-amber-600" />,
-      desc: 'MedicineFrame overrides getTableCellRendererComponent() so each row gets a different background based on stock level and expiry date at runtime.',
+      desc: 'MedicineFrame overrides getTableCellRendererComponent() from DefaultTableCellRenderer. Each row is painted differently at runtime: red for low stock, yellow for near-expiry, white otherwise — same method, different behaviour per row.',
     },
     {
       name: 'Abstraction',
       bg: 'bg-violet-50 border-violet-200',
       badge: 'bg-violet-100 text-violet-800',
       icon: <Server size={14} className="text-violet-600" />,
-      desc: 'resultSetToTableModel() converts any ResultSet to a Swing table in one call. predictDemand() hides all SQL and math behind a readable method signature.',
+      desc: 'resultSetToTableModel() converts any ResultSet to a Swing table in one call — callers know nothing about ResultSetMetaData. predictDemand(name) hides all SQL and the SMA formula behind a readable int-returning method.',
     },
   ]
-  const frames = ['SplashFrame', 'LoginFrame', 'DashboardFrame', 'MedicineFrame', 'AgentsFrame', 'CompanyFrame', 'SellingFrame', 'PurchaseOrderFrame']
+  const frames = ['SplashFrame', 'LoginFrame', 'DashboardFrame', 'MedicineFrame', 'AgentsFrame', 'CompanyFrame', 'SellingFrame', 'PurchaseOrderFrame', 'SalesHistoryFrame', 'ReportsFrame']
 
   return (
     <motion.div className="h-full flex items-center gap-10 px-14 max-w-6xl mx-auto w-full" variants={stagger(0.08)} initial="hidden" animate="show">
       {/* hierarchy */}
       <div className="w-60 shrink-0">
-        <Label n="06" text="OOP Design" />
+        <Label n="08" text="OOP Design" />
         <div className="font-mono">
           <div className="border-2 border-gray-200 rounded-lg px-3 py-1.5 inline-block text-gray-400 text-[10px] bg-gray-50 mb-2">
             javax.swing.JFrame
@@ -555,7 +821,7 @@ function Slide06() {
             ))}
             <div className="pt-2 mt-1 border-t border-gray-100 space-y-1">
               <p className="text-[8px] uppercase tracking-wider text-gray-400 mb-1">Utility classes</p>
-              {['DatabaseHelper', 'ForecastingHelper'].map((h) => (
+              {['DatabaseHelper', 'ForecastingHelper', 'UIHelper', 'PharmIcons'].map((h) => (
                 <Anim key={h} variants={slideLeft}>
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-px bg-gray-200 shrink-0" />
@@ -592,30 +858,29 @@ function Slide06() {
   )
 }
 
-// ── SLIDE 06 — HELPER CLASSES ────────────────────────────────────────────────
+// ── SLIDE 09 — HELPER CLASSES ────────────────────────────────────────────────
 
 function Slide07() {
   const db = [
-    { name: 'getConnection()',         desc: 'Connects to a local MySQL instance with error handling for driver loading.' },
-    { name: 'initializeDatabase()',    desc: 'Creates 5 tables and seeds a default admin on first launch.' },
-    { name: 'resultSetToTableModel()', desc: 'Walks ResultSetMetaData to map any query result into a Swing DefaultTableModel — every frame loads its JTable through this single method.' },
+    { name: 'getConnection()',         desc: 'Loads the MySQL driver via Class.forName(), returns a fresh connection. Used by every frame. Error wraps ClassNotFoundException as SQLException.' },
+    { name: 'initializeDatabase()',    desc: 'CREATE TABLE IF NOT EXISTS for all 5 tables. Seeds a default Admin account if AGENTS is empty. Runs on every launch — safe on existing databases.' },
+    { name: 'resultSetToTableModel()', desc: 'Reads ResultSetMetaData to extract column names, then walks the rows into Vectors. Returns a DefaultTableModel used by every JTable in every frame.' },
   ]
   const fc = [
-    { name: 'predictDemand(name)',      desc: 'SMA: total 30-day sales divided by 30, multiplied by 7.' },
-    { name: 'getLowStockAlerts()',      desc: 'Flags any medicine where stock is below forecast or below 10.' },
-    { name: 'getExpirationAlerts()',    desc: 'Finds medicines expiring within the next 30 calendar days.' },
-    { name: 'getInventoryValue()',      desc: 'Sums quantity times unit cost across all medicines.' },
+    { name: 'predictDemand(name)',      desc: 'SMA: SUM(S_QTY last 30 days) / 30 × 7. Returns 0 if no sales history — no false alerts for new medicines.' },
+    { name: 'getLowStockAlerts()',      desc: 'Alerts if stock < SMA forecast OR stock < M_THRESHOLD. Dual condition catches both trend-based and threshold-based shortages.' },
+    { name: 'getExpirationAlerts()',    desc: 'Finds all medicines with M_EXPDATE before today + 30 days. isBefore() is inclusive of already-expired items.' },
+    { name: 'getInventoryValue()',      desc: 'SUM(M_QUANTITY × M_UNIT_COST) across all medicines. Shown in the dashboard summary bar on every load.' },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-5xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
-      <Label n="07" text="Helper Classes" />
+      <Label n="09" text="Helper Classes" />
       <Anim>
         <h2 className="text-[2.9rem] font-black text-[#0a0a0a] mb-6 leading-[1.05]">
-          All logic lives here.
+          All business logic lives here.
         </h2>
       </Anim>
       <motion.div className="grid grid-cols-2 gap-5" variants={stagger(0.1)}>
-        {/* DatabaseHelper */}
         <Anim variants={fadeUp}>
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm h-full">
             <div className="flex items-center justify-between mb-5">
@@ -639,7 +904,6 @@ function Slide07() {
             </motion.div>
           </div>
         </Anim>
-        {/* ForecastingHelper */}
         <Anim variants={fadeUp}>
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm h-full">
             <div className="flex items-center justify-between mb-5">
@@ -668,25 +932,27 @@ function Slide07() {
   )
 }
 
-// ── SLIDE 07 — FRAME CLASSES ─────────────────────────────────────────────────
+// ── SLIDE 10 — FRAME CLASSES ─────────────────────────────────────────────────
 
 function Slide08() {
   const rows = [
-    { icon: <Activity size={13} className="text-gray-400" />,     name: 'LoginFrame',          role: 'Drag-to-move undecorated window, PreparedStatement auth, auto-focuses username field',  tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
-    { icon: <Layers size={13} className="text-gray-400" />,       name: 'DashboardFrame',      role: 'Dark sidebar nav, RBAC role badge, live alert renderer, refresh button',               tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
-    { icon: <Package size={13} className="text-gray-400" />,      name: 'MedicineFrame',       role: 'Live search, row count, column sort, red/yellow highlights, validation borders, status bar (CRUD feedback)', tag: 'Polymorphism',  tc: 'bg-amber-100 text-amber-800' },
-    { icon: <ShoppingCart size={13} className="text-gray-400" />, name: 'SellingFrame',        role: 'POS billing, dark invoice panel, running total, Enter-to-add, status bar (item count + total)',              tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
-    { icon: <ClipboardList size={13} className="text-gray-400" />,name: 'PurchaseOrderFrame',  role: 'PO search filter, status badge renderer (green/orange), confirmation dialog, atomic receiving via JDBC',     tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
-    { icon: <Users size={13} className="text-gray-400" />,        name: 'AgentsFrame',         role: 'Role column color-coded (red/blue/green), Enter-to-add, live staff count, status bar (delete/update feedback)', tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
-    { icon: <Building2 size={13} className="text-gray-400" />,    name: 'CompanyFrame',        role: 'Preferred supplier green highlight, live supplier count, F5 refresh, status bar (last CRUD action)',        tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
-    { icon: <Server size={13} className="text-gray-400" />,       name: 'SplashFrame',         role: 'SwingWorker progress animation, DAUST branding, version label, dark theme',           tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Activity size={13} className="text-gray-400" />,     name: 'LoginFrame',          role: 'Background auth thread, PreparedStatement, inline shake animation, EDT handoff via invokeLater', tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
+    { icon: <Layers size={13} className="text-gray-400" />,       name: 'DashboardFrame',      role: 'Dark sidebar, RBAC via applyRolePermissions(), live alerts, double-click LOW STOCK → pre-fill PO', tag: 'Encapsulation', tc: 'bg-green-100 text-green-800' },
+    { icon: <Package size={13} className="text-gray-400" />,      name: 'MedicineFrame',       role: 'Live search, red/yellow row highlights (custom CellRenderer), status bar, per-row threshold',        tag: 'Polymorphism',  tc: 'bg-amber-100 text-amber-800' },
+    { icon: <ShoppingCart size={13} className="text-gray-400" />, name: 'SellingFrame',        role: 'Medicine search, Rx field, dark invoice panel, UPDATE MEDICINE + INSERT SALES on confirm',           tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <ClipboardList size={13} className="text-gray-400" />,name: 'PurchaseOrderFrame',  role: 'Pre-fill from dashboard double-click, atomic JDBC receive (setAutoCommit/rollback), status renderer', tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <Users size={13} className="text-gray-400" />,        name: 'AgentsFrame',         role: 'JPasswordField, password column 0-width in table, role-coloured renderer, Admin only',               tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Building2 size={13} className="text-gray-400" />,    name: 'CompanyFrame',        role: 'Supplier directory, lead time and preferred-supplier fields, supplier dropdown feeds MedicineFrame',   tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
+    { icon: <Activity size={13} className="text-gray-400" />,     name: 'SalesHistoryFrame',   role: 'Date-range PreparedStatement filter, live RowFilter search, live revenue total, sortable columns',    tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <BarChart3 size={13} className="text-gray-400" />,    name: 'ReportsFrame',        role: 'Four stat cards, top-sellers, daily revenue (14-day GROUP BY), expiry heatmap with colour rows',     tag: 'Abstraction',   tc: 'bg-violet-100 text-violet-800' },
+    { icon: <Server size={13} className="text-gray-400" />,       name: 'SplashFrame',         role: 'SwingWorker progress animation, DatabaseHelper.initializeDatabase() on background thread',            tag: 'Inheritance',   tc: 'bg-sky-100 text-sky-800' },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-5xl mx-auto w-full" variants={stagger(0.07)} initial="hidden" animate="show">
-      <Label n="08" text="Frame Classes" />
+      <Label n="10" text="Frame Classes" />
       <Anim>
         <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
-          Eight frames. One job each.
+          Ten frames. One job each.
         </h2>
       </Anim>
       <motion.div className="space-y-1.5" variants={stagger(0.06)}>
@@ -694,8 +960,8 @@ function Slide08() {
           <Anim key={r.name} variants={slideLeft}>
             <div className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-2.5">
               <div className="shrink-0">{r.icon}</div>
-              <span className="font-mono font-semibold text-[#0a0a0a] text-[12.5px] w-52 shrink-0">{r.name}</span>
-              <span className="text-gray-500 text-[12px] flex-1 min-w-0 truncate">{r.role}</span>
+              <span className="font-mono font-semibold text-[#0a0a0a] text-[12px] w-52 shrink-0">{r.name}</span>
+              <span className="text-gray-500 text-[11.5px] flex-1 min-w-0 truncate">{r.role}</span>
               <span className={`text-[8.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${r.tc}`}>
                 {r.tag}
               </span>
@@ -707,27 +973,27 @@ function Slide08() {
   )
 }
 
-// ── SLIDE 08 — CODE IN ACTION ────────────────────────────────────────────────
+// ── SLIDE 11 — CODE PAGE 1 ───────────────────────────────────────────────────
 
 function Slide09() {
   return (
     <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
-      <Label n="09" text="Code in Action" />
+      <Label n="11" text="Code in Action" />
       <Anim>
         <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
-          Key implementations.
+          Authentication and RBAC.
         </h2>
       </Anim>
       <motion.div className="grid grid-cols-2 gap-4" variants={stagger(0.12)}>
         <Anim variants={fadeUp}>
           <p className="text-[10.5px] font-mono text-gray-400 mb-2">
-            DatabaseHelper.java &nbsp;<span className="text-[#15803d]">MySQL connection</span>
+            LoginFrame.java &nbsp;<span className="text-[#15803d]">background thread + PreparedStatement + EDT handoff</span>
           </p>
-          <CodeWindow filename="getConnection()" code={CODE_CONN} />
+          <CodeWindow filename="btnLoginMouseClicked()" code={CODE_LOGIN} />
         </Anim>
         <Anim variants={fadeUp}>
           <p className="text-[10.5px] font-mono text-gray-400 mb-2">
-            DashboardFrame.java &nbsp;<span className="text-sky-600">RBAC enforcement</span>
+            DashboardFrame.java &nbsp;<span className="text-sky-600">RBAC enforcement — called once from constructor</span>
           </p>
           <CodeWindow filename="applyRolePermissions()" code={CODE_RBAC} />
         </Anim>
@@ -736,12 +1002,12 @@ function Slide09() {
   )
 }
 
-// ── SLIDE 09 — CODE PAGE 2 ───────────────────────────────────────────────────
+// ── SLIDE 12 — CODE PAGE 2 ───────────────────────────────────────────────────
 
 function Slide10() {
   return (
     <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
-      <Label n="10" text="Code in Action" />
+      <Label n="12" text="Code in Action" />
       <Anim>
         <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-5 leading-[1.05]">
           Forecasting and transactions.
@@ -750,13 +1016,13 @@ function Slide10() {
       <motion.div className="grid grid-cols-2 gap-4" variants={stagger(0.12)}>
         <Anim variants={fadeUp}>
           <p className="text-[10.5px] font-mono text-gray-400 mb-2">
-            ForecastingHelper.java &nbsp;<span className="text-amber-600">30-day SMA</span>
+            ForecastingHelper.java &nbsp;<span className="text-amber-600">30-day SMA → 7-day demand forecast</span>
           </p>
           <CodeWindow filename="predictDemand(String name)" code={CODE_FORECAST} />
         </Anim>
         <Anim variants={fadeUp}>
           <p className="text-[10.5px] font-mono text-gray-400 mb-2">
-            PurchaseOrderFrame.java &nbsp;<span className="text-violet-600">atomic transaction</span>
+            PurchaseOrderFrame.java &nbsp;<span className="text-violet-600">atomic JDBC transaction — both rows or neither</span>
           </p>
           <CodeWindow filename="receiveStock()" code={CODE_TXN} />
         </Anim>
@@ -765,7 +1031,65 @@ function Slide10() {
   )
 }
 
-// ── SLIDE 10 — DATABASE SCHEMA ───────────────────────────────────────────────
+// ── SLIDE 13 — DATA FLOW ─────────────────────────────────────────────────────
+
+function SlideDataFlow() {
+  const steps = [
+    { label: 'Pharmacist processes a sale', detail: 'SellingFrame: search medicine, enter qty=2, Rx No., click Confirm', color: 'border-[#15803d] bg-green-50', text: 'text-[#15803d]' },
+    { label: 'Two SQL writes, one operation', detail: 'UPDATE MEDICINE SET M_QUANTITY = M_QUANTITY − 2\nINSERT INTO SALES (name, qty, total, date, prescription)', color: 'border-sky-400 bg-sky-50', text: 'text-sky-600' },
+    { label: 'Sale permanently logged', detail: 'SALES table now has a new row: (med=\'Paracetamol\', qty=2, total=$4.00, date=today)', color: 'border-amber-400 bg-amber-50', text: 'text-amber-600' },
+    { label: 'Dashboard reloads alerts', detail: 'ForecastingHelper.getLowStockAlerts() queries both MEDICINE and SALES on every load or Refresh click', color: 'border-violet-400 bg-violet-50', text: 'text-violet-600' },
+    { label: 'SMA recalculates demand', detail: 'If 30-day average demand = 14 units and current stock = 10 → LOW STOCK alert fires in dashboard list', color: 'border-orange-400 bg-orange-50', text: 'text-orange-600' },
+    { label: 'One-click reorder', detail: 'Double-click the LOW STOCK row → PurchaseOrderFrame opens with medicine name pre-filled, ready to send to supplier', color: 'border-rose-400 bg-rose-50', text: 'text-rose-600' },
+  ]
+
+  return (
+    <motion.div className="h-full flex gap-12 items-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
+      <div className="flex-1">
+        <Label n="13" text="End-to-End Data Flow" />
+        <Anim>
+          <h2 className="text-[2.6rem] font-black text-[#0a0a0a] mb-3 leading-[1.05]">
+            From sale to<br />reorder in one loop.
+          </h2>
+        </Anim>
+        <Anim>
+          <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
+            Every sale updates stock and feeds the forecasting engine. The dashboard reads both tables to decide when to alert. The whole cycle requires no manual intervention.
+          </p>
+        </Anim>
+        <Anim className="mt-5">
+          <div className="bg-[#0d2818] rounded-xl px-5 py-4 font-mono text-[11px] text-white/70">
+            <p className="text-[#15803d] font-semibold mb-1">Forecasting formula</p>
+            <p>avgDaily = SUM(SALES.S_QTY, 30 days) / 30</p>
+            <p>demand7d = ceil(avgDaily × 7)</p>
+            <p className="mt-1.5 text-white/40">alert if stock &lt; demand7d OR stock &lt; M_THRESHOLD</p>
+          </div>
+        </Anim>
+      </div>
+
+      <motion.div className="w-[400px] shrink-0 space-y-0" variants={stagger(0.1)}>
+        {steps.map((s, i) => (
+          <Anim key={i} variants={fadeUp}>
+            <div className="flex gap-3 items-stretch">
+              <div className="flex flex-col items-center shrink-0 pt-1">
+                <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-black font-mono ${s.color} ${s.text} shrink-0`}>
+                  {i + 1}
+                </div>
+                {i < steps.length - 1 && <div className="w-px flex-1 bg-gray-200 my-0.5" />}
+              </div>
+              <div className={`flex-1 border rounded-xl px-4 py-3 mb-1 ${s.color}`}>
+                <p className={`font-bold text-[12px] mb-0.5 ${s.text}`}>{s.label}</p>
+                <p className="text-gray-600 text-[10.5px] leading-relaxed whitespace-pre-line">{s.detail}</p>
+              </div>
+            </div>
+          </Anim>
+        ))}
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ── SLIDE 14 — DATABASE SCHEMA ───────────────────────────────────────────────
 
 function Slide11() {
   const tables = [
@@ -774,44 +1098,49 @@ function Slide11() {
       color: 'border-[#15803d] bg-green-50',
       header: 'bg-[#0d2818] text-white',
       icon: <Package size={12} />,
-      cols: ['M_ID (PK)', 'M_NAME', 'M_QUANTITY', 'M_PRICE', 'M_EXPDATE', 'M_THRESHOLD', 'M_BATCH', '+ 7 more'],
+      cols: ['M_ID (PK)', 'M_NAME', 'M_QUANTITY', 'M_PRICE', 'M_EXPDATE', 'M_MFTDATE', 'M_THRESHOLD', 'M_BATCH', 'M_CATEGORY', 'M_STRENGTH', 'M_DOSAGE', 'M_UNIT_COST', 'M_COMPANY', 'M_OWNER'],
     },
     {
       name: 'AGENTS',
       color: 'border-sky-300 bg-sky-50',
       header: 'bg-[#0c2a4a] text-white',
       icon: <Users size={12} />,
-      cols: ['A_ID (PK)', 'A_NAME', 'A_PASSWORD', 'A_ROLE', 'A_PHONE', 'A_EMAIL', 'A_GENDER', 'A_AGE'],
+      cols: ['A_ID (PK)', 'A_NAME', 'A_AGE', 'A_PASSWORD', 'A_PHONE', 'A_GENDER', 'A_EMAIL', 'A_ROLE'],
     },
     {
       name: 'SALES',
       color: 'border-amber-300 bg-amber-50',
       header: 'bg-[#4a2e00] text-white',
       icon: <ShoppingCart size={12} />,
-      cols: ['S_ID (PK, IDENTITY)', 'S_MED_NAME', 'S_DATE', 'S_QTY', 'S_TOTAL'],
+      cols: ['S_ID (PK AUTO)', 'S_MED_NAME', 'S_DATE', 'S_QTY', 'S_TOTAL', 'S_PRESCRIPTION'],
     },
     {
       name: 'PURCHASE_ORDERS',
       color: 'border-violet-300 bg-violet-50',
       header: 'bg-[#2e0a4a] text-white',
       icon: <ClipboardList size={12} />,
-      cols: ['PO_ID (PK, IDENTITY)', 'PO_MED_NAME', 'PO_SUPPLIER', 'PO_QTY', 'PO_STATUS', 'PO_DATE'],
+      cols: ['PO_ID (PK AUTO)', 'PO_MED_NAME', 'PO_SUPPLIER', 'PO_QTY', 'PO_STATUS', 'PO_DATE'],
     },
     {
       name: 'COMPANY',
       color: 'border-rose-300 bg-rose-50',
       header: 'bg-[#4a0a1a] text-white',
       icon: <Building2 size={12} />,
-      cols: ['C_ID (PK)', 'C_NAME', 'C_ADDRESS', 'C_PHONE', 'C_EMAIL', 'C_LEADTIME', 'C_PREFERRED'],
+      cols: ['C_ID (PK)', 'C_NAME', 'C_ADDRESS', 'C_EXP', 'C_PHONE', 'C_EMAIL', 'C_LEADTIME', 'C_PREFERRED'],
     },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-14 max-w-6xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
-      <Label n="11" text="Database Schema" />
+      <Label n="14" text="Database Schema" />
       <Anim>
-        <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-6 leading-[1.05]">
-          Five tables. MySQL Backend.
+        <h2 className="text-[2.8rem] font-black text-[#0a0a0a] mb-4 leading-[1.05]">
+          Five tables. Auto-created.
         </h2>
+      </Anim>
+      <Anim>
+        <p className="text-gray-400 text-[11.5px] font-mono mb-4">
+          All tables created with <span className="text-[#15803d]">CREATE TABLE IF NOT EXISTS</span> on first launch — no manual SQL setup on any machine.
+        </p>
       </Anim>
       <motion.div className="grid grid-cols-5 gap-2.5" variants={stagger(0.08)}>
         {tables.map((t) => (
@@ -823,7 +1152,7 @@ function Slide11() {
               </div>
               <div className="px-3 py-2.5 space-y-1">
                 {t.cols.map((c) => (
-                  <p key={c} className="text-[9.5px] font-mono text-gray-600 leading-none">{c}</p>
+                  <p key={c} className={`text-[9.5px] font-mono leading-none ${c.includes('PK') ? 'text-gray-800 font-semibold' : 'text-gray-500'}`}>{c}</p>
                 ))}
               </div>
             </div>
@@ -831,49 +1160,49 @@ function Slide11() {
         ))}
       </motion.div>
       <Anim>
-        <p className="text-[11px] text-gray-400 mt-4 font-mono">
-          SALES.S_MED_NAME and PURCHASE_ORDERS.PO_MED_NAME reference MEDICINE.M_NAME by value. No foreign key constraints in the current schema.
+        <p className="text-[11px] text-gray-400 mt-3 font-mono">
+          SALES and PURCHASE_ORDERS reference MEDICINE by name value, not foreign key — preserving historical records if a medicine is renamed or deleted.
         </p>
       </Anim>
     </motion.div>
   )
 }
 
-// ── SLIDE 11 — CHALLENGES ────────────────────────────────────────────────────
+// ── SLIDE 15 — CHALLENGES ────────────────────────────────────────────────────
 
 function Slide12() {
   const items = [
     {
       n: '01',
-      icon: <Database size={16} className="text-sky-600" />,
-      title: 'MySQL Configuration',
-      tag: 'Performance',
+      icon: <GitBranch size={16} className="text-sky-600" />,
+      title: 'Swing EDT — keeping the UI responsive',
+      tag: 'Concurrency',
       tc: 'bg-sky-100 text-sky-700',
-      sol: 'The system uses a robust MySQL backend for persistent storage. Database initialization scripts run automatically on first launch, ensuring the schema is ready without manual SQL execution.',
+      sol: 'All database queries must run off the Event Dispatch Thread — if they run on it, the UI freezes until the query returns. Solved by wrapping every DB call in new Thread(...).start() and posting the result back to the UI with SwingUtilities.invokeLater(). The login screen demonstrates this: the button shows "Signing in…" and stays clickable while the query runs.',
     },
     {
       n: '02',
       icon: <ShieldCheck size={16} className="text-green-600" />,
-      title: 'Role enforcement across frames',
-      tag: 'Security',
+      title: 'RBAC consistent across 10 independent frames',
+      tag: 'Architecture',
       tc: 'bg-green-100 text-green-700',
-      sol: 'All RBAC logic lives in one private method: applyRolePermissions(). Ten lines, called once from the DashboardFrame constructor. Every access rule is visible in a single place.',
+      sol: 'Each JFrame is an independent class — there is no shared controller. RBAC is kept consistent by passing userRole as a constructor parameter through every navigation call, and re-applying restrictions in each frame\'s own sidebar. This means even if a frame is opened directly in code, it enforces its own restrictions. The role cannot drift between frames.',
     },
     {
       n: '03',
       icon: <CheckCircle2 size={16} className="text-violet-600" />,
-      title: 'PO receiving must be atomic',
+      title: 'PO receiving must update two tables atomically',
       tag: 'Data Integrity',
       tc: 'bg-violet-100 text-violet-700',
-      sol: 'setAutoCommit(false) wraps both the PO status update and the medicine quantity increment. If either fails, rollback() reverts both. Partial database state cannot persist.',
+      sol: 'Receiving stock requires marking the PO as "Received" and incrementing the medicine quantity. If only one write succeeds — say, the PO is marked Received but stock is not updated — the inventory is corrupted. Solved with conn.setAutoCommit(false): both writes execute, then conn.commit(). Any failure triggers conn.rollback(), leaving both rows untouched.',
     },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-4xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
-      <Label n="12" text="Challenges" />
+      <Label n="15" text="Technical Challenges" />
       <Anim>
         <h2 className="text-[3rem] font-black text-[#0a0a0a] mb-8 leading-[1.05]">
-          Problems that needed<br />real solutions.
+          Real problems.<br />Specific solutions.
         </h2>
       </Anim>
       <motion.div className="space-y-4" variants={stagger(0.12)}>
@@ -901,22 +1230,23 @@ function Slide12() {
   )
 }
 
-// ── SLIDE 12 — ROADMAP ───────────────────────────────────────────────────────
+// ── SLIDE 16 — ROADMAP ───────────────────────────────────────────────────────
 
 function Slide13() {
   const items = [
-    { sev: 'Done ✓',   sc: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={13} className="text-green-500" />, title: 'SQL injection fully fixed',              desc: 'All 7 queries converted to PreparedStatements. Login, medicine, agent, and supplier updates are safe.' },
-    { sev: 'Done ✓',   sc: 'bg-green-100 text-green-700', icon: <ShieldCheck size={13} className="text-green-500" />, title: 'Modern UI redesign complete',             desc: 'FlatIntelliJLaf, dark sidebar nav, live search, row counts, active highlights, and tooltips across all 8 frames.' },
-    { sev: 'Next',     sc: 'bg-amber-100 text-amber-700', icon: <Lock size={13} className="text-amber-500" />,      title: 'Hash stored passwords',                  desc: 'A_PASSWORD is plain text VARCHAR(50). BCrypt with a per-user salt is the correct next security step.' },
-    { sev: 'Next',     sc: 'bg-amber-100 text-amber-700', icon: <Layers size={13} className="text-amber-500" />,    title: 'Separate business logic from UI',         desc: 'updateQty() mixes stock rules with dialogs. A service layer makes it independently testable.' },
-    { sev: 'Future',   sc: 'bg-sky-100 text-sky-700', icon: <CheckCircle2 size={13} className="text-sky-500" />,    title: 'Unit tests for ForecastingHelper',        desc: 'predictDemand() has no automated coverage. JUnit tests would catch regressions in the SMA.' },
+    { sev: 'Done ✓', sc: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={13} className="text-green-500" />, title: 'SQL injection fully fixed',            desc: 'All queries use PreparedStatement with ? parameters. User input is never concatenated into SQL in any of the 8 frames.' },
+    { sev: 'Done ✓', sc: 'bg-green-100 text-green-700', icon: <ShieldCheck size={13} className="text-green-500" />, title: 'RBAC propagated across all ten frames',  desc: 'userRole passes through every navigation call. Each frame sidebar independently disables restricted items — no single point of RBAC failure.' },
+    { sev: 'Done ✓', sc: 'bg-green-100 text-green-700', icon: <Activity size={13} className="text-green-500" />,    title: 'Passwords masked in AgentsFrame',       desc: 'Password column hidden (0-width) in table. JPasswordField for input. UPDATE skips A_PASSWORD if the field is left blank — existing hash preserved.' },
+    { sev: 'Done ✓', sc: 'bg-green-100 text-green-700', icon: <BarChart3 size={13} className="text-green-500" />,   title: 'Sales History & Reports added',         desc: 'Full transaction log with date/name filters, live revenue total, and a Reports screen with stat cards, top sellers, daily revenue, expiry overview.' },
+    { sev: 'Next',   sc: 'bg-amber-100 text-amber-700', icon: <Lock size={13} className="text-amber-500" />,        title: 'Hash stored passwords with BCrypt',     desc: 'A_PASSWORD is plain-text VARCHAR(50). The correct next step is BCrypt with a per-user salt — BCrypt.hashpw() on save, BCrypt.checkpw() on login.' },
+    { sev: 'Future', sc: 'bg-sky-100 text-sky-700',     icon: <CheckCircle2 size={13} className="text-sky-500" />,  title: 'JUnit tests for ForecastingHelper',    desc: 'predictDemand() has no automated coverage. JUnit 5 parameterised tests on SALES data fixtures would catch SMA regressions immediately.' },
   ]
   return (
     <motion.div className="h-full flex flex-col justify-center px-16 max-w-4xl mx-auto w-full" variants={stagger(0.09)} initial="hidden" animate="show">
-      <Label n="13" text="Roadmap" />
+      <Label n="16" text="Roadmap" />
       <Anim>
         <h2 className="text-[3rem] font-black text-[#0a0a0a] mb-7 leading-[1.05]">
-          What comes next.
+          What is done.<br />What comes next.
         </h2>
       </Anim>
       <motion.div className="space-y-2.5" variants={stagger(0.08)}>
@@ -928,8 +1258,8 @@ function Slide13() {
               </span>
               <div className="shrink-0 mt-0.5">{item.icon}</div>
               <div className="min-w-0">
-                <span className="font-semibold text-[#0a0a0a] text-sm">{item.title}</span>
-                <span className="text-gray-500 text-sm"> {item.desc}</span>
+                <span className="font-semibold text-[#0a0a0a] text-sm">{item.title} — </span>
+                <span className="text-gray-500 text-sm">{item.desc}</span>
               </div>
             </div>
           </Anim>
@@ -939,21 +1269,23 @@ function Slide13() {
   )
 }
 
-// ── SLIDE 13 — DEMO ──────────────────────────────────────────────────────────
+// ── SLIDE 17 — DEMO ──────────────────────────────────────────────────────────
 
 function Slide14() {
   const steps = [
-    { label: 'Launch & Login',           detail: 'Splash → dark branded login — Username: Admin  |  Password: admin123' },
-    { label: 'Dashboard',               detail: 'Dark sidebar, role badge, date, live alert renderer with refresh button' },
-    { label: 'Medicine Inventory',      detail: 'Search bar, row count, column sort, red/yellow stock highlights, status bar' },
-    { label: 'Billing',                 detail: 'Click stock row → set qty → Enter adds to dark invoice panel with running total' },
-    { label: 'Purchase Orders',         detail: 'Create PO → search + status badge → receive atomically via JDBC transaction' },
-    { label: 'Agents & Suppliers',      detail: 'Role color-coding, preferred supplier green highlight, live counts' },
+    { label: 'Launch & Login',           detail: 'Splash → DB init → Login — try wrong password (shake + inline error) — correct: Admin / admin123' },
+    { label: 'Dashboard',                detail: 'Role badge shown, live alerts load — double-click a LOW STOCK row to open PurchaseOrder pre-filled' },
+    { label: 'Medicine Inventory',       detail: 'Search filters live — red row (low stock), yellow (near-expiry) — add, edit, delete a medicine' },
+    { label: 'Billing',                  detail: 'Search stock → select medicine → qty + Rx No. → Confirm — stock deducts, sale logged to SALES table' },
+    { label: 'Purchase Orders',          detail: 'Create PO → Receive it — stock increments atomically (setAutoCommit / rollback pattern)' },
+    { label: 'Sales History',            detail: 'Filter by date range and medicine — revenue total updates live for the filtered rows' },
+    { label: 'Reports',                  detail: 'Stat cards (medicines, revenue, pending POs, expiring) + top sellers + daily revenue + expiry heatmap' },
+    { label: 'Role switch — Technician', detail: 'Logout → login as Technician — Suppliers, POs, Reports, Agents dimmed in sidebar and unclickable' },
   ]
   return (
     <motion.div className="h-full flex flex-col items-center justify-center px-16 max-w-3xl mx-auto w-full" variants={stagger(0.1)} initial="hidden" animate="show">
       <div className="w-full">
-        <Label n="14" text="Live Demo" />
+        <Label n="17" text="Live Demo" />
         <Anim>
           <h2 className="text-[3rem] font-black text-[#0a0a0a] mb-8 leading-[1.05]">Live Demo</h2>
         </Anim>
@@ -982,9 +1314,15 @@ function Slide14() {
   )
 }
 
-// ── SLIDE 14 — Q&A ───────────────────────────────────────────────────────────
+// ── SLIDE 18 — Q&A ───────────────────────────────────────────────────────────
 
 function Slide15() {
+  const recap = [
+    { label: '14', sub: 'Java source files' },
+    { label: '5',  sub: 'Database tables' },
+    { label: '3',  sub: 'User roles' },
+    { label: '8',  sub: 'Controlled modules' },
+  ]
   return (
     <motion.div className="flex h-full" variants={stagger(0.12)} initial="hidden" animate="show">
       <div className="flex-1 flex flex-col justify-center px-16 bg-[#f9f8f5]">
@@ -1003,14 +1341,38 @@ function Slide15() {
         </Anim>
         <Anim>
           <p className="text-2xl text-gray-400 font-light mb-2">Questions?</p>
-          <p className="text-sm text-gray-400 font-mono">Abdoullah Ndao &nbsp;&middot;&nbsp; Junior II &nbsp;&middot;&nbsp; DAUST</p>
+          <p className="text-sm text-gray-400 font-mono mb-8">Abdoullah Ndao &nbsp;&middot;&nbsp; Junior II &nbsp;&middot;&nbsp; DAUST</p>
+        </Anim>
+        <Anim>
+          <div className="grid grid-cols-4 gap-3">
+            {recap.map((r) => (
+              <div key={r.label} className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-center">
+                <p className="text-[#15803d] font-black text-2xl">{r.label}</p>
+                <p className="text-gray-400 text-[10px] font-mono leading-tight mt-0.5">{r.sub}</p>
+              </div>
+            ))}
+          </div>
         </Anim>
       </div>
 
-      <Anim variants={fadeIn} className="w-[38%] bg-[#0d2818] shrink-0 flex items-center justify-center relative overflow-hidden">
-        <span className="absolute text-white/[0.05] text-[200px] font-black leading-none select-none pointer-events-none">?</span>
-        <div className="relative z-10 opacity-60">
-          <Image src="/daust-logo.png" alt="DAUST" width={140} height={44} className="object-contain brightness-0 invert" />
+      <Anim variants={fadeIn} className="w-[38%] bg-[#0d2818] shrink-0 flex flex-col items-center justify-between py-14 relative overflow-hidden">
+        <span className="absolute text-white/[0.04] text-[220px] font-black leading-none select-none pointer-events-none top-1/2 -translate-y-1/2">?</span>
+        <div className="relative z-10 w-full flex justify-center">
+          <Image src="/daust-logo.png" alt="DAUST" width={140} height={44} className="object-contain brightness-0 invert opacity-60" />
+        </div>
+        <div className="relative z-10 space-y-3 px-8 w-full">
+          {[
+            'PreparedStatement in all 8 frames',
+            'userRole passed through every nav call',
+            'JDBC transaction for atomic PO receive',
+            'Background thread + invokeLater for EDT',
+            '30-day SMA → 7-day demand forecast',
+          ].map((point) => (
+            <div key={point} className="flex items-start gap-2">
+              <ArrowDown size={10} className="text-[#15803d] shrink-0 mt-0.5 rotate-[-90deg]" />
+              <p className="text-white/50 text-[11px] font-mono">{point}</p>
+            </div>
+          ))}
         </div>
       </Anim>
     </motion.div>
@@ -1020,14 +1382,15 @@ function Slide15() {
 // ── PRESENTATION SHELL ───────────────────────────────────────────────────────
 
 const SLIDES = [
-  Slide01, Slide02, Slide03, Slide04, Slide05, Slide06, Slide07, Slide08,
-  Slide09, Slide10, Slide11, Slide12, Slide13, Slide14, Slide15,
+  Slide01, Slide02, Slide03, Slide04, Slide05, SlideRBAC, SlideSecurity,
+  Slide06, Slide07, Slide08, Slide09, Slide10, SlideDataFlow,
+  Slide11, Slide12, Slide13, Slide14, Slide15,
 ]
 
 const LABELS = [
-  'Title', 'Problem', 'Overview', 'Tech Choices', 'Architecture', 'OOP Design',
-  'Helper Classes', 'Frame Classes', 'Code (1)', 'Code (2)',
-  'Database', 'Challenges', 'Roadmap', 'Demo', 'Q & A',
+  'Title', 'Problem', 'Overview', 'Tech Choices', 'Architecture',
+  'Roles & RBAC', 'Security', 'OOP Design', 'Helper Classes', 'Frame Classes',
+  'Code (1)', 'Code (2)', 'Data Flow', 'Database', 'Challenges', 'Roadmap', 'Demo', 'Q & A',
 ]
 
 export default function Presentation() {
