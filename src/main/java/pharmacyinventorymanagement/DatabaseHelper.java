@@ -95,7 +95,11 @@ public class DatabaseHelper {
                     "S_MED_NAME VARCHAR(100), " +
                     "S_DATE DATE, " +
                     "S_QTY INT, " +
-                    "S_TOTAL DOUBLE)");
+                    "S_TOTAL DOUBLE, " +
+                    "S_PRESCRIPTION VARCHAR(100) DEFAULT NULL)");
+            // Add S_PRESCRIPTION to existing SALES tables that predate this column
+            try { stmt.execute("ALTER TABLE SALES ADD COLUMN S_PRESCRIPTION VARCHAR(100) DEFAULT NULL"); }
+            catch (SQLException ignored) {} // column already exists — safe to ignore
 
             // Purchase orders with status (Pending / Received)
             stmt.execute("CREATE TABLE IF NOT EXISTS PURCHASE_ORDERS (" +

@@ -399,6 +399,7 @@ function Slide04() {
       color: 'border-[#5382a1]/30 bg-[#eef2f7]',
       badge: 'bg-[#5382a1] text-white',
       role: 'Language',
+      useCase: 'Stable runtime for a long-lived pharmacy desktop app — security updates through 2029.',
       reasons: [
         { title: 'Long-term support', desc: 'Security patches until 2029 — safe for production without frequent runtime upgrades.' },
         { title: 'Write once, run anywhere', desc: 'The compiled JAR runs on any OS with Java 17 installed — Windows, macOS, Linux — no recompilation.' },
@@ -411,6 +412,7 @@ function Slide04() {
       color: 'border-violet-300/30 bg-violet-50',
       badge: 'bg-violet-600 text-white',
       role: 'UI Framework',
+      useCase: 'Modern desktop UI with native Swing stability and IntelliJ-style polish.',
       reasons: [
         { title: 'Built into the JDK — zero install', desc: 'No framework to download or license. The app works entirely offline with no server or browser.' },
         { title: 'FlatLaf modernises in one line', desc: 'FlatIntelliJLaf.setup() replaces the dated Metal theme with a clean IntelliJ-style look across every component.' },
@@ -423,6 +425,7 @@ function Slide04() {
       color: 'border-[#00758f]/30 bg-[#e8f6f8]',
       badge: 'bg-[#00758f] text-white',
       role: 'Database',
+      useCase: 'Reliable relational storage for inventory, sales, purchase orders, and company data.',
       reasons: [
         { title: 'ACID transactions (InnoDB engine)', desc: 'Receiving a PO updates two tables atomically. If either write fails, both roll back — no partial stock state can persist.' },
         { title: 'createDatabaseIfNotExist in URL', desc: 'The JDBC URL auto-creates PharmaDb on first connection. No manual SQL setup required on any machine.' },
@@ -435,6 +438,7 @@ function Slide04() {
       color: 'border-[#15803d]/30 bg-green-50',
       badge: 'bg-[#15803d] text-white',
       role: 'Persistence',
+      useCase: 'Direct SQL gives full control over queries, transactions, and auditability.',
       reasons: [
         { title: 'PreparedStatements prevent SQL injection', desc: 'Every query uses ? placeholders. User input is a value, never SQL — all 8 frames are injection-safe by construction.' },
         { title: 'No ORM magic — every query is visible', desc: 'Hibernate or JPA would hide the SQL. With JDBC you see exactly what hits the database — simpler to debug and teach.' },
@@ -447,6 +451,7 @@ function Slide04() {
       color: 'border-rose-200 bg-rose-50',
       badge: 'bg-rose-500 text-white',
       role: 'Build System',
+      useCase: 'Standardized build and dependency resolution for a portable Java desktop project.',
       reasons: [
         { title: 'Declarative dependency management', desc: 'FlatLaf, Connector/J, JCalendar resolved automatically from Maven Central — no manual JAR copying or classpath config.' },
         { title: 'Universal IDE support', desc: 'NetBeans, IntelliJ, and Eclipse all open Maven projects natively. The project builds identically on any machine.' },
@@ -459,6 +464,7 @@ function Slide04() {
       color: 'border-amber-200 bg-amber-50',
       badge: 'bg-amber-600 text-white',
       role: 'Date Picker',
+      useCase: 'User-friendly date selection for expiry, manufacturing, sales, and purchase order dates.',
       reasons: [
         { title: 'Swing-native calendar widget', desc: 'JDateChooser slots into any GridBagLayout or BoxLayout panel like any other JComponent — no custom rendering required.' },
         { title: 'Direct java.sql.Date output', desc: 'java.sql.Date.valueOf(picker.getDate()) — one line converts the picker value into a PreparedStatement parameter.' },
@@ -485,7 +491,8 @@ function Slide04() {
                 </span>
               </div>
               <p className="font-black text-[#0a0a0a] text-[12.5px] mb-0.5">{t.name}</p>
-              <p className="text-[9px] font-mono text-gray-400 mb-3">{t.version}</p>
+              <p className="text-[9px] font-mono text-gray-400 mb-2">{t.version}</p>
+              <p className="text-[10px] text-gray-600 mb-3">{t.useCase}</p>
               <motion.div className="space-y-2" variants={stagger(0.07)}>
                 {t.reasons.map((r) => (
                   <Anim key={r.title} variants={slideLeft}>
