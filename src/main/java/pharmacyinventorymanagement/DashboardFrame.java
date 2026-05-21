@@ -33,14 +33,15 @@ public class DashboardFrame extends javax.swing.JFrame {
 
     // ── Role-based access control ─────────────────────────────────────────────
     private void applyRolePermissions() {
-        // Technician: restricted to Medicines and Billing only
+        // Technician: restricted to Medicines, Billing, and Sales History only
         if ("Technician".equalsIgnoreCase(userRole)) {
-            btnAgents.setEnabled(false);  btnAgents.setForeground(new Color(71, 85, 105));
-            btnCompany.setEnabled(false); btnCompany.setForeground(new Color(71, 85, 105));
-            btnPO.setEnabled(false);      btnPO.setForeground(new Color(71, 85, 105));
+            btnAgents.setEnabled(false);    btnAgents.setForeground(new Color(71, 85, 105));
+            btnCompany.setEnabled(false);   btnCompany.setForeground(new Color(71, 85, 105));
+            btnPO.setEnabled(false);        btnPO.setForeground(new Color(71, 85, 105));
+            btnReports.setEnabled(false);   btnReports.setForeground(new Color(71, 85, 105));
         // Pharmacist: full access except user management
         } else if ("Pharmacist".equalsIgnoreCase(userRole)) {
-            btnAgents.setEnabled(false);  btnAgents.setForeground(new Color(71, 85, 105));
+            btnAgents.setEnabled(false);    btnAgents.setForeground(new Color(71, 85, 105));
         }
         // Admin: no restrictions
     }
@@ -69,7 +70,13 @@ public class DashboardFrame extends javax.swing.JFrame {
 
     // ── UI construction ───────────────────────────────────────────────────────
     private void initComponents() {
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (javax.swing.JOptionPane.showConfirmDialog(null, "Exit the application?", "Confirm Exit", javax.swing.JOptionPane.YES_NO_OPTION) == javax.swing.JOptionPane.YES_OPTION)
+                    System.exit(0);
+            }
+        });
         setTitle("PharmTrack — Dashboard");
         setSize(920, 600);
         setMinimumSize(new Dimension(780, 500));
@@ -155,14 +162,37 @@ public class DashboardFrame extends javax.swing.JFrame {
         alertList.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         alertList.setCellRenderer(new AlertCellRenderer());
         alertList.setBackground(Color.WHITE);
-        alertList.setSelectionModel(new javax.swing.DefaultListSelectionModel() {
-            public void setSelectionInterval(int i0, int i1) {} // read-only
-            public void addSelectionInterval(int i0, int i1) {}
+
+        // Double-click a LOW STOCK alert to open a pre-filled Purchase Order
+        alertList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    String val = alertList.getSelectedValue();
+                    if (val != null && val.startsWith("LOW STOCK:")) {
+                        String medName = val.substring("LOW STOCK:".length()).trim();
+                        int colon = medName.indexOf(" (");
+                        if (colon > 0) medName = medName.substring(0, colon).trim();
+                        openPrefilledPO(medName);
+                    }
+                }
+            }
         });
 
         JScrollPane scroll = new JScrollPane(alertList);
         scroll.setBorder(BorderFactory.createLineBorder(new Color(226, 232, 240)));
         alertsWrapper.add(scroll, BorderLayout.CENTER);
+
+        // "Create PO" hint bar at the bottom of alerts panel
+        JPanel hintBar = new JPanel(new BorderLayout());
+        hintBar.setBackground(new Color(248, 250, 252));
+        hintBar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)),
+            BorderFactory.createEmptyBorder(6, 12, 6, 12)));
+        JLabel hint = new JLabel("Tip: Double-click a LOW STOCK alert to create a Purchase Order instantly");
+        hint.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        hint.setForeground(new Color(100, 116, 139));
+        hintBar.add(hint, BorderLayout.WEST);
+        alertsWrapper.add(hintBar, BorderLayout.SOUTH);
 
         content.add(alertsWrapper, BorderLayout.CENTER);
     }
@@ -171,7 +201,7 @@ public class DashboardFrame extends javax.swing.JFrame {
     private JPanel buildSidebar() {
         JPanel sidebar = new JPanel();
         sidebar.setBackground(SIDEBAR_BG);
-        sidebar.setPreferredSize(new Dimension(200, 0));
+        sidebar.setPreferredSize(new Dimension(185, 0));
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
         // Logo area
@@ -197,31 +227,41 @@ public class DashboardFrame extends javax.swing.JFrame {
         sidebar.add(makeDivider());
 
         // Nav items
-        btnMedicine = navLabel("💊  Medicines");
-        btnAgents   = navLabel("👤  Agents");
-        btnCompany  = navLabel("🏢  Suppliers");
-        btnSelling  = navLabel("💳  Billing");
-        btnPO       = navLabel("📦  Purchase Orders");
+        btnMedicine = navLabel("Medicines");      PharmIcons.apply(btnMedicine, "med");
+        btnAgents   = navLabel("Agents");         PharmIcons.apply(btnAgents,   "agents");
+        btnCompany  = navLabel("Suppliers");      PharmIcons.apply(btnCompany,  "comp");
+        btnSelling  = navLabel("Billing");        PharmIcons.apply(btnSelling,  "sell");
+        btnPO       = navLabel("Purchase Orders");PharmIcons.apply(btnPO,       "po");
+        btnSalesHist= navLabel("Sales History");  PharmIcons.apply(btnSalesHist,"sales");
+        btnReports  = navLabel("Reports");        PharmIcons.apply(btnReports,  "reports");
         btnMedicine.setToolTipText("Manage medicine inventory — add, edit, delete stock records");
         btnAgents.setToolTipText("Manage staff accounts and assign roles");
         btnCompany.setToolTipText("Manage supplier directory with lead times");
         btnSelling.setToolTipText("Process sales and generate invoices");
         btnPO.setToolTipText("Create and receive purchase orders atomically");
+        btnSalesHist.setToolTipText("Browse all past transactions with date filters");
+        btnReports.setToolTipText("Top sellers, revenue by day, expiry overview");
 
         btnMedicine.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) { if (btnMedicine.isEnabled()) { new MedicineFrame().setVisible(true); dispose(); } }
+            public void mouseClicked(MouseEvent e) { if (btnMedicine.isEnabled()) { java.awt.Rectangle b = getBounds(); MedicineFrame f = new MedicineFrame(userRole); f.setBounds(b); f.setVisible(true); dispose(); } }
         });
         btnAgents.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) { if (btnAgents.isEnabled()) { new AgentsFrame().setVisible(true); dispose(); } }
+            public void mouseClicked(MouseEvent e) { if (btnAgents.isEnabled()) { java.awt.Rectangle b = getBounds(); AgentsFrame f = new AgentsFrame(userRole); f.setBounds(b); f.setVisible(true); dispose(); } }
         });
         btnCompany.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) { if (btnCompany.isEnabled()) { new CompanyFrame().setVisible(true); dispose(); } }
+            public void mouseClicked(MouseEvent e) { if (btnCompany.isEnabled()) { java.awt.Rectangle b = getBounds(); CompanyFrame f = new CompanyFrame(userRole); f.setBounds(b); f.setVisible(true); dispose(); } }
         });
         btnSelling.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) { if (btnSelling.isEnabled()) { new SellingFrame().setVisible(true); dispose(); } }
+            public void mouseClicked(MouseEvent e) { if (btnSelling.isEnabled()) { java.awt.Rectangle b = getBounds(); SellingFrame f = new SellingFrame(userRole); f.setBounds(b); f.setVisible(true); dispose(); } }
         });
         btnPO.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) { if (btnPO.isEnabled()) { new PurchaseOrderFrame(userRole).setVisible(true); dispose(); } }
+            public void mouseClicked(MouseEvent e) { if (btnPO.isEnabled()) { java.awt.Rectangle b = getBounds(); PurchaseOrderFrame f = new PurchaseOrderFrame(userRole); f.setBounds(b); f.setVisible(true); dispose(); } }
+        });
+        btnSalesHist.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { if (btnSalesHist.isEnabled()) { java.awt.Rectangle b = getBounds(); SalesHistoryFrame f = new SalesHistoryFrame(userRole); f.setBounds(b); f.setVisible(true); dispose(); } }
+        });
+        btnReports.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { if (btnReports.isEnabled()) { java.awt.Rectangle b = getBounds(); ReportsFrame f = new ReportsFrame(userRole); f.setBounds(b); f.setVisible(true); dispose(); } }
         });
 
         sidebar.add(btnMedicine);
@@ -229,12 +269,15 @@ public class DashboardFrame extends javax.swing.JFrame {
         sidebar.add(btnCompany);
         sidebar.add(btnSelling);
         sidebar.add(btnPO);
+        sidebar.add(btnSalesHist);
+        sidebar.add(btnReports);
 
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(makeDivider());
 
         // Logout
-        btnLogout = navLabel("← Logout");
+        btnLogout = navLabel("Logout");
+        PharmIcons.apply(btnLogout, "logout");
         btnLogout.setForeground(new Color(252, 165, 165));
         btnLogout.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { new LoginFrame().setVisible(true); dispose(); }
@@ -251,7 +294,7 @@ public class DashboardFrame extends javax.swing.JFrame {
         l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         l.setForeground(new Color(203, 213, 225));
         l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        l.setBorder(BorderFactory.createEmptyBorder(11, 18, 11, 8));
+        l.setBorder(BorderFactory.createEmptyBorder(11, 12, 11, 8));
         l.setOpaque(true);
         l.setBackground(SIDEBAR_BG);
         l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
@@ -268,6 +311,21 @@ public class DashboardFrame extends javax.swing.JFrame {
         sep.setBackground(new Color(51, 65, 85));
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         return sep;
+    }
+
+    // ── One-click reorder: opens PurchaseOrderFrame pre-filled for the medicine ─
+    private void openPrefilledPO(String medName) {
+        if ("Technician".equalsIgnoreCase(userRole)) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Technicians cannot create purchase orders.", "Access Denied",
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        java.awt.Rectangle b = getBounds();
+        PurchaseOrderFrame po = new PurchaseOrderFrame(userRole, medName);
+        po.setBounds(b);
+        po.setVisible(true);
+        dispose();
     }
 
     // ── Custom alert list cell renderer ──────────────────────────────────────
@@ -301,6 +359,8 @@ public class DashboardFrame extends javax.swing.JFrame {
     private JLabel btnCompany;
     private JLabel btnSelling;
     private JLabel btnPO;
+    private JLabel btnSalesHist;
+    private JLabel btnReports;
     private JLabel btnLogout;
     private JList<String> alertList;
 }

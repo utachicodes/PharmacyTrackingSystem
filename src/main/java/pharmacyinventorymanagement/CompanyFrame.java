@@ -27,6 +27,8 @@ public class CompanyFrame extends javax.swing.JFrame {
     Statement St = null;
     ResultSet Rs = null;
 
+    private String userRole;
+
     // ── Form fields ───────────────────────────────────────────────────────────
     private JTextField c_id, c_name, c_address, c_phone, c_exp, c_email, c_leadtime;
     private JComboBox<String> c_preferred;
@@ -36,13 +38,22 @@ public class CompanyFrame extends javax.swing.JFrame {
     private JButton btnAdd, btnDelete, btnUpdate, btnClear;
     private JLabel headerSubtitle;
 
-    public CompanyFrame() {
+    public CompanyFrame() { this("Admin"); }
+
+    public CompanyFrame(String role) {
+        this.userRole = role;
         initComponents();
         loadCompanies();
     }
 
     private void initComponents() {
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (javax.swing.JOptionPane.showConfirmDialog(null, "Exit the application?", "Confirm Exit", javax.swing.JOptionPane.YES_NO_OPTION) == javax.swing.JOptionPane.YES_OPTION)
+                    System.exit(0);
+            }
+        });
         setTitle("Supplier Management – Pharmacy System");
         setSize(1050, 680);
         setMinimumSize(new Dimension(900, 600));
@@ -72,48 +83,62 @@ public class CompanyFrame extends javax.swing.JFrame {
         sidebar.add(logoArea);
         sidebar.add(sep());
 
-        JLabel activeLabel = new JLabel("  🏢 Suppliers");
+        JLabel activeLabel = new JLabel("  Suppliers");
         activeLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         activeLabel.setForeground(ACCENT);
         activeLabel.setBackground(new Color(6, 78, 59));
         activeLabel.setOpaque(true);
-        activeLabel.setBorder(BorderFactory.createEmptyBorder(6, 18, 6, 8));
+        activeLabel.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 8));
         activeLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        PharmIcons.apply(activeLabel, "comp");
         sidebar.add(activeLabel);
         sidebar.add(sep());
 
+        boolean isPharm = "Pharmacist".equalsIgnoreCase(userRole);
+
         String[][] items = {
-            {"🏠  Dashboard", "dash"}, {"💊  Medicines", "med"},
-            {"👤  Agents", "agents"},  {"💳  Billing", "sell"},
-            {"📦  Purchase Orders", "po"}
+            {"Dashboard",       "dash"},
+            {"Medicines",       "med"},
+            {"Agents",          "agents"},
+            {"Billing",         "sell"},
+            {"Purchase Orders", "po"},
+            {"Sales History",   "sales"},
+            {"Reports",         "reports"}
         };
         for (String[] item : items) {
-            JLabel nav = navLabel(item[0]);
             final String key = item[1];
-            nav.addMouseListener(new MouseAdapter() {
-                public void mouseClicked(MouseEvent e) {
-                    switch (key) {
-                        case "dash":   new DashboardFrame().setVisible(true);     dispose(); break;
-                        case "med":    new MedicineFrame().setVisible(true);      dispose(); break;
-                        case "agents": new AgentsFrame().setVisible(true);        dispose(); break;
-                        case "sell":   new SellingFrame().setVisible(true);       dispose(); break;
-                        case "po":     new PurchaseOrderFrame().setVisible(true); dispose(); break;
+            boolean restricted = isPharm && key.equals("agents");
+            JLabel nav = navLabel(item[0], restricted);
+            PharmIcons.apply(nav, key);
+            if (!restricted) {
+                nav.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        java.awt.Rectangle b = getBounds();
+                        JFrame next = null;
+                        switch (key) {
+                            case "dash":    next = new DashboardFrame(userRole);      break;
+                            case "med":     next = new MedicineFrame(userRole);       break;
+                            case "agents":  next = new AgentsFrame(userRole);         break;
+                            case "sell":    next = new SellingFrame(userRole);        break;
+                            case "po":      next = new PurchaseOrderFrame(userRole);  break;
+                            case "sales":   next = new SalesHistoryFrame(userRole);   break;
+                            case "reports": next = new ReportsFrame(userRole);        break;
+                        }
+                        if (next != null) { next.setBounds(b); next.setVisible(true); dispose(); }
                     }
-                }
-            });
+                });
+            }
             sidebar.add(nav);
         }
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(sep());
-        JLabel exit = navLabel("✕  Exit");
-        exit.setForeground(new Color(252, 165, 165));
-        exit.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                int c = JOptionPane.showConfirmDialog(CompanyFrame.this, "Exit application?", "Confirm", JOptionPane.YES_NO_OPTION);
-                if (c == JOptionPane.YES_OPTION) System.exit(0);
-            }
+        JLabel logout = navLabel("Logout", false);
+        PharmIcons.apply(logout, "logout");
+        logout.setForeground(new Color(252, 165, 165));
+        logout.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { new LoginFrame().setVisible(true); dispose(); }
         });
-        sidebar.add(exit);
+        sidebar.add(logout);
         sidebar.add(Box.createVerticalStrut(8));
         return sidebar;
     }
@@ -128,7 +153,9 @@ public class CompanyFrame extends javax.swing.JFrame {
         header.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
             BorderFactory.createEmptyBorder(0, 24, 0, 24)));
-        JLabel title = new JLabel("🏢  Supplier Management");
+        JLabel title = new JLabel("Supplier Management");
+        title.setIcon(PharmIcons.hdr("comp"));
+        title.setIconTextGap(9);
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(TEXT_DARK);
         headerSubtitle = new JLabel("Manage supplier contacts and lead times");
@@ -240,7 +267,7 @@ public class CompanyFrame extends javax.swing.JFrame {
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         searchField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4, 8, 4, 8)));
-        searchField.putClientProperty("JTextField.placeholderText", "🔍  Search suppliers...");
+        searchField.putClientProperty("JTextField.placeholderText", "Search suppliers...");
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(javax.swing.event.DocumentEvent e) { filter(); }
             public void removeUpdate(javax.swing.event.DocumentEvent e) { filter(); }
@@ -338,18 +365,20 @@ public class CompanyFrame extends javax.swing.JFrame {
             }
         });
     }
-    private JLabel navLabel(String text) {
+    private JLabel navLabel(String text, boolean disabled) {
         JLabel l = new JLabel(text);
         l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        l.setForeground(new Color(203, 213, 225));
-        l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        l.setBorder(BorderFactory.createEmptyBorder(11, 18, 11, 8));
+        l.setForeground(disabled ? new Color(71, 85, 105) : new Color(203, 213, 225));
+        if (!disabled) l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        l.setBorder(BorderFactory.createEmptyBorder(11, 12, 11, 8));
         l.setOpaque(true); l.setBackground(SIDEBAR_BG);
         l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        l.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { l.setBackground(SIDEBAR_HOVER); }
-            public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG); }
-        });
+        if (!disabled) {
+            l.addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) { l.setBackground(SIDEBAR_HOVER); }
+                public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG); }
+            });
+        }
         return l;
     }
     private JSeparator sep() {

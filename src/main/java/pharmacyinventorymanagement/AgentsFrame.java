@@ -27,8 +27,11 @@ public class AgentsFrame extends javax.swing.JFrame {
     Statement St = null;
     ResultSet Rs = null;
 
+    private String userRole;
+
     // ── Form fields ───────────────────────────────────────────────────────────
-    private JTextField a_id, a_name, a_age, a_password, a_phone, a_email;
+    private JTextField a_id, a_name, a_age, a_phone, a_email;
+    private JPasswordField a_password;
     private JComboBox<String> a_gender, a_role;
 
     // ── Table & buttons ───────────────────────────────────────────────────────
@@ -36,13 +39,22 @@ public class AgentsFrame extends javax.swing.JFrame {
     private JButton btnAdd, btnDelete, btnUpdate, btnClear;
     private JLabel headerSubtitle;
 
-    public AgentsFrame() {
+    public AgentsFrame() { this("Admin"); }
+
+    public AgentsFrame(String role) {
+        this.userRole = role;
         initComponents();
         loadAgents();
     }
 
     private void initComponents() {
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (javax.swing.JOptionPane.showConfirmDialog(null, "Exit the application?", "Confirm Exit", javax.swing.JOptionPane.YES_NO_OPTION) == javax.swing.JOptionPane.YES_OPTION)
+                    System.exit(0);
+            }
+        });
         setTitle("Manage Agents – Pharmacy System");
         setSize(1050, 680);
         setMinimumSize(new Dimension(900, 600));
@@ -73,48 +85,65 @@ public class AgentsFrame extends javax.swing.JFrame {
         sidebar.add(logoArea);
         sidebar.add(sep());
 
-        JLabel activeLabel = new JLabel("  👤 Agents");
+        JLabel activeLabel = new JLabel("  Agents");
         activeLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         activeLabel.setForeground(ACCENT);
         activeLabel.setBackground(new Color(6, 78, 59));
         activeLabel.setOpaque(true);
-        activeLabel.setBorder(BorderFactory.createEmptyBorder(6, 18, 6, 8));
+        activeLabel.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 8));
         activeLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        PharmIcons.apply(activeLabel, "agents");
         sidebar.add(activeLabel);
         sidebar.add(sep());
 
+        boolean isTech  = "Technician".equalsIgnoreCase(userRole);
+        boolean isPharm = "Pharmacist".equalsIgnoreCase(userRole);
+
         String[][] items = {
-            {"🏠  Dashboard", "dash"}, {"💊  Medicines", "med"},
-            {"🏢  Suppliers", "comp"}, {"💳  Billing", "sell"},
-            {"📦  Purchase Orders", "po"}
+            {"Dashboard",       "dash"},
+            {"Medicines",       "med"},
+            {"Suppliers",       "comp"},
+            {"Billing",         "sell"},
+            {"Purchase Orders", "po"},
+            {"Sales History",   "sales"},
+            {"Reports",         "reports"}
         };
         for (String[] item : items) {
-            JLabel nav = navLabel(item[0]);
             final String key = item[1];
-            nav.addMouseListener(new MouseAdapter() {
-                public void mouseClicked(MouseEvent e) {
-                    switch (key) {
-                        case "dash": new DashboardFrame().setVisible(true);     dispose(); break;
-                        case "med":  new MedicineFrame().setVisible(true);      dispose(); break;
-                        case "comp": new CompanyFrame().setVisible(true);       dispose(); break;
-                        case "sell": new SellingFrame().setVisible(true);       dispose(); break;
-                        case "po":   new PurchaseOrderFrame().setVisible(true); dispose(); break;
+            boolean restricted =
+                (isTech  && (key.equals("comp") || key.equals("po") || key.equals("reports"))) ||
+                (isPharm && false);
+            JLabel nav = navLabel(item[0], restricted);
+            PharmIcons.apply(nav, key);
+            if (!restricted) {
+                nav.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        java.awt.Rectangle b = getBounds();
+                        JFrame next = null;
+                        switch (key) {
+                            case "dash":    next = new DashboardFrame(userRole);      break;
+                            case "med":     next = new MedicineFrame(userRole);       break;
+                            case "comp":    next = new CompanyFrame(userRole);        break;
+                            case "sell":    next = new SellingFrame(userRole);        break;
+                            case "po":      next = new PurchaseOrderFrame(userRole);  break;
+                            case "sales":   next = new SalesHistoryFrame(userRole);   break;
+                            case "reports": next = new ReportsFrame(userRole);        break;
+                        }
+                        if (next != null) { next.setBounds(b); next.setVisible(true); dispose(); }
                     }
-                }
-            });
+                });
+            }
             sidebar.add(nav);
         }
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(sep());
-        JLabel exit = navLabel("✕  Exit");
-        exit.setForeground(new Color(252, 165, 165));
-        exit.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                int c = JOptionPane.showConfirmDialog(AgentsFrame.this, "Exit application?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
-                if (c == JOptionPane.YES_OPTION) System.exit(0);
-            }
+        JLabel logout = navLabel("Logout", false);
+        PharmIcons.apply(logout, "logout");
+        logout.setForeground(new Color(252, 165, 165));
+        logout.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { new LoginFrame().setVisible(true); dispose(); }
         });
-        sidebar.add(exit);
+        sidebar.add(logout);
         sidebar.add(Box.createVerticalStrut(8));
         return sidebar;
     }
@@ -130,7 +159,9 @@ public class AgentsFrame extends javax.swing.JFrame {
         header.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
             BorderFactory.createEmptyBorder(0, 24, 0, 24)));
-        JLabel title = new JLabel("👤  Manage Agents");
+        JLabel title = new JLabel("Manage Agents");
+        title.setIcon(PharmIcons.hdr("agents"));
+        title.setIconTextGap(9);
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(TEXT_DARK);
         headerSubtitle = new JLabel("Add and manage staff accounts");
@@ -171,8 +202,13 @@ public class AgentsFrame extends javax.swing.JFrame {
     private void setStatus(String msg) { if (statusBar != null) statusBar.setText(msg); }
 
     private JPanel buildFormCard() {
-        a_id       = field(); a_name     = field(); a_age      = field();
-        a_password = field(); a_phone    = field(); a_email    = field();
+        a_id    = field(); a_name  = field(); a_age   = field();
+        a_phone = field(); a_email = field();
+        a_password = new JPasswordField();
+        a_password.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        a_password.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        a_password.setPreferredSize(new Dimension(160, 28));
         a_gender   = new JComboBox<>(new String[]{"Male", "Female", "Other"}); styleCombo(a_gender);
         a_role     = new JComboBox<>(new String[]{"Admin", "Pharmacist", "Technician"}); styleCombo(a_role);
 
@@ -242,7 +278,7 @@ public class AgentsFrame extends javax.swing.JFrame {
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         searchField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4, 8, 4, 8)));
-        searchField.putClientProperty("JTextField.placeholderText", "🔍  Search agents...");
+        searchField.putClientProperty("JTextField.placeholderText", "Search agents...");
         searchField.setToolTipText("Filter the agent list");
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(javax.swing.event.DocumentEvent e) { filter(); }
@@ -341,18 +377,20 @@ public class AgentsFrame extends javax.swing.JFrame {
             }
         });
     }
-    private JLabel navLabel(String text) {
+    private JLabel navLabel(String text, boolean disabled) {
         JLabel l = new JLabel(text);
         l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        l.setForeground(new Color(203, 213, 225));
-        l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        l.setBorder(BorderFactory.createEmptyBorder(11, 18, 11, 8));
+        l.setForeground(disabled ? new Color(71, 85, 105) : new Color(203, 213, 225));
+        if (!disabled) l.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        l.setBorder(BorderFactory.createEmptyBorder(11, 12, 11, 8));
         l.setOpaque(true); l.setBackground(SIDEBAR_BG);
         l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        l.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { l.setBackground(SIDEBAR_HOVER); }
-            public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG); }
-        });
+        if (!disabled) {
+            l.addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) { l.setBackground(SIDEBAR_HOVER); }
+                public void mouseExited(MouseEvent e)  { l.setBackground(SIDEBAR_BG); }
+            });
+        }
         return l;
     }
     private JSeparator sep() {
@@ -402,7 +440,10 @@ public class AgentsFrame extends javax.swing.JFrame {
 
     private void setAgentColumnWidths() {
         if (AgentTable.getColumnCount() < 4) return;
-        int[] widths = {50, 140, 50, 110, 110, 70, 160, 100};
+        // Hide the password column (index 3) — never show passwords on screen
+        javax.swing.table.TableColumn pwdCol = AgentTable.getColumnModel().getColumn(3);
+        pwdCol.setMinWidth(0); pwdCol.setMaxWidth(0); pwdCol.setWidth(0); pwdCol.setResizable(false);
+        int[] widths = {50, 160, 50, 0, 120, 70, 180, 100};
         for (int i = 0; i < Math.min(widths.length, AgentTable.getColumnCount()); i++)
             AgentTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
     }
@@ -415,14 +456,18 @@ public class AgentsFrame extends javax.swing.JFrame {
     }
 
     private void btnAddMouseClicked(MouseEvent evt) {
-        highlightRequired(a_id, a_name, a_age, a_password, a_phone, a_email);
+        highlightRequired(a_id, a_name, a_age, a_phone, a_email);
+        String pwd = new String(a_password.getPassword());
+        a_password.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(pwd.isEmpty() ? new Color(239,68,68) : BORDER_CLR),
+            BorderFactory.createEmptyBorder(4,8,4,8)));
         try {
             Con = DatabaseHelper.getConnection();
             try (PreparedStatement add = Con.prepareStatement("INSERT INTO AGENTS VALUES(?,?,?,?,?,?,?,?)")) {
                 add.setInt(1, Integer.parseInt(a_id.getText()));
                 add.setString(2, a_name.getText());
                 add.setInt(3, Integer.parseInt(a_age.getText()));
-                add.setString(4, a_password.getText());
+                add.setString(4, pwd);
                 add.setString(5, a_phone.getText());
                 add.setString(6, a_gender.getSelectedItem().toString());
                 add.setString(7, a_email.getText());
@@ -454,7 +499,7 @@ public class AgentsFrame extends javax.swing.JFrame {
 
     private void btnUpdateMouseClicked(MouseEvent evt) {
         if (a_id.getText().isEmpty() || a_name.getText().isEmpty() || a_age.getText().isEmpty()
-                || a_phone.getText().isEmpty() || a_password.getText().isEmpty() || a_email.getText().isEmpty()) {
+                || a_phone.getText().isEmpty() || a_email.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill all fields."); return;
         }
         try {
@@ -464,13 +509,26 @@ public class AgentsFrame extends javax.swing.JFrame {
                 chk.setInt(1, id);
                 if (!chk.executeQuery().next()) { JOptionPane.showMessageDialog(this, "Agent ID " + id + " not found."); return; }
             }
-            try (PreparedStatement upd = Con.prepareStatement(
-                    "UPDATE AGENTS SET A_NAME=?,A_AGE=?,A_PHONE=?,A_PASSWORD=?,A_GENDER=?,A_EMAIL=?,A_ROLE=? WHERE A_ID=?")) {
-                upd.setString(1, a_name.getText()); upd.setInt(2, Integer.parseInt(a_age.getText()));
-                upd.setString(3, a_phone.getText()); upd.setString(4, a_password.getText());
-                upd.setString(5, a_gender.getSelectedItem().toString());
-                upd.setString(6, a_email.getText()); upd.setString(7, a_role.getSelectedItem().toString());
-                upd.setInt(8, id); upd.executeUpdate();
+            String newPwd = new String(a_password.getPassword());
+            if (newPwd.isEmpty()) {
+                // Password left blank — keep the existing one
+                try (PreparedStatement upd = Con.prepareStatement(
+                        "UPDATE AGENTS SET A_NAME=?,A_AGE=?,A_PHONE=?,A_GENDER=?,A_EMAIL=?,A_ROLE=? WHERE A_ID=?")) {
+                    upd.setString(1, a_name.getText()); upd.setInt(2, Integer.parseInt(a_age.getText()));
+                    upd.setString(3, a_phone.getText());
+                    upd.setString(4, a_gender.getSelectedItem().toString());
+                    upd.setString(5, a_email.getText()); upd.setString(6, a_role.getSelectedItem().toString());
+                    upd.setInt(7, id); upd.executeUpdate();
+                }
+            } else {
+                try (PreparedStatement upd = Con.prepareStatement(
+                        "UPDATE AGENTS SET A_NAME=?,A_AGE=?,A_PHONE=?,A_PASSWORD=?,A_GENDER=?,A_EMAIL=?,A_ROLE=? WHERE A_ID=?")) {
+                    upd.setString(1, a_name.getText()); upd.setInt(2, Integer.parseInt(a_age.getText()));
+                    upd.setString(3, a_phone.getText()); upd.setString(4, newPwd);
+                    upd.setString(5, a_gender.getSelectedItem().toString());
+                    upd.setString(6, a_email.getText()); upd.setString(7, a_role.getSelectedItem().toString());
+                    upd.setInt(8, id); upd.executeUpdate();
+                }
             }
             loadAgents(); setStatus("Updated agent: " + a_name.getText()); JOptionPane.showMessageDialog(this, "Agent updated.");
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error: " + e.getMessage()); }
@@ -482,11 +540,12 @@ public class AgentsFrame extends javax.swing.JFrame {
         a_id.setText(model.getValueAt(i, 0).toString());
         a_name.setText(model.getValueAt(i, 1).toString());
         a_age.setText(model.getValueAt(i, 2).toString());
-        a_password.setText(model.getValueAt(i, 3).toString());
+        // Skip column 3 (A_PASSWORD) — never show password; leave field blank so admin types a new one if needed
         a_phone.setText(model.getValueAt(i, 4).toString());
         a_gender.setSelectedItem(model.getValueAt(i, 5).toString());
         a_email.setText(model.getValueAt(i, 6).toString());
         a_role.setSelectedItem(model.getValueAt(i, 7) == null ? "Technician" : model.getValueAt(i, 7).toString());
+        a_password.setText("");
     }
 
     private void resetFieldBorder(JTextField... fields) {
@@ -499,7 +558,9 @@ public class AgentsFrame extends javax.swing.JFrame {
         a_id.setText(""); a_name.setText(""); a_age.setText("");
         a_phone.setText(""); a_password.setText(""); a_email.setText("");
         a_gender.setSelectedIndex(0); a_role.setSelectedIndex(2);
-        resetFieldBorder(a_id, a_name, a_age, a_password, a_phone, a_email);
+        resetFieldBorder(a_id, a_name, a_age, a_phone, a_email);
+        a_password.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_CLR), BorderFactory.createEmptyBorder(4,8,4,8)));
         setStatus("Form cleared");
     }
 
